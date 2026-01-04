@@ -7,7 +7,9 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Unifiedtransform') }}</title>
+    <!-- <title>{{ config('app.name', 'Unifiedtransform') }}</title> -->
+     <title>Deep Griha Academy</title>
+
 
     <link rel="shortcut icon" href="{{asset('favicon_io/favicon.ico')}}">
     <link rel="shortcut icon" sizes="16x16" href="{{asset('favicon_io/favicon-16x16.png')}}">
