@@ -87,13 +87,28 @@
                                     <form action="{{route('school.attendance.type.update')}}" method="POST">
                                         @csrf
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="attendance_type" id="attendance_type_section" {{($academic_setting->attendance_type == 'section')?'checked="checked"':null}} value="section">
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                name="attendance_type"
+                                                id="attendance_type_section"
+                                                value="section"
+                                                {{ optional($academic_setting)->attendance_type === 'section' ? 'checked' : '' }}
+                                            >
+
                                             <label class="form-check-label" for="attendance_type_section">
                                                 Attendance by Section
                                             </label>
                                         </div>
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="attendance_type" id="attendance_type_course" {{($academic_setting->attendance_type == 'course')?'checked="checked"':null}} value="course">
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                name="attendance_type"
+                                                id="attendance_type_course"
+                                                value="course"
+                                                {{ optional($academic_setting)->attendance_type === 'course' ? 'checked' : '' }}
+                                            >
                                             <label class="form-check-label" for="attendance_type_course">
                                                 Attendance by Course
                                             </label>
@@ -247,8 +262,18 @@
                                             <small><i class="bi bi-exclamation-diamond-fill me-2"></i> Disallow at the start of a "Semester".</small>
                                         </p>
                                         <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="marks_submission_status" id="marks_submission_status_check" {{($academic_setting->marks_submission_status == 'on')?'checked="checked"':null}}>
-                                            <label class="form-check-label" for="marks_submission_status_check">{{($academic_setting->marks_submission_status == 'on')?'Allowed':'Disallowed'}}</label>
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                name="marks_submission_status"
+                                                id="marks_submission_status_check"
+                                                {{ optional($academic_setting)->marks_submission_status === 'on' ? 'checked' : '' }}
+                                            >
+
+                                            <label class="form-check-label" for="marks_submission_status_check">
+                                                {{ optional($academic_setting)->marks_submission_status === 'on' ? 'Allowed' : 'Disallowed' }}
+                                            </label>
+
                                         </div>
                                         <button type="submit" class="mt-3 btn btn-sm btn-outline-primary"><i class="bi bi-check2"></i> Save</button>
                                     </form>

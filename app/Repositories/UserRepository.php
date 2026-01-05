@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Hash;
 use App\Repositories\PromotionRepository;
 use App\Repositories\StudentParentInfoRepository;
 use App\Repositories\StudentAcademicInfoRepository;
+use Spatie\Permission\Models\Permission;
+
 
 class UserRepository implements UserInterface {
     use Base64ToFile;
@@ -20,103 +22,221 @@ class UserRepository implements UserInterface {
      * @param mixed $request
      * @return string
     */
-    public function createTeacher($request) {
-        try {
-            DB::transaction(function () use ($request) {
-                $user = User::create([
-                    'first_name'    => $request['first_name'],
-                    'last_name'     => $request['last_name'],
-                    'email'         => $request['email'],
-                    'gender'        => $request['gender'],
-                    'nationality'   => $request['nationality'],
-                    'phone'         => $request['phone'],
-                    'address'       => $request['address'],
-                    'address2'      => $request['address2'],
-                    'city'          => $request['city'],
-                    'zip'           => $request['zip'],
-                    'photo'         => (!empty($request['photo']))?$this->convert($request['photo']):null,
-                    'role'          => 'teacher',
-                    'password'      => Hash::make($request['password']),
-                ]);
-                $user->givePermissionTo(
-                    'create exams',
-                    'view exams',
-                    'create exams rule',
-                    'view exams rule',
-                    'edit exams rule',
-                    'delete exams rule',
-                    'take attendances',
-                    'view attendances',
-                    'create assignments',
-                    'view assignments',
-                    'save marks',
-                    'view users',
-                    'view routines',
-                    'view syllabi',
-                    'view events',
-                    'view notices',
-                );
-            });
-        } catch (\Exception $e) {
-            throw new \Exception('Failed to create Teacher. '.$e->getMessage());
-        }
+    public function createTeacher($request)
+    {
+    try {
+        DB::transaction(function () use ($request) {
+
+            $user = User::create([
+                'first_name'  => $request['first_name'],
+                'last_name'   => $request['last_name'],
+                'email'       => $request['email'],
+                'gender'      => $request['gender'],
+                'nationality' => $request['nationality'],
+                'phone'       => $request['phone'],
+                'address'     => $request['address'],
+                'address2'    => $request['address2'],
+                'city'        => $request['city'],
+                'zip'         => $request['zip'],
+                'photo'       => (!empty($request['photo'])) ? $this->convert($request['photo']) : null,
+                'role'        => 'teacher',
+                'password'    => Hash::make($request['password']),
+            ]);
+
+            // MVP-safe permission assignment
+            $permissions = [
+                'create exams',
+                'view exams',
+                'create exams rule',
+                'view exams rule',
+                'edit exams rule',
+                'delete exams rule',
+                'take attendances',
+                'view attendances',
+                'create assignments',
+                'view assignments',
+                'save marks',
+                'view users',
+                'view routines',
+                'view syllabi',
+                'view events',
+                'view notices',
+            ];
+
+            $existingPermissions = Permission::whereIn('name', $permissions)
+                ->where('guard_name', 'web')
+                ->pluck('name')
+                ->toArray();
+
+            if (!empty($existingPermissions)) {
+                $user->givePermissionTo($existingPermissions);
+            }
+        });
+    } catch (\Exception $e) {
+        throw new \Exception('Failed to create Teacher. ' . $e->getMessage());
     }
+}
+    // public function createTeacher($request) {
+    //     try {
+    //         DB::transaction(function () use ($request) {
+    //             $user = User::create([
+    //                 'first_name'    => $request['first_name'],
+    //                 'last_name'     => $request['last_name'],
+    //                 'email'         => $request['email'],
+    //                 'gender'        => $request['gender'],
+    //                 'nationality'   => $request['nationality'],
+    //                 'phone'         => $request['phone'],
+    //                 'address'       => $request['address'],
+    //                 'address2'      => $request['address2'],
+    //                 'city'          => $request['city'],
+    //                 'zip'           => $request['zip'],
+    //                 'photo'         => (!empty($request['photo']))?$this->convert($request['photo']):null,
+    //                 'role'          => 'teacher',
+    //                 'password'      => Hash::make($request['password']),
+    //             ]);
+    //             $user->givePermissionTo(
+    //                 'create exams',
+    //                 'view exams',
+    //                 'create exams rule',
+    //                 'view exams rule',
+    //                 'edit exams rule',
+    //                 'delete exams rule',
+    //                 'take attendances',
+    //                 'view attendances',
+    //                 'create assignments',
+    //                 'view assignments',
+    //                 'save marks',
+    //                 'view users',
+    //                 'view routines',
+    //                 'view syllabi',
+    //                 'view events',
+    //                 'view notices',
+    //             );
+    //         });
+    //     } catch (\Exception $e) {
+    //         throw new \Exception('Failed to create Teacher. '.$e->getMessage());
+    //     }
+    // }
 
     /**
      * @param mixed $request
      * @return string
     */
-    public function createStudent($request) {
-        try {
-            DB::transaction(function () use ($request) {
-                $student = User::create([
-                    'first_name'    => $request['first_name'],
-                    'last_name'     => $request['last_name'],
-                    'email'         => $request['email'],
-                    'gender'        => $request['gender'],
-                    'nationality'   => $request['nationality'],
-                    'phone'         => $request['phone'],
-                    'address'       => $request['address'],
-                    'address2'      => $request['address2'],
-                    'city'          => $request['city'],
-                    'zip'           => $request['zip'],
-                    'photo'         => (!empty($request['photo']))?$this->convert($request['photo']):null,
-                    'birthday'      => $request['birthday'],
-                    'religion'      => $request['religion'],
-                    'blood_type'    => $request['blood_type'],
-                    'role'          => 'student',
-                    'password'      => Hash::make($request['password']),
-                ]);
+    // public function createStudent($request) {
+    //     try {
+    //         DB::transaction(function () use ($request) {
+    //             $student = User::create([
+    //                 'first_name'    => $request['first_name'],
+    //                 'last_name'     => $request['last_name'],
+    //                 'email'         => $request['email'],
+    //                 'gender'        => $request['gender'],
+    //                 'nationality'   => $request['nationality'],
+    //                 'phone'         => $request['phone'],
+    //                 'address'       => $request['address'],
+    //                 'address2'      => $request['address2'],
+    //                 'city'          => $request['city'],
+    //                 'zip'           => $request['zip'],
+    //                 'photo'         => (!empty($request['photo']))?$this->convert($request['photo']):null,
+    //                 'birthday'      => $request['birthday'],
+    //                 'religion'      => $request['religion'],
+    //                 'blood_type'    => $request['blood_type'],
+    //                 'role'          => 'student',
+    //                 'password'      => Hash::make($request['password']),
+    //             ]);
 
-                // Store Parents' information
-                $studentParentInfoRepository = new StudentParentInfoRepository();
-                $studentParentInfoRepository->store($request, $student->id);
+    //             // Store Parents' information
+    //             $studentParentInfoRepository = new StudentParentInfoRepository();
+    //             $studentParentInfoRepository->store($request, $student->id);
 
-                // Store Academic information
-                $studentAcademicInfoRepository = new StudentAcademicInfoRepository();
-                $studentAcademicInfoRepository->store($request, $student->id);
+    //             // Store Academic information
+    //             $studentAcademicInfoRepository = new StudentAcademicInfoRepository();
+    //             $studentAcademicInfoRepository->store($request, $student->id);
 
-                // Assign student to a Class and a Section
-                $promotionRepository = new PromotionRepository();
-                $promotionRepository->assignClassSection($request, $student->id);
+    //             // Assign student to a Class and a Section
+    //             $promotionRepository = new PromotionRepository();
+    //             $promotionRepository->assignClassSection($request, $student->id);
 
-                $student->givePermissionTo(
-                    'view attendances',
-                    'view assignments',
-                    'submit assignments',
-                    'view exams',
-                    'view marks',
-                    'view users',
-                    'view routines',
-                    'view syllabi',
-                    'view events',
-                    'view notices',
-                );
-            });
-        } catch (\Exception $e) {
-            throw new \Exception('Failed to create Student. '.$e->getMessage());
-        }
+    //             $student->givePermissionTo(
+    //                 'view attendances',
+    //                 'view assignments',
+    //                 'submit assignments',
+    //                 'view exams',
+    //                 'view marks',
+    //                 'view users',
+    //                 'view routines',
+    //                 'view syllabi',
+    //                 'view events',
+    //                 'view notices',
+    //             );
+    //         });
+    //     } catch (\Exception $e) {
+    //         throw new \Exception('Failed to create Student. '.$e->getMessage());
+    //     }
+    // }
+    public function createStudent($request)
+{
+    try {
+        DB::transaction(function () use ($request) {
+
+            $student = User::create([
+                'first_name'  => $request['first_name'],
+                'last_name'   => $request['last_name'],
+                'email'       => $request['email'],
+                'gender'      => $request['gender'],
+                'nationality' => $request['nationality'],
+                'phone'       => $request['phone'],
+                'address'     => $request['address'],
+                'address2'    => $request['address2'],
+                'city'        => $request['city'],
+                'zip'         => $request['zip'],
+                'photo'       => (!empty($request['photo'])) ? $this->convert($request['photo']) : null,
+                'birthday'    => $request['birthday'],
+                'religion'    => $request['religion'],
+                'blood_type'  => $request['blood_type'],
+                'role'        => 'student',
+                'password'    => Hash::make($request['password']),
+            ]);
+
+            // Store Parents' information
+            $studentParentInfoRepository = new StudentParentInfoRepository();
+            $studentParentInfoRepository->store($request, $student->id);
+
+            // Store Academic information
+            $studentAcademicInfoRepository = new StudentAcademicInfoRepository();
+            $studentAcademicInfoRepository->store($request, $student->id);
+
+            // Assign student to Class & Section
+            $promotionRepository = new PromotionRepository();
+            $promotionRepository->assignClassSection($request, $student->id);
+
+            // MVP-safe permission assignment
+            $permissions = [
+                'view attendances',
+                'view assignments',
+                'submit assignments',
+                'view exams',
+                'view marks',
+                'view users',
+                'view routines',
+                'view syllabi',
+                'view events',
+                'view notices',
+            ];
+
+            $existingPermissions = Permission::whereIn('name', $permissions)
+                ->where('guard_name', 'web')
+                ->pluck('name')
+                ->toArray();
+
+            if (!empty($existingPermissions)) {
+                $student->givePermissionTo($existingPermissions);
+            }
+        });
+
+    } catch (\Exception $e) {
+        throw new \Exception('Failed to create Student. ' . $e->getMessage());
     }
+}
 
     public function updateStudent($request) {
         try {
