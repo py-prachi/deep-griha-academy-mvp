@@ -25,6 +25,18 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        //
+         // 🔓 MVP RULE: Admin can do everything
+        Gate::before(function ($user, $ability) {
+            return $user->role === 'admin' ? true : null;
+        });
+
+         // ✅ Attendance permissions for teachers
+        Gate::define('view attendances', function ($user) {
+            return $user->role === 'teacher';
+        });
+
+        Gate::define('take attendances', function ($user) {
+            return $user->role === 'teacher';
+        });
     }
 }
