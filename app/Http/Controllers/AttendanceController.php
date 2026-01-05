@@ -70,46 +70,57 @@ class AttendanceController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function create(Request $request)
-    {
-        if($request->query('class_id') == null){
-            return abort(404);
-        }
-        try{
-            $academic_setting = $this->academicSettingRepository->getAcademicSetting();
-            $current_school_session_id = $this->getSchoolCurrentSession();
-
-            $class_id = $request->query('class_id');
-            $section_id = $request->query('section_id', 0);
-            $course_id = $request->query('course_id');
-
-            $student_list = $this->userRepository->getAllStudents($current_school_session_id, $class_id, $section_id);
-
-            $school_class = $this->schoolClassRepository->findById($class_id);
-            $school_section = $this->sectionRepository->findById($section_id);
-
-            $attendanceRepository = new AttendanceRepository();
-
-            if($academic_setting->attendance_type == 'section') {
-                $attendance_count = $attendanceRepository->getSectionAttendance($class_id, $section_id, $current_school_session_id)->count();
-            } else {
-                $attendance_count = $attendanceRepository->getCourseAttendance($class_id, $course_id, $current_school_session_id)->count();
-            }
-
-            $data = [
-                'current_school_session_id' => $current_school_session_id,
-                'academic_setting'  => $academic_setting,
-                'student_list'      => $student_list,
-                'school_class'      => $school_class,
-                'school_section'    => $school_section,
-                'attendance_count'  => $attendance_count,
-            ];
-
-            return view('attendances.take', $data);
-        } catch (\Exception $e) {
-            return back()->withError($e->getMessage());
-        }
+public function create(Request $request)
+{
+    if ($request->query('class_id') === null) {
+        abort(404);
     }
+
+    try {
+        // ✅ FETCH FIRST
+        $academic_setting = $this->academicSettingRepository->getAcademicSetting();
+        $attendance_type = $academic_setting->attendance_type ?? 'section';
+
+        $current_school_session_id = $this->getSchoolCurrentSession();
+
+        $class_id   = $request->query('class_id');
+        $section_id = $request->query('section_id', 0);
+        $course_id  = $request->query('course_id');
+
+        // ✅ STUDENTS
+        $student_list = $this->userRepository
+            ->getAllStudents($current_school_session_id, $class_id, $section_id);
+
+        $school_class   = $this->schoolClassRepository->findById($class_id);
+        $school_section = $this->sectionRepository->findById($section_id);
+
+        $attendanceRepository = new AttendanceRepository();
+
+        // ✅ CORRECTLY HANDLE SECTION VS COURSE
+        if ($attendance_type === 'section') {
+            $attendance_count = $attendanceRepository
+                ->getSectionAttendance($class_id, $section_id, $current_school_session_id)
+                ->count();
+        } else {
+            $attendance_count = $attendanceRepository
+                ->getCourseAttendance($class_id, $course_id, $current_school_session_id)
+                ->count();
+        }
+
+        return view('attendances.take', [
+            'current_school_session_id' => $current_school_session_id,
+            'academic_setting'          => $academic_setting,
+            'student_list'              => $student_list,
+            'school_class'              => $school_class,
+            'school_section'            => $school_section,
+            'attendance_count'          => $attendance_count,
+        ]);
+    } catch (\Exception $e) {
+        return back()->withError($e->getMessage());
+    }
+}
+
+
 
     /**
      * Store a newly created resource in storage.
@@ -151,14 +162,23 @@ class AttendanceController extends Controller
 
         try {
             $academic_setting = $this->academicSettingRepository->getAcademicSetting();
-            if($academic_setting->attendance_type == 'section') {
-                $attendances = $attendanceRepository->getSectionAttendance($class_id, $section_id, $current_school_session_id);
-            } else {
-                $attendances = $attendanceRepository->getCourseAttendance($class_id, $course_id, $current_school_session_id);
-            }
+$attendance_type = $academic_setting->attendance_type ?? 'section';
+
+if ($attendance_type === 'section') {
+    $attendances = $attendanceRepository
+        ->getSectionAttendance($class_id, $section_id, $current_school_session_id);
+} else {
+    $attendances = $attendanceRepository
+        ->getCourseAttendance($class_id, $course_id, $current_school_session_id);
+}
+
             $data = ['attendances' => $attendances];
             
-            return view('attendances.view', $data);
+            return view('attendances.view', [
+    'attendances' => $attendances,
+    'academic_setting' => $academic_setting
+]);
+
         } catch (\Exception $e) {
             return back()->withError($e->getMessage());
         }

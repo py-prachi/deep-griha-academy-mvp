@@ -33,25 +33,37 @@
                                         <th scope="col">Total Attended</th>
                                     </tr>
                                 </thead>
+                              
                                 <tbody>
-                                    @foreach ($attendances as $attendance)
-                                        @php
-                                            $total_attended = \App\Models\Attendance::where('student_id', $attendance->student_id)->where('session_id', $attendance->session_id)->count();
-                                        @endphp
-                                        <tr>
-                                            <td>{{$attendance->student->first_name}} {{$attendance->student->last_name}}</td>
-                                            <td>
-                                                @if ($attendance->status == "on")
-                                                    <span class="badge bg-success">PRESENT</span>
-                                                @else
-                                                    <span class="badge bg-danger">ABSENT</span>
-                                                @endif
-                                                
-                                            </td>
-                                            <td>{{$total_attended}}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
+@if($attendances->count() === 0)
+    <tr>
+        <td colspan="3" class="text-center text-muted">
+            No attendance records found.
+        </td>
+    </tr>
+@else
+    @foreach ($attendances as $attendance)
+        @php
+            $total_attended = \App\Models\Attendance::where('student_id', $attendance->student_id)
+                ->where('session_id', $attendance->session_id)
+                ->where('status', 'on')
+                ->count();
+        @endphp
+        <tr>
+            <td>{{ $attendance->student->first_name }} {{ $attendance->student->last_name }}</td>
+            <td>
+                @if ($attendance->status === "on")
+                    <span class="badge bg-success">PRESENT</span>
+                @else
+                    <span class="badge bg-danger">ABSENT</span>
+                @endif
+            </td>
+            <td>{{ $total_attended }}</td>
+        </tr>
+    @endforeach
+@endif
+</tbody>
+
                             </table>
                         </div>
                     </div>
