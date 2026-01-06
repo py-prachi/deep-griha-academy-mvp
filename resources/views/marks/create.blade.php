@@ -18,7 +18,8 @@
                         </ol>
                     </nav>
                     @include('session-messages')
-                    @if ($academic_setting['marks_submission_status'] == "on")
+                    @if(optional($academic_setting)->marks_submission_status === "on")
+
                     <p class="text-primary">
                         <i class="bi bi-exclamation-diamond-fill me-2"></i> Marks Submission Window is open now.
                     </p>
@@ -33,7 +34,8 @@
                     @endif
                     <h3><i class="bi bi-diagram-2"></i> Class #{{request()->query('class_name')}}, Section #{{request()->query('section_name')}}</h3>
                     <h3><i class="bi bi-compass"></i> Course: {{request()->query('course_name')}}</h3>
-                    @if (!$final_marks_submitted && count($exams) > 0 && $academic_setting['marks_submission_status'] == "on")
+                    @if (!$final_marks_submitted && count($exams) > 0 && optional($academic_setting)->marks_submission_status === "on"
+)
                         <div class="col-3 mt-3">
                             <a type="button" href="{{route('course.final.mark.submit.show', ['class_id' => $class_id, 'class_name' => request()->query('class_name'), 'section_id' => $section_id, 'section_name' => request()->query('section_name'), 'course_id' => $course_id, 'course_name' => request()->query('course_name'), 'semester_id' => $semester_id])}}" class="btn btn-outline-primary" onclick="return confirm('Are you sure, you want to submit final marks?')"><i class="bi bi-check2"></i> Submit Final Marks</a>
                         </div>
@@ -64,7 +66,11 @@
                                                             $markedExamCount = 0;
                                                         @endphp
                                                     <tr>
-                                                        <td>{{$students_with_mark[0]->student->first_name}} {{$students_with_mark[0]->student->last_name}}</td>
+                                                        <td>
+    {{ optional($students_with_mark[0]->student ?? null)->first_name }}
+    {{ optional($students_with_mark[0]->student ?? null)->last_name }}
+</td>
+
                                                         @foreach ($students_with_mark as $st)
                                                             <td>
                                                                 <input type="number" step="0.01" class="form-control" name="student_mark[{{$students_with_mark[0]->student->id}}][{{$exams[$markedExamCount]->id}}]" value="{{$st->marks}}">
@@ -84,7 +90,8 @@
                                                         @endphp
                                                         @for ($i = 0; $i < $gt; $i++)
                                                             <td>
-                                                                <input type="number" step="0.01" class="form-control" name="student_mark[{{$students_with_mark[0]->student->id}}][{{$exams[$markedExamCount]->id}}]">
+                                                                <input type="number" step="0.01" class="form-control" name="student_mark[{{$students_with_mark[0]->student->id}}][{{ $exams[$markedExamCount]->id ?? '' }}
+]">
                                                             </td>
                                                             @php
                                                                 $markedExamCount++;
@@ -94,7 +101,7 @@
                                                     @endforeach
                                                 @endisset
                                             @endisset
-                                            @if(count($students_with_marks) < 1)
+                                            @if(empty($students_with_marks))
                                                 @foreach ($sectionStudents as $sectionStudent)
                                                     <tr>
                                                         <td>{{$sectionStudent->student->first_name}} {{$sectionStudent->student->last_name}}</td>
