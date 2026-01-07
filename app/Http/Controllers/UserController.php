@@ -26,7 +26,12 @@ class UserController extends Controller
     SchoolClassInterface $schoolClassRepository,
     SectionInterface $schoolSectionRepository)
     {
-        $this->middleware(['can:view users']);
+         $this->middleware(function ($request, $next) {
+        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) {
+            abort(403);
+        }
+        return $next($request);
+    });
 
         $this->userRepository = $userRepository;
         $this->schoolSessionRepository = $schoolSessionRepository;

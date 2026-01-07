@@ -291,27 +291,39 @@ class UserRepository implements UserInterface {
         }
     }
 
-    public function getAllStudents($session_id, $class_id, $section_id) {
-        if($class_id == 0 || $section_id == 0) {
-            $schoolClass = SchoolClass::where('session_id', $session_id)
-                                    ->first();
-            $section = Section::where('session_id', $session_id)
-                                    ->first();
-            if($schoolClass == null || $section == null){
+public function getAllStudents($session_id, $class_id, $section_id)
+{
+    $user = auth()->user();
+
+    try {
+
+        // 🔒 Teacher must explicitly filter
+        if ($user->role === 'teacher' && ($class_id == 0 || $section_id == 0)) {
+            throw new \Exception('Please select class and section');
+        }
+
+        // ✅ Admin fallback allowed
+        if ($user->role === 'admin' && ($class_id == 0 || $section_id == 0)) {
+            $schoolClass = SchoolClass::where('session_id', $session_id)->first();
+            $section = Section::where('session_id', $session_id)->first();
+
+            if ($schoolClass == null || $section == null) {
                 throw new \Exception('There is no class and section');
-            } else {
-                $class_id = $schoolClass->id;
-                $section_id = $section->id;
             }
-            
+
+            $class_id = $schoolClass->id;
+            $section_id = $section->id;
         }
-        try {
-            $promotionRepository = new PromotionRepository();
-            return $promotionRepository->getAll($session_id, $class_id, $section_id);
-        } catch (\Exception $e) {
-            throw new \Exception('Failed to get all Students. '.$e->getMessage());
-        }
+
+        $promotionRepository = new PromotionRepository();
+        return $promotionRepository->getAll($session_id, $class_id, $section_id);
+
+    } catch (\Exception $e) {
+        throw new \Exception('Failed to get all Students. ' . $e->getMessage());
     }
+}
+
+
 
     public function getAllStudentsBySession($session_id) {
         $promotionRepository = new PromotionRepository();
