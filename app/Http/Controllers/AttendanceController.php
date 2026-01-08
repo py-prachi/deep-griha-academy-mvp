@@ -172,27 +172,6 @@ public function create(Request $request)
                     ->getCourseAttendance($class_id, $course_id, $current_school_session_id);
             }
 
-            // // ✅ Attach today's attendance status to each student (for locked view)
-            // $today_attendance = collect();
-
-            // if ($attendance_count >= 1) {
-            //     if ($attendance_type === 'section') {
-            //         $today_attendance = $attendanceRepository
-            //             ->getSectionAttendance($class_id, $section_id, $current_school_session_id)
-            //             ->keyBy('student_id');
-            //     } else {
-            //         $today_attendance = $attendanceRepository
-            //             ->getCourseAttendance($class_id, $course_id, $current_school_session_id)
-            //             ->keyBy('student_id');
-            //     }
-            // }
-
-            // foreach ($student_list as $student) {
-            //     $student->attendance_status =
-            //         $today_attendance[$student->student_id]->status ?? 'off';
-            // }
-
-
             $data = ['attendances' => $attendances];
             
             return view('attendances.view', [
