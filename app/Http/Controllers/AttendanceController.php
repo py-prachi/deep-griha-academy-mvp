@@ -162,21 +162,42 @@ public function create(Request $request)
 
         try {
             $academic_setting = $this->academicSettingRepository->getAcademicSetting();
-$attendance_type = $academic_setting->attendance_type ?? 'section';
+            $attendance_type = $academic_setting->attendance_type ?? 'section';
 
-if ($attendance_type === 'section') {
-    $attendances = $attendanceRepository
-        ->getSectionAttendance($class_id, $section_id, $current_school_session_id);
-} else {
-    $attendances = $attendanceRepository
-        ->getCourseAttendance($class_id, $course_id, $current_school_session_id);
-}
+            if ($attendance_type === 'section') {
+                $attendances = $attendanceRepository
+                    ->getSectionAttendance($class_id, $section_id, $current_school_session_id);
+            } else {
+                $attendances = $attendanceRepository
+                    ->getCourseAttendance($class_id, $course_id, $current_school_session_id);
+            }
+
+            // // ✅ Attach today's attendance status to each student (for locked view)
+            // $today_attendance = collect();
+
+            // if ($attendance_count >= 1) {
+            //     if ($attendance_type === 'section') {
+            //         $today_attendance = $attendanceRepository
+            //             ->getSectionAttendance($class_id, $section_id, $current_school_session_id)
+            //             ->keyBy('student_id');
+            //     } else {
+            //         $today_attendance = $attendanceRepository
+            //             ->getCourseAttendance($class_id, $course_id, $current_school_session_id)
+            //             ->keyBy('student_id');
+            //     }
+            // }
+
+            // foreach ($student_list as $student) {
+            //     $student->attendance_status =
+            //         $today_attendance[$student->student_id]->status ?? 'off';
+            // }
+
 
             $data = ['attendances' => $attendances];
             
             return view('attendances.view', [
-    'attendances' => $attendances,
-    'academic_setting' => $academic_setting
+            'attendances' => $attendances,
+            'academic_setting' => $academic_setting
 ]);
 
         } catch (\Exception $e) {
