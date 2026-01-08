@@ -23,6 +23,12 @@
                         @endif
                     </h3>
                     <div class="mt-4">Current Date and Time: {{ date('Y-m-d H:i:s') }}</div>
+                    @if($attendance_count >= 1)
+                        <div class="alert alert-info mt-3">
+                            Attendance for today has already been submitted and is now locked.
+                        </div>
+                    @endif
+
                     <div class="row mt-4">
                         <div class="col-10 bg-white border p-3 shadow-sm">
                             <form action="{{route('attendances.store')}}" method="POST">
