@@ -23,6 +23,12 @@
                         @endif
                     </h3>
                     <div class="mt-4">Current Date and Time: {{ date('Y-m-d H:i:s') }}</div>
+                    @if($attendance_count >= 1)
+                        <div class="alert alert-info mt-3">
+                            Attendance for today has already been submitted and is now locked.
+                        </div>
+                    @endif
+
                     <div class="row mt-4">
                         <div class="col-10 bg-white border p-3 shadow-sm">
                             <form action="{{route('attendances.store')}}" method="POST">
@@ -46,17 +52,28 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($student_list as $student)
-                                        <input type="hidden" name="student_ids[]" value="{{$student->student_id}}">
-                                        <tr>
-                                            <th scope="row">{{$student->id_card_number}}</th>
-                                            <td>{{$student->student->first_name}} {{$student->student->last_name}}</td>
-                                            <td>
-                                                <input class="form-check-input" type="checkbox" name="status[{{$student->student_id}}]" checked>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
+                                @foreach ($student_list as $student)
+                                    <input type="hidden" name="student_ids[]" value="{{ $student->student_id }}">
+                                    <tr>
+                                        <th scope="row">{{ $student->id_card_number }}</th>
+                                        <td>{{ $student->student->first_name }} {{ $student->student->last_name }}</td>
+                                        <td>
+                                            <!-- Always send a value even if checkbox is unchecked -->
+                                            <input type="hidden" name="status[{{ $student->student_id }}]" value="off">
+
+                                            <!-- Checked = Present -->
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                name="status[{{ $student->student_id }}]"
+                                                value="on"
+                                                checked
+                                            >
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+
                                 </table>
                                 @if(count($student_list) > 0 && $attendance_count < 1)
                                 <div class="mb-4">

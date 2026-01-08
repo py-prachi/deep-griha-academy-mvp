@@ -30,6 +30,7 @@ class AttendanceStoreRequest extends FormRequest
             'student_ids'           => 'required|array|min:1',
             'student_ids.*'         => 'integer',
             'status'                => 'required|array|min:1',
+            'status.*'              => 'required|in:on,off',
             'session_id'            => 'required',
         ];
     }
