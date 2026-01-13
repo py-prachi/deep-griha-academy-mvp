@@ -105,7 +105,7 @@
     </div>
 
     <div id="watermark">
-        <p>Unifiedtransform</p>
+        <p>Deep Griha Academy</p>
     </div>
 </body>
 </html>
