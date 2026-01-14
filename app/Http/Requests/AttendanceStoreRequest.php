@@ -12,9 +12,10 @@ class AttendanceStoreRequest extends FormRequest
      * @return bool
      */
     public function authorize()
-    {
-        return auth()->user()->can('take attendances');
-    }
+{
+    return in_array(auth()->user()->role, ['teacher', 'admin']);
+}
+
 
     /**
      * Get the validation rules that apply to the request.

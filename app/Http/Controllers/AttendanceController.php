@@ -204,9 +204,9 @@ public function create(Request $request)
 
     public function update(Request $request, $attendance_id)
 {
-    if (auth()->user()->role !== 'admin') {
-        abort(403);
-    }
+    if (!in_array(auth()->user()->role, ['admin', 'teacher'])) {
+    abort(403);
+}
 
     $attendanceRepository = new AttendanceRepository();
 

@@ -33,7 +33,8 @@
                                     @foreach ($attendances as $attendance)
                                         <tr>
                                             <td>
-                                                @if(auth()->user()->role === 'admin')
+                                                @if(in_array(auth()->user()->role, ['admin', 'teacher']))
+
     <form method="POST" action="{{ route('attendance.update', $attendance->id) }}">
         @csrf
 
