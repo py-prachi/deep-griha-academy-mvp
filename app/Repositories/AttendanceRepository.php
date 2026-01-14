@@ -16,6 +16,18 @@ class AttendanceRepository implements AttendanceInterface {
         }
     }
 
+   public function updateAttendance($attendance_id, $status)
+{
+    try {
+        $attendance = Attendance::findOrFail($attendance_id);
+        $attendance->status = $status;   // ✅ correct column
+        $attendance->save();
+    } catch (\Exception $e) {
+        throw new \Exception('Failed to update attendance. '.$e->getMessage());
+    }
+}
+
+
     public function prepareInput($request) {
         $input = [];
         $now = Carbon::now()->toDateTimeString();
