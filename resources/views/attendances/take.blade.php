@@ -23,18 +23,33 @@
                         @endif
                     </h3>
                     <div class="mt-4">Current Date and Time: {{ date('Y-m-d H:i:s') }}</div>
-                    @if($attendance_count >= 1)
-                        <div class="alert alert-info mt-3">
-                            Attendance for today has already been submitted and is now locked.
-                        </div>
-                    @endif
+                    @if($attendance_count >= 1 && auth()->user()->role !== 'admin')
+    <div class="alert alert-info mt-3">
+        Attendance for today has already been submitted and is now locked.
+    </div>
+@endif
+
 
                     <div class="row mt-4">
                         <div class="col-10 bg-white border p-3 shadow-sm">
                             <form action="{{route('attendances.store')}}" method="POST">
-                                @csrf
-                                <input type="hidden" name="session_id" value="{{$current_school_session_id}}">
-                                <input type="hidden" name="class_id" value="{{request()->query('class_id')}}">
+    @csrf
+
+    @if(auth()->user()->role === 'admin')
+        <div class="mb-3">
+            <label class="form-label">Attendance Date</label>
+            <input
+                type="date"
+                name="attendance_date"
+                class="form-control"
+                value="{{ now()->toDateString() }}"
+            >
+        </div>
+    @endif
+
+    <input type="hidden" name="session_id" value="{{$current_school_session_id}}">
+    <input type="hidden" name="class_id" value="{{request()->query('class_id')}}">
+
                                 @if(($academic_setting->attendance_type ?? 'section') == 'course')
 
                                     <input type="hidden" name="course_id" value="{{request()->query('course_id')}}">
@@ -75,11 +90,12 @@
                                 </tbody>
 
                                 </table>
-                                @if(count($student_list) > 0 && $attendance_count < 1)
-                                <div class="mb-4">
-                                    <button type="submit" class="btn btn-outline-primary"><i class="bi bi-check2"></i> Submit</button>
-                                </div>
-                                @endif
+                                @if(count($student_list) > 0 && ($attendance_count < 1 || auth()->user()->role === 'admin'))
+    <button type="submit" class="btn btn-outline-primary">
+        <i class="bi bi-check2"></i> Submit
+    </button>
+@endif
+
                             </form>
                         </div>
                     </div>

@@ -176,4 +176,10 @@ Route::middleware(['auth'])->group(function () {
     // Update password
     Route::get('password/edit', [UpdatePasswordController::class, 'edit'])->name('password.edit');
     Route::post('password/edit', [UpdatePasswordController::class, 'update'])->name('password.update');
+
+    Route::post(
+    'attendance/update/{attendance}',
+    [AttendanceController::class, 'update']
+)->name('attendance.update');
+
 });

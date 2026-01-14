@@ -16,24 +16,45 @@ class AttendanceRepository implements AttendanceInterface {
         }
     }
 
-    public function prepareInput($request) {
-        $input = [];
-        $now = Carbon::now()->toDateTimeString();
-        for($i=0; $i < sizeof($request['student_ids']); $i++) {
-            $student_id = $request['student_ids'][$i];
-            $input[] = array(
-                'status'        => (isset($request['status'][$student_id]))?$request['status'][$student_id]:'off',
-                'class_id'      => $request['class_id'],
-                'student_id'    => $student_id,
-                'section_id'    => $request['section_id'],
-                'course_id'     => $request['course_id'],
-                'session_id'    => $request['session_id'],
-                'created_at'    => $now,
-                'updated_at'    => $now,
-            );
-        }
-        return $input;
+   public function updateAttendance($attendance_id, $status)
+{
+    try {
+        $attendance = Attendance::findOrFail($attendance_id);
+        $attendance->status = $status;   // ✅ correct column
+        $attendance->save();
+    } catch (\Exception $e) {
+        throw new \Exception('Failed to update attendance. '.$e->getMessage());
     }
+}
+
+
+    public function prepareInput($request)
+{
+    $input = [];
+
+    // ✅ Use selected date if provided (admin), else today (teacher)
+    $date = isset($request['attendance_date'])
+        ? Carbon::parse($request['attendance_date'])->toDateTimeString()
+        : Carbon::now()->toDateTimeString();
+
+    for ($i = 0; $i < sizeof($request['student_ids']); $i++) {
+        $student_id = $request['student_ids'][$i];
+
+        $input[] = [
+            'status'        => isset($request['status'][$student_id]) ? $request['status'][$student_id] : 'off',
+            'class_id'      => $request['class_id'],
+            'student_id'    => $student_id,
+            'section_id'    => $request['section_id'],
+            'course_id'     => $request['course_id'],
+            'session_id'    => $request['session_id'],
+            'created_at'    => $date,
+            'updated_at'    => $date,
+        ];
+    }
+
+    return $input;
+}
+
 
     public function getSectionAttendance($class_id, $section_id, $session_id) {
         try {

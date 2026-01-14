@@ -33,11 +33,26 @@
                                     @foreach ($attendances as $attendance)
                                         <tr>
                                             <td>
-                                                @if ($attendance->status == "on")
-                                                    <span class="badge bg-success">PRESENT</span>
-                                                @else
-                                                    <span class="badge bg-danger">ABSENT</span>
-                                                @endif
+                                                @if(in_array(auth()->user()->role, ['admin', 'teacher']))
+
+    <form method="POST" action="{{ route('attendance.update', $attendance->id) }}">
+        @csrf
+
+        <label class="me-2">
+            <input type="checkbox" name="present" {{ $attendance->status == "on" ? 'checked' : '' }}>
+            Present
+        </label>
+
+        <button type="submit" class="btn btn-sm btn-primary">Update</button>
+    </form>
+@else
+    @if ($attendance->status == "on")
+        <span class="badge bg-success">PRESENT</span>
+    @else
+        <span class="badge bg-danger">ABSENT</span>
+    @endif
+@endif
+
                                                 
                                             </td>
                                             <td>{{$attendance->created_at}}</td>

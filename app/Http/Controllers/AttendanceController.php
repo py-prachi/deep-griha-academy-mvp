@@ -201,4 +201,24 @@ public function create(Request $request)
 
         return view('attendances.attendance', $data);
     }
+
+    public function update(Request $request, $attendance_id)
+{
+    if (!in_array(auth()->user()->role, ['admin', 'teacher'])) {
+    abort(403);
+}
+
+    $attendanceRepository = new AttendanceRepository();
+
+    $status = $request->has('present') ? 'on' : 'off';
+
+    $attendanceRepository->updateAttendance(
+        $attendance_id,
+        $status
+    );
+
+    return back()->with('status', 'Attendance updated successfully');
+}
+
+
 }
