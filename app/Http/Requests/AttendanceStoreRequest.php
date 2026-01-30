@@ -33,6 +33,7 @@ class AttendanceStoreRequest extends FormRequest
             'status'                => 'required|array|min:1',
             'status.*'              => 'required|in:on,off',
             'session_id'            => 'required',
+            'attendance_date'       => 'nullable|date',
         ];
     }
 }
