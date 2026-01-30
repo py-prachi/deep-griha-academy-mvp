@@ -19,6 +19,57 @@
                             <div id="attendanceCalendar"></div>
                         </div>
                     </div>
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    {{-- Inline attendance marking for selected date --}}
+                    @if(
+                        $selected_date &&
+                        !$attendance_for_date &&
+                        in_array(auth()->user()->role, ['admin','teacher'])
+                    )
+                        <div class="row mt-3">
+                            <div class="col bg-white border shadow-sm p-3">
+                                <h6 class="mb-2">
+                                    Mark attendance for <strong>{{ $selected_date }}</strong>
+                                </h6>
+
+                                <form method="POST" action="{{ route('attendances.store') }}">
+                                    @csrf
+                                    <input type="hidden" name="attendance_date" value="{{ $selected_date }}">
+                                    <input type="hidden" name="session_id" value="{{ $current_school_session_id }}">
+                                    <input type="hidden" name="attendance_date" value="{{ $selected_date }}">
+                                    <input type="hidden" name="class_id" value="{{ $class_id }}">
+                                    <input type="hidden" name="section_id" value="{{ $section_id }}">
+                                    <input type="hidden" name="course_id" value="{{ $course_id }}">
+                                    <input type="hidden" name="student_ids[]" value="{{ $student->id }}">
+
+                                    <label class="me-3">
+                                        <input type="radio" name="status[{{ $student->id }}]" value="on" checked>
+                                        Present
+                                    </label>
+
+                                    <label class="me-3">
+                                        <input type="radio" name="status[{{ $student->id }}]" value="off">
+                                        Absent
+                                    </label>
+
+                                    <button type="submit" class="btn btn-sm btn-primary ms-3">
+                                        Save
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @endif
+
+
                     <div class="row mt-4">
                         <div class="col bg-white border shadow-sm p-3">
                             <table class="table table-sm">
@@ -90,6 +141,11 @@ document.addEventListener('DOMContentLoaded', function() {
         initialView: 'dayGridMonth',
         height: 350,
         events: attEvents,
+        dateClick: function(info) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('date', info.dateStr);
+            window.location.href = url.toString();
+        }   
     });
     calendar.render();
 });

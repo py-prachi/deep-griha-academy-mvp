@@ -14,6 +14,7 @@ use App\Interfaces\SectionInterface;
 use App\Repositories\AttendanceRepository;
 use App\Repositories\CourseRepository;
 use App\Traits\SchoolSession;
+use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
@@ -78,6 +79,7 @@ public function create(Request $request)
 
     try {
         // ✅ FETCH FIRST
+        $date = $request->query('date', Carbon::today()->toDateString());
         $academic_setting = $this->academicSettingRepository->getAcademicSetting();
         $attendance_type = $academic_setting->attendance_type ?? 'section';
 
@@ -99,7 +101,7 @@ public function create(Request $request)
         // ✅ CORRECTLY HANDLE SECTION VS COURSE
         if ($attendance_type === 'section') {
             $attendance_count = $attendanceRepository
-                ->getSectionAttendance($class_id, $section_id, $current_school_session_id)
+                ->getSectionAttendance($class_id, $section_id, $current_school_session_id, $date)
                 ->count();
         } else {
             $attendance_count = $attendanceRepository
@@ -148,6 +150,7 @@ public function create(Request $request)
      */
     public function show(Request $request)
     {
+        $date = $request->query('date', Carbon::today()->toDateString());
         if($request->query('class_id') == null){
             return abort(404);
         }
@@ -166,17 +169,19 @@ public function create(Request $request)
 
             if ($attendance_type === 'section') {
                 $attendances = $attendanceRepository
-                    ->getSectionAttendance($class_id, $section_id, $current_school_session_id);
+                    ->getSectionAttendance($class_id, $section_id, $current_school_session_id, $date);
             } else {
                 $attendances = $attendanceRepository
-                    ->getCourseAttendance($class_id, $course_id, $current_school_session_id);
+                    ->getCourseAttendance($class_id, $course_id, $current_school_session_id, $date);
             }
 
             $data = ['attendances' => $attendances];
             
             return view('attendances.view', [
             'attendances' => $attendances,
-            'academic_setting' => $academic_setting
+            'academic_setting' => $academic_setting,
+            'selected_date' => $date,
+
 ]);
 
         } catch (\Exception $e) {
@@ -184,23 +189,112 @@ public function create(Request $request)
         }
     }
 
-    public function showStudentAttendance($id) {
-        if(auth()->user()->role == "student" && auth()->user()->id != $id) {
-            return abort(404);
-        }
-        $current_school_session_id = $this->getSchoolCurrentSession();
+    // public function showStudentAttendance($id) {
+    //     if(auth()->user()->role == "student" && auth()->user()->id != $id) {
+    //         return abort(404);
+    //     }
+    //     $current_school_session_id = $this->getSchoolCurrentSession();
 
-        $attendanceRepository = new AttendanceRepository();
-        $attendances = $attendanceRepository->getStudentAttendance($current_school_session_id, $id);
-        $student = $this->userRepository->findStudent($id);
+    //     $attendanceRepository = new AttendanceRepository();
+    //     $attendances = $attendanceRepository->getStudentAttendance($current_school_session_id, $id);
+    //     $student = $this->userRepository->findStudent($id);
 
-        $data = [
-            'attendances'   => $attendances,
-            'student'       => $student,
-        ];
+    //     $data = [
+    //         'attendances'   => $attendances,
+    //         'student'       => $student,
+    //     ];
 
-        return view('attendances.attendance', $data);
+    //     return view('attendances.attendance', $data);
+    // }
+//     public function showStudentAttendance(Request $request, $id)
+// {
+//     if (auth()->user()->role === "student" && auth()->user()->id != $id) {
+//         abort(404);
+//     }
+
+//     $current_school_session_id = $this->getSchoolCurrentSession();
+//     $selected_date = $request->query('date'); // may be null
+
+//     $attendanceRepository = new AttendanceRepository();
+
+//     // ✅ FULL HISTORY — unchanged behavior
+//     $attendances = $attendanceRepository
+//         ->getStudentAttendance($current_school_session_id, $id);
+
+//     // ✅ ALWAYS define the variable (important)
+//     $attendance_for_date = null;
+
+//     if ($selected_date) {
+//         $attendance_for_date = Attendance::where('student_id', $id)
+//             ->where('session_id', $current_school_session_id)
+//             ->whereDate('created_at', $selected_date)
+//             ->first();
+//     }
+
+//     $student = $this->userRepository->findStudent($id);
+
+//     return view('attendances.attendance', [
+//         'attendances'         => $attendances,          // full history
+//         'student'             => $student,
+//         'selected_date'       => $selected_date,        // string or null
+//         'attendance_for_date' => $attendance_for_date,  // object or null
+//         'current_school_session_id'=> $current_school_session_id, // added for consistency
+//     ]);
+// }
+public function showStudentAttendance(Request $request, $id)
+{
+    if (auth()->user()->role === "student" && auth()->user()->id != $id) {
+        abort(404);
     }
+
+    $current_school_session_id = $this->getSchoolCurrentSession();
+    $selected_date = $request->query('date');
+
+    $attendanceRepository = new AttendanceRepository();
+
+    // ✅ FULL HISTORY — unchanged
+    $attendances = $attendanceRepository
+        ->getStudentAttendance($current_school_session_id, $id);
+
+    // ✅ Attendance for selected date
+    $attendance_for_date = null;
+    if ($selected_date) {
+        $attendance_for_date = Attendance::where('student_id', $id)
+            ->where('session_id', $current_school_session_id)
+            ->whereDate('created_at', $selected_date)
+            ->first();
+    }
+
+    $student = $this->userRepository->findStudent($id);
+
+    // 🔹 NEW: get attendance type
+    $academic_setting = $this->academicSettingRepository->getAcademicSetting();
+    $attendance_type = $academic_setting->attendance_type ?? 'section';
+
+    // ✅ Derive class / section / course from existing attendance records
+    $firstAttendance = $attendances->first();
+
+    $class_id = $firstAttendance ? (int) $firstAttendance->class_id : 0;
+    $section_id = $firstAttendance ? (int) $firstAttendance->section_id : 0;
+    $course_id = $firstAttendance ? (int) $firstAttendance->course_id : 0;
+
+
+    return view('attendances.attendance', [
+        'attendances'               => $attendances,
+        'student'                   => $student,
+        'selected_date'             => $selected_date,
+        'attendance_for_date'       => $attendance_for_date,
+        'current_school_session_id' => $current_school_session_id,
+
+        // 🔹 NEW: pass IDs + mode
+        'attendance_type' => $attendance_type,
+        'class_id'        => $class_id,
+        'section_id'      => $section_id,
+        'course_id'       => $course_id,
+    ]);
+}
+
+
 
     public function update(Request $request, $attendance_id)
 {
