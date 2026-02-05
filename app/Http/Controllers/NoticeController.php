@@ -9,16 +9,27 @@ use App\Traits\SchoolSession;
 use App\Repositories\NoticeRepository;
 use App\Http\Requests\NoticeStoreRequest;
 use App\Interfaces\SchoolSessionInterface;
+use App\Interfaces\SchoolClassInterface;
 
 class NoticeController extends Controller
 {
     use SchoolSession;
     
     protected $schoolSessionRepository;
+    protected $schoolClassRepository;
+    protected $noticeRepository;
 
-    public function __construct(SchoolSessionInterface $schoolSessionRepository) {
-        $this->schoolSessionRepository = $schoolSessionRepository;
-    }
+
+    public function __construct(
+    NoticeRepository $noticeRepository,
+    SchoolSessionInterface $schoolSessionRepository,
+    SchoolClassInterface $schoolClassRepository // 👈 add
+) {
+    $this->noticeRepository = $noticeRepository;
+    $this->schoolSessionRepository = $schoolSessionRepository;
+    $this->schoolClassRepository = $schoolClassRepository; // 👈 add
+}
+
     /**
      * Display a listing of the resource.
      *
@@ -35,10 +46,19 @@ class NoticeController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function create()
-    {
-        $current_school_session_id = $this->getSchoolCurrentSession();
-        return view('notices.create', compact('current_school_session_id'));
-    }
+{
+    $current_school_session_id = $this->getSchoolCurrentSession();
+
+    // Get classes for current session
+    $classes = $this->schoolClassRepository
+        ->getAllBySession($current_school_session_id);
+
+    return view('notices.create', compact(
+        'current_school_session_id',
+        'classes'
+    ));
+}
+
 
     /**
      * Store a newly created resource in storage.
@@ -47,16 +67,16 @@ class NoticeController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(NoticeStoreRequest $request)
-    {
-        try {
-            $noticeRepository = new NoticeRepository();
-            $noticeRepository->store($request->validated());
+{
+    try {
+        $this->noticeRepository->store($request->validated());
 
-            return back()->with('status', 'Creating Notice was successful!');
-        } catch (\Exception $e) {
-            return back()->withError($e->getMessage());
-        }
+        return back()->with('status', 'Creating Notice was successful!');
+    } catch (\Exception $e) {
+        return back()->withError($e->getMessage());
     }
+}
+
 
     /**
      * Display the specified resource.

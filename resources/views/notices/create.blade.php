@@ -20,6 +20,21 @@
                             @csrf
                             <input type="hidden" name="session_id" value="{{$current_school_session_id}}">
                             @include('components.ckeditor.editor', ['name' => 'notice'])
+                           <div class="mb-3">
+    <label class="form-label">Publish For</label>
+
+    <select name="class_id" class="form-select">
+        <option value="">All Classes (Everyone)</option>
+
+        @foreach($classes as $class)
+            <option value="{{ $class->id }}">
+                {{ $class->class_name }}
+            </option>
+        @endforeach
+    </select>
+</div>
+
+
                             <button type="submit" class="btn btn-outline-primary"><i class="bi bi-check2"></i> Save</button>
                         </form>
                     </div>
