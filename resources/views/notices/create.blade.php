@@ -16,27 +16,50 @@
                     </nav>
                     @include('session-messages')
                     <div class="row">
-                        <form action="{{route('notice.store')}}" method="POST">
-                            @csrf
-                            <input type="hidden" name="session_id" value="{{$current_school_session_id}}">
-                            @include('components.ckeditor.editor', ['name' => 'notice'])
-                           <div class="mb-3">
-    <label class="form-label">Publish For</label>
+                        <form action="{{ route('notices.store') }}" method="POST">
+    @csrf
 
-    <select name="class_id" class="form-select">
-        <option value="">All Classes (Everyone)</option>
-
-        @foreach($classes as $class)
-            <option value="{{ $class->id }}">
-                {{ $class->class_name }}
-            </option>
-        @endforeach
-    </select>
-</div>
+    <input type="hidden"
+       name="session_id"
+       value="{{ $current_school_session_id ?? '' }}">
 
 
-                            <button type="submit" class="btn btn-outline-primary"><i class="bi bi-check2"></i> Save</button>
-                        </form>
+    <!-- Title -->
+    <div class="mb-3">
+        <label class="form-label">Title</label>
+
+        <input type="text"
+               name="title"
+               class="form-control"
+               value="{{ old('title') }}">
+    </div>
+
+    <!-- Description -->
+    @include('components.ckeditor.editor', ['name' => 'description'])
+
+    <!-- Class -->
+    <div class="mb-3">
+        <label class="form-label">Publish For</label>
+
+        <select name="class_id" class="form-select">
+
+            <option value="">All Classes (Everyone)</option>
+
+            @foreach($classes as $class)
+                <option value="{{ $class->id }}">
+                    {{ $class->class_name }}
+                </option>
+            @endforeach
+
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-outline-primary">
+        <i class="bi bi-check2"></i> Save
+    </button>
+
+</form>
+
                     </div>
                 </div>
             </div>

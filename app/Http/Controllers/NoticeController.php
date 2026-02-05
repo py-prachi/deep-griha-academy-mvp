@@ -36,9 +36,12 @@ class NoticeController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
-        //
-    }
+{
+    $notices = Notice::latest()->get();
+
+    return view('notices.index', compact('notices'));
+}
+
 
     /**
      * Show the form for creating a new resource.
@@ -49,7 +52,6 @@ class NoticeController extends Controller
 {
     $current_school_session_id = $this->getSchoolCurrentSession();
 
-    // Get classes for current session
     $classes = $this->schoolClassRepository
         ->getAllBySession($current_school_session_id);
 
@@ -58,6 +60,7 @@ class NoticeController extends Controller
         'classes'
     ));
 }
+
 
 
     /**
@@ -95,10 +98,21 @@ class NoticeController extends Controller
      * @param  \App\Models\Notice  $notice
      * @return \Illuminate\Http\Response
      */
-    public function edit(Notice $notice)
-    {
-        //
-    }
+   public function edit(Notice $notice)
+{
+    $current_school_session_id = $this->getSchoolCurrentSession();
+
+    $classes = $this->schoolClassRepository
+        ->getAllBySession($current_school_session_id);
+
+    return view('notices.edit', compact(
+        'notice',
+        'classes',
+        'current_school_session_id'
+    ));
+}
+
+
 
     /**
      * Update the specified resource in storage.
@@ -107,10 +121,21 @@ class NoticeController extends Controller
      * @param  \App\Models\Notice  $notice
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Notice $notice)
-    {
-        //
-    }
+   public function update(Request $request, Notice $notice)
+{
+    $data = $request->validate([
+        'title' => 'required',
+        'description' => 'required',
+        'class_id' => 'nullable|exists:school_classes,id',
+    ]);
+
+    $notice->update($data);
+
+    return redirect()
+        ->route('notices.index')
+        ->with('status', 'Notice updated successfully!');
+}
+
 
     /**
      * Remove the specified resource from storage.
@@ -119,7 +144,12 @@ class NoticeController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy(Notice $notice)
-    {
-        //
-    }
+{
+    $notice->delete();
+
+    return redirect()
+        ->route('notices.index')
+        ->with('status', 'Notice deleted successfully!');
+}
+
 }

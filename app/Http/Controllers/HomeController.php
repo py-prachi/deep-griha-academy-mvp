@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Traits\SchoolSession;
 use App\Interfaces\UserInterface;
-use App\Repositories\NoticeRepository;
 use App\Interfaces\SchoolClassInterface;
 use App\Interfaces\SchoolSessionInterface;
 use App\Repositories\PromotionRepository;
@@ -49,8 +48,12 @@ class HomeController extends Controller
 
         $teacherCount = $this->userRepository->getAllTeachers()->count();
 
-        $noticeRepository = new NoticeRepository();
-        $notices = $noticeRepository->getAll($current_school_session_id);
+        $notices = \App\Models\Notice::whereNull('session_id')
+    ->orWhere('session_id', $current_school_session_id)
+    ->latest()
+    ->take(5)
+    ->get();
+
 
         $data = [
             'classCount'    => $classCount,
