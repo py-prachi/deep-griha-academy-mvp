@@ -132,22 +132,50 @@ if(count($attendances) > 0){
     }
 }
 @endphp
+<style>
+/* Make ONLY the date number look clickable */
+.fc-daygrid-day-number {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.fc-daygrid-day-number:hover {
+    text-decoration: underline;
+}
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('attendanceCalendar');
     var attEvents = @json($events);
-                            
+
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         height: 350,
         events: attEvents,
-        dateClick: function(info) {
-            const url = new URL(window.location.href);
-            url.searchParams.set('date', info.dateStr);
-            window.location.href = url.toString();
-        }   
+
+        // Attach click ONLY to the date number, not the whole cell
+        dayCellDidMount: function(info) {
+            const dateNumber = info.el.querySelector('.fc-daygrid-day-number');
+
+            if (dateNumber) {
+                dateNumber.addEventListener('click', function(e) {
+                    e.stopPropagation(); // prevents full cell click
+                    const localDate =
+                        info.date.getFullYear() + '-' +
+                        String(info.date.getMonth() + 1).padStart(2, '0') + '-' +
+                        String(info.date.getDate()).padStart(2, '0');
+
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('date', localDate);
+                    window.location.href = url.toString();
+                });
+            }
+        }
     });
+
     calendar.render();
 });
 </script>
+
 @endsection
