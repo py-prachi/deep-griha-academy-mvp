@@ -56,19 +56,7 @@ class AttendanceRepository implements AttendanceInterface {
 }
 
 
-    // public function getSectionAttendance($class_id, $section_id, $session_id, $date) {
-    //     try {
-    //         return Attendance::with('student')
-    //                         ->where('class_id', $class_id)
-    //                         ->where('section_id', $section_id)
-    //                         ->where('session_id', $session_id)
-    //                         // ->whereDate('created_at', '=', Carbon::today())
-    //                         ->whereDate('created_at', '=', $date)
-    //                         ->get();
-    //     } catch (\Exception $e) {
-    //         throw new \Exception('Failed to get attendances. '.$e->getMessage());
-    //     }
-    // }
+
     public function getSectionAttendance($class_id, $section_id, $session_id, $date = null)
 {
     try {
@@ -88,19 +76,7 @@ class AttendanceRepository implements AttendanceInterface {
 }
 
 
-    // public function getCourseAttendance($class_id, $course_id, $session_id, $date) {
-    //     try {
-    //         return Attendance::with('student')
-    //                         ->where('class_id', $class_id)
-    //                         ->where('course_id', $course_id)
-    //                         ->where('session_id', $session_id)
-    //                         // ->whereDate('created_at', '=', Carbon::today())
-    //                         ->whereDate('created_at', '=', $date)
-    //                         ->get();
-    //     } catch (\Exception $e) {
-    //         throw new \Exception('Failed to get attendances. '.$e->getMessage());
-    //     }
-    // }
+    
     public function getCourseAttendance($class_id, $course_id, $session_id, $date = null)
 {
     try {

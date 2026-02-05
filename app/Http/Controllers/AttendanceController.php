@@ -48,21 +48,6 @@ class AttendanceController extends Controller
     public function index()
     {
         return back();
-        // $academic_setting = $this->academicSettingRepository->getAcademicSetting();
-
-        // $current_school_session_id = $this->getSchoolCurrentSession();
-
-        // $classes_and_sections = $this->schoolClassRepository->getClassesAndSections($current_school_session_id);
-        // $courseRepository = new CourseRepository();
-        // $courses = $courseRepository->getAll($current_school_session_id);
-
-        // $data = [
-        //     'academic_setting'      => $academic_setting,
-        //     'classes_and_sections'  => $classes_and_sections,
-        //     'courses'               => $courses,
-        // ];
-
-        // return view('attendances.index', $data);
     }
 
     /**
@@ -189,58 +174,7 @@ public function create(Request $request)
         }
     }
 
-    // public function showStudentAttendance($id) {
-    //     if(auth()->user()->role == "student" && auth()->user()->id != $id) {
-    //         return abort(404);
-    //     }
-    //     $current_school_session_id = $this->getSchoolCurrentSession();
 
-    //     $attendanceRepository = new AttendanceRepository();
-    //     $attendances = $attendanceRepository->getStudentAttendance($current_school_session_id, $id);
-    //     $student = $this->userRepository->findStudent($id);
-
-    //     $data = [
-    //         'attendances'   => $attendances,
-    //         'student'       => $student,
-    //     ];
-
-    //     return view('attendances.attendance', $data);
-    // }
-//     public function showStudentAttendance(Request $request, $id)
-// {
-//     if (auth()->user()->role === "student" && auth()->user()->id != $id) {
-//         abort(404);
-//     }
-
-//     $current_school_session_id = $this->getSchoolCurrentSession();
-//     $selected_date = $request->query('date'); // may be null
-
-//     $attendanceRepository = new AttendanceRepository();
-
-//     // ✅ FULL HISTORY — unchanged behavior
-//     $attendances = $attendanceRepository
-//         ->getStudentAttendance($current_school_session_id, $id);
-
-//     // ✅ ALWAYS define the variable (important)
-//     $attendance_for_date = null;
-
-//     if ($selected_date) {
-//         $attendance_for_date = Attendance::where('student_id', $id)
-//             ->where('session_id', $current_school_session_id)
-//             ->whereDate('created_at', $selected_date)
-//             ->first();
-//     }
-
-//     $student = $this->userRepository->findStudent($id);
-
-//     return view('attendances.attendance', [
-//         'attendances'         => $attendances,          // full history
-//         'student'             => $student,
-//         'selected_date'       => $selected_date,        // string or null
-//         'attendance_for_date' => $attendance_for_date,  // object or null
-//         'current_school_session_id'=> $current_school_session_id, // added for consistency
-//     ]);
-// }
 public function showStudentAttendance(Request $request, $id)
 {
     if (auth()->user()->role === "student" && auth()->user()->id != $id) {
