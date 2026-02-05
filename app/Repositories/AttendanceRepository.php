@@ -63,7 +63,10 @@ public function prepareInput($request)
     $input = [];
     $now = Carbon::now()->toDateTimeString();
 
-    $attendanceDate = $request['attendance_date'] ?? date('Y-m-d');
+    // ✅ Use selected date if provided (admin), else today (teacher)
+    $date = isset($request['attendance_date'])
+    ? Carbon::parse($request['attendance_date'])->setTime(12, 0, 0)->toDateTimeString()
+    : Carbon::now()->setTime(12, 0, 0)->toDateTimeString();
 
     for ($i = 0; $i < count($request['student_ids']); $i++) {
         $student_id = $request['student_ids'][$i];
@@ -85,38 +88,69 @@ public function prepareInput($request)
 }
 
 
-
-
-    public function getSectionAttendance($class_id, $section_id, $session_id) {
-        try {
-            $today = Carbon::today()->toDateString();   
-            return Attendance::with('student')
-                            ->where('class_id', $class_id)
-                            ->where('section_id', $section_id)
-                            ->where('session_id', $session_id)
-                            ->whereDate('attendance_date', $today)
-
-                            ->get();
-        } catch (\Exception $e) {
-            throw new \Exception('Failed to get attendances. '.$e->getMessage());
-        }
+    // public function getSectionAttendance($class_id, $section_id, $session_id, $date) {
+    //     try {
+    //         return Attendance::with('student')
+    //                         ->where('class_id', $class_id)
+    //                         ->where('section_id', $section_id)
+    //                         ->where('session_id', $session_id)
+    //                         // ->whereDate('created_at', '=', Carbon::today())
+    //                         ->whereDate('created_at', '=', $date)
+    //                         ->get();
+    //     } catch (\Exception $e) {
+    //         throw new \Exception('Failed to get attendances. '.$e->getMessage());
+    //     }
+    // }
+    public function getSectionAttendance($class_id, $section_id, $session_id, $date = null)
+{
+    try {
+        return Attendance::with('student')
+            ->where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('session_id', $session_id)
+            ->when($date, function ($q) use ($date) {
+                $q->whereDate('created_at', $date);
+            }, function ($q) {
+                $q->whereDate('created_at', Carbon::today());
+            })
+            ->get();
+    } catch (\Exception $e) {
+        throw new \Exception('Failed to get attendances. ' . $e->getMessage());
     }
+}
 
-    public function getCourseAttendance($class_id, $course_id, $session_id) {
-        try {
-            $today = Carbon::today()->toDateString();
 
-return Attendance::with('student')
-    ->where('class_id', $class_id)
-    ->where('section_id', $section_id)
-    ->where('session_id', $session_id)
-    ->whereDate('attendance_date', $today)
-    ->get();
-
-        } catch (\Exception $e) {
-            throw new \Exception('Failed to get attendances. '.$e->getMessage());
-        }
+    // public function getCourseAttendance($class_id, $course_id, $session_id, $date) {
+    //     try {
+    //         return Attendance::with('student')
+    //                         ->where('class_id', $class_id)
+    //                         ->where('course_id', $course_id)
+    //                         ->where('session_id', $session_id)
+    //                         // ->whereDate('created_at', '=', Carbon::today())
+    //                         ->whereDate('created_at', '=', $date)
+    //                         ->get();
+    //     } catch (\Exception $e) {
+    //         throw new \Exception('Failed to get attendances. '.$e->getMessage());
+    //     }
+    // }
+    public function getCourseAttendance($class_id, $course_id, $session_id, $date = null)
+{
+    try {
+        return Attendance::with('student')
+            ->where('class_id', $class_id)
+            ->where('course_id', $course_id)
+            ->where('session_id', $session_id)
+            ->when($date, function ($q) use ($date) {
+                $q->whereDate('created_at', $date);
+            }, function ($q) {
+                $q->whereDate('created_at', Carbon::today());
+            })
+            ->get();
+    } catch (\Exception $e) {
+        throw new \Exception('Failed to get attendances. ' . $e->getMessage());
     }
+}
+
 
     public function getStudentAttendance($session_id, $student_id) {
         try {
@@ -128,4 +162,14 @@ return Attendance::with('student')
             throw new \Exception('Failed to get attendances. '.$e->getMessage());
         }
     }
+
+    public function getStudentAttendanceByDate($session_id, $student_id, $date)
+    {
+    return Attendance::with(['section', 'course'])
+        ->where('student_id', $student_id)
+        ->where('session_id', $session_id)
+        ->whereDate('created_at', $date)
+        ->get();
+    }
+
 }
