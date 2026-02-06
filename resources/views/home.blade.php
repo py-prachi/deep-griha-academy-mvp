@@ -115,23 +115,42 @@
                         </div>
                         <div class="col-lg-6">
                             <div class="card mb-3">
-                                <div class="card-header bg-transparent d-flex justify-content-between"><span><i class="bi bi-megaphone me-2"></i> Notices</span> {{ $notices->links() }}</div>
+                                <div class="card-header bg-transparent d-flex justify-content-between"><span><i class="bi bi-megaphone me-2"></i> Notices</span> </div>
                                 <div class="card-body p-0 text-dark">
                                     <div>
                                         @isset($notices)
                                         <div class="accordion accordion-flush" id="noticeAccordion">
-                                            @foreach ($notices as $notice)
-                                            <div class="accordion-item">
-                                                <h2 class="accordion-header" id="flush-heading{{$notice->id}}">
-                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse{{$notice->id}}" aria-expanded={{($loop->first)?"true":"false"}} aria-controls="flush-collapse{{$notice->id}}">
-                                                        Published at: {{$notice->created_at}}
-                                                    </button>
-                                                </h2>
-                                                <div id="flush-collapse{{$notice->id}}" class="accordion-collapse collapse {{($loop->first)?"show":"hide"}}" aria-labelledby="flush-heading{{$notice->id}}" data-bs-parent="#noticeAccordion">
-                                                    <div class="accordion-body overflow-auto">{!!Purify::clean($notice->notice)!!}</div>
-                                                </div>
-                                            </div>
-                                            @endforeach
+                                            @foreach($notices as $notice)
+
+<div class="accordion-item">
+
+    <h2 class="accordion-header">
+        <button class="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#notice{{ $notice->id }}">
+
+            {{ $notice->title ?? 'Notice' }}
+            &nbsp; ({{ $notice->created_at->format('Y-m-d H:i') }})
+
+        </button>
+    </h2>
+
+    <div id="notice{{ $notice->id }}"
+         class="accordion-collapse collapse">
+
+        <div class="accordion-body">
+
+            {!! html_entity_decode($notice->description ?? '') !!}
+
+        </div>
+
+    </div>
+
+</div>
+
+@endforeach
+
                                             @endisset
                                             @if(count($notices) < 1)
                                                 <div class="p-3">No notices</div>

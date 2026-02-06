@@ -21,11 +21,15 @@ class NoticeStoreRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
-    {
-        return [
-            'notice'    => 'required',
-            'session_id'=> 'required',
-        ];
-    }
+   public function rules()
+{
+    return [
+        'title' => 'nullable',
+        'description' => 'nullable',
+        'class_id' => 'nullable',
+        'session_id' => 'nullable',
+    ];
+}
+
+
 }

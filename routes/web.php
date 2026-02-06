@@ -160,8 +160,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/syllabus/index', [SyllabusController::class, 'index'])->name('course.syllabus.index');
 
     // Notices
-    Route::get('/notice/create', [NoticeController::class, 'create'])->name('notice.create');
-    Route::post('/notice/create', [NoticeController::class, 'store'])->name('notice.store');
+    Route::post('/notices/create', [NoticeController::class, 'store'])->name('notices.store');
+    Route::resource('notices', NoticeController::class);
 
     // Courses
     Route::get('courses/teacher/index', [AssignedTeacherController::class, 'getTeacherCourses'])->name('course.teacher.list.show');

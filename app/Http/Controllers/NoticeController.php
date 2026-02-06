@@ -9,25 +9,39 @@ use App\Traits\SchoolSession;
 use App\Repositories\NoticeRepository;
 use App\Http\Requests\NoticeStoreRequest;
 use App\Interfaces\SchoolSessionInterface;
+use App\Interfaces\SchoolClassInterface;
 
 class NoticeController extends Controller
 {
     use SchoolSession;
     
     protected $schoolSessionRepository;
+    protected $schoolClassRepository;
+    protected $noticeRepository;
 
-    public function __construct(SchoolSessionInterface $schoolSessionRepository) {
-        $this->schoolSessionRepository = $schoolSessionRepository;
-    }
+
+    public function __construct(
+    NoticeRepository $noticeRepository,
+    SchoolSessionInterface $schoolSessionRepository,
+    SchoolClassInterface $schoolClassRepository // 👈 add
+) {
+    $this->noticeRepository = $noticeRepository;
+    $this->schoolSessionRepository = $schoolSessionRepository;
+    $this->schoolClassRepository = $schoolClassRepository; // 👈 add
+}
+
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
-        //
-    }
+{
+    $notices = Notice::latest()->get();
+
+    return view('notices.index', compact('notices'));
+}
+
 
     /**
      * Show the form for creating a new resource.
@@ -35,10 +49,19 @@ class NoticeController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function create()
-    {
-        $current_school_session_id = $this->getSchoolCurrentSession();
-        return view('notices.create', compact('current_school_session_id'));
-    }
+{
+    $current_school_session_id = $this->getSchoolCurrentSession();
+
+    $classes = $this->schoolClassRepository
+        ->getAllBySession($current_school_session_id);
+
+    return view('notices.create', compact(
+        'current_school_session_id',
+        'classes'
+    ));
+}
+
+
 
     /**
      * Store a newly created resource in storage.
@@ -47,16 +70,16 @@ class NoticeController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(NoticeStoreRequest $request)
-    {
-        try {
-            $noticeRepository = new NoticeRepository();
-            $noticeRepository->store($request->validated());
+{
+    try {
+        $this->noticeRepository->store($request->validated());
 
-            return back()->with('status', 'Creating Notice was successful!');
-        } catch (\Exception $e) {
-            return back()->withError($e->getMessage());
-        }
+        return back()->with('status', 'Creating Notice was successful!');
+    } catch (\Exception $e) {
+        return back()->withError($e->getMessage());
     }
+}
+
 
     /**
      * Display the specified resource.
@@ -75,10 +98,21 @@ class NoticeController extends Controller
      * @param  \App\Models\Notice  $notice
      * @return \Illuminate\Http\Response
      */
-    public function edit(Notice $notice)
-    {
-        //
-    }
+   public function edit(Notice $notice)
+{
+    $current_school_session_id = $this->getSchoolCurrentSession();
+
+    $classes = $this->schoolClassRepository
+        ->getAllBySession($current_school_session_id);
+
+    return view('notices.edit', compact(
+        'notice',
+        'classes',
+        'current_school_session_id'
+    ));
+}
+
+
 
     /**
      * Update the specified resource in storage.
@@ -87,10 +121,19 @@ class NoticeController extends Controller
      * @param  \App\Models\Notice  $notice
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Notice $notice)
-    {
-        //
-    }
+   public function update(Request $request, Notice $notice)
+{
+    $data = $request->validate([
+        
+    ]);
+
+    $notice->update($data);
+
+    return redirect()
+        ->route('notices.index')
+        ->with('status', 'Notice updated successfully!');
+}
+
 
     /**
      * Remove the specified resource from storage.
@@ -99,7 +142,12 @@ class NoticeController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy(Notice $notice)
-    {
-        //
-    }
+{
+    $notice->delete();
+
+    return redirect()
+        ->route('notices.index')
+        ->with('status', 'Notice deleted successfully!');
+}
+
 }

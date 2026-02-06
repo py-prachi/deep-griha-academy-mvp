@@ -10,7 +10,9 @@ class Notice extends Model
     use HasFactory;
 
     protected $fillable = [
-        'notice',
-        'session_id'
-    ];
+    'title',
+    'description',
+    'class_id',   // 👈 add this
+];
+
 }
