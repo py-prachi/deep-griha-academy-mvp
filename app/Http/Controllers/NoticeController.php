@@ -124,9 +124,7 @@ class NoticeController extends Controller
    public function update(Request $request, Notice $notice)
 {
     $data = $request->validate([
-        'title' => 'required',
-        'description' => 'required',
-        'class_id' => 'nullable|exists:school_classes,id',
+        
     ]);
 
     $notice->update($data);

@@ -9,11 +9,10 @@ class NoticeRepository {
 public function store($data)
 {
     return Notice::create([
-        'title' => $data['title'] ?? null,
-        'description' => $data['description'] ?? null, // 👈 raw
-        'class_id' => $data['class_id'] ?? null,
-        'session_id' => $data['session_id'] ?? null,
-    ]);
+    'notice' => $data['notice'],
+    'session_id' => $data['session_id'],
+]);
+
 }
 
 
