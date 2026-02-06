@@ -32,7 +32,10 @@ class AttendanceController extends Controller
         SchoolClassInterface $schoolClassRepository,
         SectionInterface $sectionRepository
     ) {
-        $this->middleware(['can:view attendances']);
+        // $this->middleware(['can:view attendances']);
+        $this->middleware('can:view attendances')
+        ->except(['showStudentAttendance']);
+
 
         $this->userRepository = $userRepository;
         $this->academicSettingRepository = $academicSettingRepository;
@@ -177,9 +180,23 @@ public function create(Request $request)
 
 public function showStudentAttendance(Request $request, $id)
 {
-    if (auth()->user()->role === "student" && auth()->user()->id != $id) {
-        abort(404);
+    // if (auth()->user()->role === "student" && auth()->user()->id != $id) {
+    //     abort(404);
+    // }
+    $user = auth()->user();
+
+    // ✅ Student: can only see own attendance
+    if ($user->role === "student") {
+        if ($user->id != $id) {
+            abort(404);
+        }
+        // student is allowed → continue
     }
+    // 🔐 Teacher/Admin: must have permission
+    else {
+        abort_unless($user->can('view attendances'), 403);
+    }
+
 
     $current_school_session_id = $this->getSchoolCurrentSession();
     $selected_date = $request->query('date');
