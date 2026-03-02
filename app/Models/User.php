@@ -14,13 +14,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable
 {
     use HasRoles, HasFactory, Notifiable;
+
     protected $guard_name = 'web';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
         'first_name',
         'last_name',
@@ -38,48 +34,99 @@ class User extends Authenticatable
         'religion',
         'blood_type',
         'role',
+        // ── DGA fields ──────────────────────────
+        'admission_id',
+        'fee_category',
+        'dga_admission_no',
+        'general_id',
+        'village',
+        'distance_from_school',
+        'student_status',
+        'date_of_leaving',
     ];
 
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'date_of_leaving'   => 'date',
     ];
 
-    /**
-     * Get the parent_info.
-     */
+    // ── EXISTING RELATIONSHIPS ────────────────────────────────────────────
+
     public function parent_info()
     {
         return $this->hasOne(StudentParentInfo::class, 'student_id', 'id');
     }
 
-    /**
-     * Get the academic_info.
-     */
     public function academic_info()
     {
         return $this->hasOne(StudentAcademicInfo::class, 'student_id', 'id');
     }
 
-    /**
-     * Get the marks.
-     */
     public function marks()
     {
         return $this->hasMany(Mark::class, 'student_id', 'id');
+    }
+
+    // ── NEW DGA RELATIONSHIPS ─────────────────────────────────────────────
+
+    public function admission()
+    {
+        return $this->belongsTo(Admission::class, 'admission_id');
+    }
+
+    public function feePayments()
+    {
+        return $this->hasMany(FeePayment::class, 'student_user_id');
+    }
+
+    public function leavingCertificate()
+    {
+        return $this->hasOne(LeavingCertificate::class, 'student_user_id');
+    }
+
+    // ── HELPER METHODS ────────────────────────────────────────────────────
+
+    // Total fee paid by this student
+    public function totalFeePaid()
+    {
+        return $this->feePayments()->sum('amount_paid');
+    }
+
+    // Fee balance remaining
+    public function feeBalance($totalFeeDue)
+    {
+        return $totalFeeDue - $this->totalFeePaid();
+    }
+
+    // Fee payment status
+    public function feeStatus($totalFeeDue)
+    {
+        $paid = $this->totalFeePaid();
+        if ($paid <= 0) return 'due';
+        if ($paid >= $totalFeeDue) return 'paid';
+        return 'partial';
+    }
+
+    // Is this user a student?
+    public function isStudent()
+    {
+        return $this->role === 'student';
+    }
+
+    // Is this user active (not left)?
+    public function isActive()
+    {
+        return $this->student_status === 'active';
+    }
+
+    // Full name helper
+    public function getFullNameAttribute()
+    {
+        return $this->first_name . ' ' . $this->last_name;
     }
 }
