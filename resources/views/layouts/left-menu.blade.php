@@ -115,6 +115,19 @@
                     </li> --}}
                     @endif
                     @if (Auth::user()->role == "admin")
+                    {{-- ── ADMISSIONS (admin only) ── --}}
+                    <li class="nav-item">
+                        <a type="button" href="#admission-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('admissions*')? 'active' : '' }}">
+                            <i class="bi bi-person-plus-fill"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Admissions</span>
+                            <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
+                        </a>
+                        <ul class="nav collapse {{ request()->is('admissions*')? 'show' : 'hide' }} bg-white" id="admission-submenu">
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('admissions.index') }}"><i class="bi bi-list-ul me-2"></i> All Admissions</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('admissions.create') }}"><i class="bi bi-person-plus me-2"></i> New Inquiry</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('admissions.cancelled') }}"><i class="bi bi-archive me-2"></i> Cancelled</a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('notice*')? 'active' : '' }}" href="{{route('notice.create')}}"><i class="bi bi-megaphone"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Notice</span></a>
                     </li>

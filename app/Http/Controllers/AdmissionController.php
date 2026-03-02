@@ -70,7 +70,7 @@ class AdmissionController extends Controller
     {
         $current_session_id = $this->getSchoolCurrentSession();
         $school_classes     = $this->schoolClassRepository->getAllBySession($current_session_id);
-        $sessions           = $this->schoolSessionRepository->getAllSessions();
+        $sessions           = $this->schoolSessionRepository->getAll();
 
         return view('admissions.create', [
             'school_classes' => $school_classes,
