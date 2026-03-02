@@ -183,3 +183,18 @@ Route::middleware(['auth'])->group(function () {
 )->name('attendance.update');
 
 });
+
+// ── ADMISSIONS ────────────────────────────────────────────────────────────
+Route::middleware(['auth'])->group(function () {
+    Route::get('/admissions',                           [App\Http\Controllers\AdmissionController::class, 'index'])->name('admissions.index');
+    Route::get('/admissions/create',                    [App\Http\Controllers\AdmissionController::class, 'create'])->name('admissions.create');
+    Route::post('/admissions',                          [App\Http\Controllers\AdmissionController::class, 'store'])->name('admissions.store');
+    Route::get('/admissions/{id}',                      [App\Http\Controllers\AdmissionController::class, 'show'])->name('admissions.show');
+    Route::get('/admissions/{id}/edit',                 [App\Http\Controllers\AdmissionController::class, 'edit'])->name('admissions.edit');
+    Route::put('/admissions/{id}',                      [App\Http\Controllers\AdmissionController::class, 'update'])->name('admissions.update');
+    Route::post('/admissions/{id}/mark-pending',        [App\Http\Controllers\AdmissionController::class, 'markPending'])->name('admissions.markPending');
+    Route::post('/admissions/{id}/confirm',             [App\Http\Controllers\AdmissionController::class, 'confirm'])->name('admissions.confirm');
+    Route::post('/admissions/{id}/cancel',              [App\Http\Controllers\AdmissionController::class, 'cancel'])->name('admissions.cancel');
+    Route::post('/admissions/{id}/document/{doc_id}',   [App\Http\Controllers\AdmissionController::class, 'updateDocument'])->name('admissions.updateDocument');
+    Route::get('/admissions-cancelled',                 [App\Http\Controllers\AdmissionController::class, 'cancelled'])->name('admissions.cancelled');
+});
