@@ -106,7 +106,7 @@ class AdmissionController extends Controller
         $current_session_id = $this->getSchoolCurrentSession();
         $school_classes = $this->schoolClassRepository->getAllBySession($current_session_id);
         $sections       = $admission->class_id
-                            ? $this->schoolSectionRepository->getAllByClassSession($admission->class_id, $current_session_id)
+                            ? $this->schoolSectionRepository->getAllByClassId($admission->class_id)
                             : collect();
 
         return view('admissions.show', [
@@ -124,7 +124,7 @@ class AdmissionController extends Controller
         $current_session_id = $this->getSchoolCurrentSession();
         $school_classes = $this->schoolClassRepository->getAllBySession($current_session_id);
         $sections       = $admission->class_id
-                            ? $this->schoolSectionRepository->getAllByClassSession($admission->class_id, $current_session_id)
+                            ? $this->schoolSectionRepository->getAllByClassId($admission->class_id)
                             : collect();
 
         return view('admissions.edit', [
