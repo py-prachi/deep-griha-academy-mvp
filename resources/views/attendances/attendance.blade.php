@@ -29,7 +29,7 @@
                         </div>
                     @endif
 
-                    {{-- Inline attendance marking for selected date --}}
+                    <!-- {{-- Inline attendance marking for selected date --}}
                     @if(
                         $selected_date &&
                         !$attendance_for_date &&
@@ -65,6 +65,47 @@
                                         Save
                                     </button>
                                 </form>
+                            </div>
+                        </div>
+                    @endif -->
+
+                    {{-- Inline attendance marking for a selected date --}}
+                    @if($selected_date && !$attendance_for_date && in_array(auth()->user()->role, ['admin','teacher']))
+                        <div class="row mt-3">
+                            <div class="col bg-white border shadow-sm p-3">
+
+                                @if(!$has_promotion)
+                                    {{-- Student exists but has no class assignment yet --}}
+                                    <div class="alert alert-warning mb-0">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        This student has not been assigned to a class and section yet.
+                                        Please assign them via <a href="{{ route('promotions.create') }}">Promotions</a>
+                                        before marking attendance.
+                                    </div>
+
+                                @else
+                                    <h6 class="mb-2">
+                                        Mark attendance for <strong>{{ $selected_date }}</strong>
+                                    </h6>
+                                    <form method="POST" action="{{ route('attendances.store') }}">
+                                        @csrf
+                                        <input type="hidden" name="attendance_date" value="{{ $selected_date }}">
+                                        <input type="hidden" name="session_id"      value="{{ $current_school_session_id }}">
+                                        <input type="hidden" name="class_id"        value="{{ $class_id }}">
+                                        <input type="hidden" name="section_id"      value="{{ $section_id }}">
+                                        <input type="hidden" name="course_id"       value="{{ $course_id }}">
+                                        <input type="hidden" name="student_ids[]"   value="{{ $student->id }}">
+
+                                        <label class="me-3">
+                                            <input type="radio" name="status[{{ $student->id }}]" value="on" checked> Present
+                                        </label>
+                                        <label class="me-3">
+                                            <input type="radio" name="status[{{ $student->id }}]" value="off"> Absent
+                                        </label>
+                                        <button type="submit" class="btn btn-sm btn-primary ms-3">Save</button>
+                                    </form>
+                                @endif
+
                             </div>
                         </div>
                     @endif
@@ -107,7 +148,16 @@
                                                 
                                             </td>
                                             <td>{{$attendance->created_at}}</td>
-                                            <td>{{($attendance->section == null)?$attendance->course->course_name:$attendance->section->section_name}}</td>
+                                            <td>
+                                                @if($attendance->section)
+                                                    <span class="badge bg-secondary">{{ $attendance->section->section_name }}</span>
+                                                @elseif($attendance->course)
+                                                    <span class="badge bg-info text-dark">{{ $attendance->course->course_name }}</span>
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                @endif
+                                            </td>
+                                            {{-- <td>{{($attendance->section == null)?$attendance->course->course_name:$attendance->section->section_name}}</td> --}}
                                         </tr>
                                     @endforeach
                                 </tbody>
