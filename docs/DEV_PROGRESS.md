@@ -6,43 +6,33 @@
 - Database renamed to dga_school
 
 ## Phase 2 — COMPLETE ✅
-- Eloquent Models:
-  - Admission.php
-  - AdmissionDocument.php
-  - FeeStructure.php
-  - FeePayment.php
-  - FeeLineItem.php
-  - LeavingCertificate.php
-  - User.php (updated with DGA relationships)
-- AdmissionInterface.php
-- AdmissionRepository.php
-- AdmissionServiceProvider.php
-- AdmissionController.php (11 routes)
-- Routes registered and verified
+- Eloquent Models (7 files)
+- AdmissionInterface, AdmissionRepository, AdmissionServiceProvider
+- AdmissionController (11 routes)
+- Blade Views (index, create, show, edit, cancelled)
+- Left menu updated with Admissions section
+- Full admission flow working:
+  - New Inquiry → Pending → Confirmed → Cancelled
+  - Document checklist
+  - On confirm: student user created + promotion record created
+  - Student appears in existing student list after confirmation
 
-## Next Steps — Phase 2 UI (Blade Views)
-Build these 4 views in order:
-1. resources/views/admissions/index.blade.php — list all admissions with filters
-2. resources/views/admissions/create.blade.php — new admission form (all 30 fields)
-3. resources/views/admissions/show.blade.php — detail page + status change + doc checklist
-4. resources/views/admissions/edit.blade.php — edit admission details
-5. resources/views/admissions/cancelled.blade.php — archived cancelled admissions
+## Known Issues (fix later)
+- Attendance error for new students — needs course assignment first (existing system behaviour, not our bug)
 
-Also need:
-- Add Admissions link to admin sidebar navigation
-
-## Phase 3 — NOT STARTED
-- FeeStructureController + Interface + Repository
-- FeePaymentController + Interface + Repository
-- Challan PDF generation (DomPDF)
-- Fee views
+## Next Steps — Phase 3
+- FeeStructureInterface + Repository + Controller
+- FeePaymentInterface + Repository + Controller  
+- Challan PDF (DomPDF)
+- Fee views: structure setup, student ledger, record payment
+- Install DomPDF: composer require barryvdh/laravel-dompdf
 
 ## Phase 4 — NOT STARTED
-- LeavingCertificateController + Interface + Repository
+- LeavingCertificateController
 - LC PDF generation
 - 8 Reports
 
-## Key Decisions (see FDD v1.1 for full details)
+## Key Decisions
 - Challan numbers: global running sequence (0001, 0002...)
 - LC numbers: global running sequence (LC001, LC002...)
 - DGA admission no: DGA/26-27/001 (resets per year, pre-primary only)
@@ -55,7 +45,8 @@ Also need:
 ## Branch Strategy
 - main → stable only
 - develop → integration branch
-- feature/phase2-admissions → current branch (ready to merge)
+- feature/phase2-admissions → merge to develop when ready
+- feature/phase3-fees → next branch to create
 
 ## Tech Stack
 - Laravel 8.x + Blade + Bootstrap 5
@@ -67,7 +58,7 @@ Also need:
 ## Login Credentials
 - Admin: admin@deepgriha.com / dga@admin2026
 - Teacher: [name]@deepgriha.com / dga@teacher2026
-- Student: auto-generated on admission confirmation
+- Student: [auto-generated]@deepgriha.com / dga@student2026
 
 ## Repo
 https://github.com/py-prachi/deep-griha-academy-mvp
