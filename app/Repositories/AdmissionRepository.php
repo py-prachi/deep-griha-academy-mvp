@@ -174,6 +174,15 @@ class AdmissionRepository implements AdmissionInterface
             // Assign student role
             $student->assignRole('student');
 
+            // Create promotion record so student appears in existing student list
+            $promotionRepository = new \App\Repositories\PromotionRepository();
+            $promotionRepository->assignClassSection([
+                'session_id'    => $admission->session_id,
+                'class_id'      => $admission->class_id,
+                'section_id'    => $data['section_id'],
+                'id_card_number' => $admission->dga_admission_no ?? $admission->general_id ?? 'DGA-' . $admission->id,
+            ], $student->id);
+
             // Link student back to admission
             $admission->student_user_id = $student->id;
             $admission->status          = Admission::STATUS_CONFIRMED;
