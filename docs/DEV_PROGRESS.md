@@ -5,57 +5,60 @@
 - Seeders (roles, permissions, users, school structure)
 - Database renamed to dga_school
 
-## Phase 2 — IN PROGRESS 🔄
-- Eloquent Models created:
-  - Admission.php
-  - AdmissionDocument.php
-  - FeeStructure.php
-  - FeePayment.php
-  - FeeLineItem.php
-  - LeavingCertificate.php
-  - User.php (updated with DGA relationships)
+## Phase 2 — COMPLETE ✅
+- Eloquent Models (7 files)
+- AdmissionInterface, AdmissionRepository, AdmissionServiceProvider
+- AdmissionController (11 routes)
+- Blade Views (index, create, show, edit, cancelled)
+- Left menu updated with Admissions section
+- Full admission flow working:
+  - New Inquiry → Pending → Confirmed → Cancelled
+  - Document checklist
+  - On confirm: student user created + promotion record created
+  - Student appears in existing student list after confirmation
 
-## Next Steps (Phase 2 continued)
-- AdmissionController
-- Routes for admissions
-- Blade views:
-  - Admission list page
-  - New admission form (all 30 fields)
-  - Admission detail/profile page
-  - Status change flow
+## Known Issues (fix later)
+- Attendance error for new students — needs course assignment first (existing system behaviour, not our bug)
 
-## Phase 3 — NOT STARTED
-- Fee Management
-- Challan PDF generation
+## Next Steps — Phase 3
+- FeeStructureInterface + Repository + Controller
+- FeePaymentInterface + Repository + Controller  
+- Challan PDF (DomPDF)
+- Fee views: structure setup, student ledger, record payment
+- Install DomPDF: composer require barryvdh/laravel-dompdf
 
 ## Phase 4 — NOT STARTED
-- Leaving Certificate
-- Reports
+- LeavingCertificateController
+- LC PDF generation
+- 8 Reports
 
-## Key Decisions (see FDD v1.1 for full details)
-- Challan numbers: global running sequence
-- LC numbers: global running sequence (LC001...)
+## Key Decisions
+- Challan numbers: global running sequence (0001, 0002...)
+- LC numbers: global running sequence (LC001, LC002...)
 - DGA admission no: DGA/26-27/001 (resets per year, pre-primary only)
 - Fee categories: general, rte, coc, discount
 - COC: full fee shown as DGA Internal Transfer, parent balance = 0
 - LC issuance: warning only if fees due, never blocked
 - Soft delete for cancelled admissions
-- Existing Add Student flow untouched — runs parallel to new Admissions module
+- Existing Add Student flow untouched
 
 ## Branch Strategy
 - main → stable only
 - develop → integration branch
-- feature/phase2-admissions → current branch
+- feature/phase2-admissions → merge to develop when ready
+- feature/phase3-fees → next branch to create
 
 ## Tech Stack
 - Laravel 8.x + Blade + Bootstrap 5
 - MySQL (database: dga_school)
 - Docker (containers: app, db, nginx)
 - Spatie Permissions for roles
+- Repository pattern (Interface → Repository → ServiceProvider)
 
 ## Login Credentials
 - Admin: admin@deepgriha.com / dga@admin2026
 - Teacher: [name]@deepgriha.com / dga@teacher2026
+- Student: [auto-generated]@deepgriha.com / dga@student2026
 
 ## Repo
 https://github.com/py-prachi/deep-griha-academy-mvp

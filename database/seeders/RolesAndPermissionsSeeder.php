@@ -45,6 +45,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $adminRole   = Role::firstOrCreate(['name' => 'admin',   'guard_name' => 'web']);
         $teacherRole = Role::firstOrCreate(['name' => 'teacher', 'guard_name' => 'web']);
+        $studentRole = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
 
         $adminRole->syncPermissions(Permission::all());
 
