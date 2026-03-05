@@ -60,8 +60,8 @@
                                 <tr>
                                     <th>Student Name</th>
                                     <th>Class</th>
-                                    <th>Mobile</th>
-                                    <th>Village</th>
+                                    <th>Father's Phone</th>
+                                    <th>City</th>
                                     <th>Inquiry Date</th>
                                     <th>Status</th>
                                     <th>Actions</th>
@@ -72,8 +72,8 @@
                                 <tr>
                                     <td>{{ $admission->student_name }}</td>
                                     <td>{{ $admission->schoolClass->class_name ?? '-' }}</td>
-                                    <td>{{ $admission->contact_mobile ?? '-' }}</td>
-                                    <td>{{ $admission->village ?? '-' }}</td>
+                                    <td>{{ $admission->father_phone ?? $admission->contact_mobile ?? '-' }}</td>
+                                    <td>{{ $admission->city ?? $admission->village ?? '-' }}</td>
                                     <td>{{ $admission->inquiry_date ? $admission->inquiry_date->format('d M Y') : '-' }}</td>
                                     <td>
                                         @if($admission->status == 'inquiry')

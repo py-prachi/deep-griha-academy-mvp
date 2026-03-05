@@ -24,8 +24,8 @@
 
                         $father_name    = $p->father_name    ?? $a->father_name    ?? '—';
                         $mother_name    = $p->mother_name    ?? $a->mother_name    ?? '—';
-                        $father_phone   = $p->father_phone   ?? $a->contact_mobile ?? '—';
-                        $mother_phone   = $p->mother_phone   ?? '—';
+                        $father_phone   = $p->father_phone   ?? $a->father_phone   ?? $a->contact_mobile ?? '—';
+                        $mother_phone   = $p->mother_phone   ?? $a->mother_phone   ?? '—';
                         $parent_address = $p->parent_address ?? $a->full_address   ?? '—';
 
                         $admission_no = $student->dga_admission_no
@@ -59,7 +59,7 @@
 
                                 <div class="p-3 mb-3 border rounded bg-white">
                                     <h6>Student Information</h6>
-                                    <table class="table table-responsive mt-3">
+                                    <table class="table table-responsive mt-3" style="table-layout:fixed;word-break:break-word;"><colgroup><col style="width:18%"><col style="width:32%"><col style="width:18%"><col style="width:32%"></colgroup>
                                         <tbody>
                                             <tr>
                                                 <th scope="row">First Name:</th>
@@ -71,7 +71,7 @@
                                                 <th scope="row">Email:</th>
                                                 <td>{{$student->email ?? '—'}}</td>
                                                 <th>Birthday:</th>
-                                                <td>{{$student->birthday ?? '—'}}</td>
+                                                <td>{{ $student->birthday ? \Carbon\Carbon::parse($student->birthday)->format('d M Y') : '—' }}</td>
                                             </tr>
                                             <tr>
                                                 <th scope="row">Nationality:</th>
@@ -81,9 +81,11 @@
                                             </tr>
                                             <tr>
                                                 <th scope="row">Address:</th>
-                                                <td>{{$student->address ?? '—'}}</td>
-                                                <th>Address2:</th>
-                                                <td>{{$student->address2 ?? '—'}}</td>
+                                                <td colspan="3">{{$student->address ?? '—'}}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Address2:</th>
+                                                <td colspan="3">{{$student->address2 ?? '—'}}</td>
                                             </tr>
                                             <tr>
                                                 <th scope="row">City:</th>
@@ -107,7 +109,7 @@
 
                                 <div class="p-3 mb-3 border rounded bg-white">
                                     <h6>Parents' Information</h6>
-                                    <table class="table table-responsive mt-3">
+                                    <table class="table table-responsive mt-3" style="table-layout:fixed;word-break:break-word;"><colgroup><col style="width:18%"><col style="width:32%"><col style="width:18%"><col style="width:32%"></colgroup>
                                         <tbody>
                                             <tr>
                                                 <th scope="row">Father's Name:</th>
@@ -138,7 +140,7 @@
                                 <div class="p-3 mb-3 border rounded bg-white">
                                     <h6>Academic Information</h6>
                                     @if($promotion_info)
-                                        <table class="table table-responsive mt-3">
+                                        <table class="table table-responsive mt-3" style="table-layout:fixed;word-break:break-word;"><colgroup><col style="width:18%"><col style="width:32%"><col style="width:18%"><col style="width:32%"></colgroup>
                                             <tbody>
                                                 <tr>
                                                     <th scope="row">Class:</th>

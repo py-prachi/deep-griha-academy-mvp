@@ -38,7 +38,7 @@
                                 </div>
                                 <div class="col-3">
                                     <label for="inputBirthday" class="form-label">Birthday<sup><i class="bi bi-asterisk text-primary"></i></sup></label>
-                                    <input type="date" class="form-control" id="inputBirthday" name="birthday" placeholder="Birthday" required value="{{$student->birthday}}">
+                                    <input type="date" class="form-control" id="inputBirthday" name="birthday" placeholder="Birthday" required value="{{ $student->birthday ? \Carbon\Carbon::parse($student->birthday)->format('Y-m-d') : '' }}">
                                 </div>
                                 <div class="col-3">
                                     <label for="inputAddress" class="form-label">Address<sup><i class="bi bi-asterisk text-primary"></i></sup></label>
@@ -70,20 +70,22 @@
                                 <div class="col-2">
                                     <label for="inputBloodType" class="form-label">BloodType<sup><i class="bi bi-asterisk text-primary"></i></sup></label>
                                     <select id="inputBloodType" class="form-select" name="blood_type" required>
-                                        <option value="A+" {{($student->blood_type == 'A+')?'selected':null}}>A+</option>
-                                        <option value="A-" {{($student->blood_type == 'A-')?'selected':null}}>A-</option>
-                                        <option value="B+" {{($student->blood_type == 'B+')?'selected':null}}>B+</option>
-                                        <option value="B-" {{($student->blood_type == 'B-')?'selected':null}}>B-</option>
-                                        <option value="O+" {{($student->blood_type == 'O+')?'selected':null}}>O+</option>
-                                        <option value="O-" {{($student->blood_type == 'O-')?'selected':null}}>O-</option>
-                                        <option value="AB+" {{($student->blood_type == 'AB+')?'selected':null}}>AB+</option>
-                                        <option value="AB-" {{($student->blood_type == 'AB-')?'selected':null}}>AB-</option>
-                                        <option value="Other" {{($student->blood_type == 'Other')?'selected':null}}>Other</option>
+                                        <option value="" {{(!$student->blood_type) ? 'selected' : ''}}>-- Select --</option>
+                                        <option value="A+"  {{($student->blood_type == 'A+')  ? 'selected' : null}}>A+</option>
+                                        <option value="A-"  {{($student->blood_type == 'A-')  ? 'selected' : null}}>A-</option>
+                                        <option value="B+"  {{($student->blood_type == 'B+')  ? 'selected' : null}}>B+</option>
+                                        <option value="B-"  {{($student->blood_type == 'B-')  ? 'selected' : null}}>B-</option>
+                                        <option value="O+"  {{($student->blood_type == 'O+')  ? 'selected' : null}}>O+</option>
+                                        <option value="O-"  {{($student->blood_type == 'O-')  ? 'selected' : null}}>O-</option>
+                                        <option value="AB+" {{($student->blood_type == 'AB+') ? 'selected' : null}}>AB+</option>
+                                        <option value="AB-" {{($student->blood_type == 'AB-') ? 'selected' : null}}>AB-</option>
+                                        <option value="Other" {{($student->blood_type == 'Other') ? 'selected' : null}}>Other</option>
                                     </select>
                                 </div>
                                 <div class="col-2">
                                     <label for="inputReligion" class="form-label">Religion<sup><i class="bi bi-asterisk text-primary"></i></sup></label>
                                     <select id="inputReligion" class="form-select" name="religion" required>
+                                        <option value="" {{(!$student->religion || !in_array($student->religion, ['Islam','Hinduism','Christianity','Buddhism','Judaism','Other'])) ? 'selected' : ''}}>-- Select --</option>
                                         <option {{($student->religion == 'Islam')?'selected':null}}>Islam</option>
                                         <option {{($student->religion == 'Hinduism')?'selected':null}}>Hinduism</option>
                                         <option {{($student->religion == 'Christianity')?'selected':null}}>Christianity</option>
@@ -98,30 +100,30 @@
                                 </div>
                                 <div class="col-3">
                                     <label for="inputIdCardNumber" class="form-label">Id Card Number<sup><i class="bi bi-asterisk text-primary"></i></sup></label>
-                                    <input type="text" class="form-control" id="inputIdCardNumber" name="id_card_number" placeholder="e.g. 2021-03-01-02-01 (Year Semester Class Section Roll)" required value="{{$promotion_info->id_card_number}}">
+                                    <input type="text" class="form-control" id="inputIdCardNumber" name="id_card_number" placeholder="e.g. 2021-03-01-02-01 (Year Semester Class Section Roll)" required value="{{$promotion_info->id_card_number ?? ''}}">
                                 </div>
                             </div>
                             <div class="row mt-4 g-3">
                                 <h6>Parents' Information</h6>
                                 <div class="col-3">
                                     <label for="inputFatherName" class="form-label">Father Name<sup><i class="bi bi-asterisk text-primary"></i></sup></label>
-                                    <input type="text" class="form-control" id="inputFatherName" name="father_name" placeholder="Father Name" required value="{{$parent_info->father_name}}">
+                                    <input type="text" class="form-control" id="inputFatherName" name="father_name" placeholder="Father Name" required value="{{$f_father_name}}">
                                 </div>
                                 <div class="col-3">
                                     <label for="inputFatherPhone" class="form-label">Father's Phone<sup><i class="bi bi-asterisk text-primary"></i></sup></label>
-                                    <input type="text" class="form-control" id="inputFatherPhone" name="father_phone" placeholder="+880 01......" required value="{{$parent_info->father_phone}}">
+                                    <input type="text" class="form-control" id="inputFatherPhone" name="father_phone" placeholder="+880 01......" required value="{{$f_father_phone}}">
                                 </div>
                                 <div class="col-3">
                                     <label for="inputMotherName" class="form-label">Mother Name<sup><i class="bi bi-asterisk text-primary"></i></sup></label>
-                                    <input type="text" class="form-control" id="inputMotherName" name="mother_name" placeholder="Mother Name" required value="{{$parent_info->mother_name}}">
+                                    <input type="text" class="form-control" id="inputMotherName" name="mother_name" placeholder="Mother Name" required value="{{$f_mother_name}}">
                                 </div>
                                 <div class="col-3">
                                     <label for="inputMotherPhone" class="form-label">Mother's Phone<sup><i class="bi bi-asterisk text-primary"></i></sup></label>
-                                    <input type="text" class="form-control" id="inputMotherPhone" name="mother_phone" placeholder="+880 01......" required value="{{$parent_info->mother_phone}}">
+                                    <input type="text" class="form-control" id="inputMotherPhone" name="mother_phone" placeholder="+880 01......" required value="{{$f_mother_phone}}">
                                 </div>
                                 <div class="col-4">
                                     <label for="inputParentAddress" class="form-label">Address<sup><i class="bi bi-asterisk text-primary"></i></sup></label>
-                                    <input type="text" class="form-control" id="inputParentAddress" name="parent_address" placeholder="634 Main St" required value="{{$parent_info->parent_address}}">
+                                    <input type="text" class="form-control" id="inputParentAddress" name="parent_address" placeholder="634 Main St" required value="{{$f_parent_address}}">
                                 </div>
                             </div>
                             <div class="row mt-4">

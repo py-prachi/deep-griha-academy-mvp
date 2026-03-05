@@ -25,6 +25,7 @@
                                 <tr>
                                     <th>Student Name</th>
                                     <th>Class</th>
+                                    <th>Father's Phone</th>
                                     <th>Inquiry Date</th>
                                     <th>Cancelled On</th>
                                     <th>Reason</th>
@@ -35,6 +36,7 @@
                                 <tr>
                                     <td>{{ $admission->student_name }}</td>
                                     <td>{{ $admission->schoolClass->class_name ?? '-' }}</td>
+                                    <td>{{ $admission->father_phone ?? $admission->contact_mobile ?? '-' }}</td>
                                     <td>{{ $admission->inquiry_date ? $admission->inquiry_date->format('d M Y') : '-' }}</td>
                                     <td>{{ $admission->deleted_at ? $admission->deleted_at->format('d M Y') : '-' }}</td>
                                     <td>{{ $admission->cancel_reason ?? '-' }}</td>
