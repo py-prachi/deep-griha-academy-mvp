@@ -135,9 +135,11 @@
                                     <div class="col-md-12"><strong>Address:</strong> {{ $admission->full_address ?? '-' }}</div>
                                     <div class="col-md-4"><strong>Village:</strong> {{ $admission->village ?? '-' }}</div>
                                     <div class="col-md-4"><strong>Distance:</strong> {{ $admission->distance_from_school ?? '-' }}</div>
-                                    <div class="col-md-4"><strong>Mobile:</strong> {{ $admission->contact_mobile ?? '-' }}</div>
-                                    <div class="col-md-4"><strong>Residence:</strong> {{ $admission->contact_residence ?? '-' }}</div>
+                                    <div class="col-md-4"><strong>Father's Phone:</strong> {{ $admission->father_phone ?? $admission->contact_mobile ?? '-' }}</div>
+                                    <div class="col-md-4"><strong>Mother's Phone:</strong> {{ $admission->mother_phone ?? '-' }}</div>
                                     <div class="col-md-4"><strong>Emergency:</strong> {{ $admission->contact_emergency ?? '-' }}</div>
+                                    <div class="col-md-4"><strong>City:</strong> {{ $admission->city ?? '-' }}</div>
+                                    <div class="col-md-4"><strong>PIN Code:</strong> {{ $admission->zip ?? '-' }}</div>
                                 </div>
                             </div>
 
@@ -148,6 +150,7 @@
                                     <div class="col-md-4"><strong>Transport:</strong> {{ $admission->transport_required ? 'Yes' : 'No' }}</div>
                                     <div class="col-md-8"><strong>Allergies/Medical:</strong> {{ $admission->allergies_medical ?? '-' }}</div>
                                     <div class="col-md-6"><strong>Doctor:</strong> {{ $admission->doctor_name_phone ?? '-' }}</div>
+                                    <div class="col-md-6"><strong>Blood Group:</strong> {{ $admission->blood_type ?? '-' }}</div>
                                 </div>
                             </div>
 

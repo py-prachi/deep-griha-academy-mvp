@@ -85,7 +85,7 @@ class AdmissionController extends Controller
     {
         $request->validate([
             'student_name'   => 'required|string|max:255',
-            'contact_mobile' => 'required|string|max:15',
+            'father_phone' => 'required|string|max:15',
             'academic_year'  => 'required|string',
             'class_id'       => 'required|exists:school_classes,id',
         ]);

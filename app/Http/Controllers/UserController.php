@@ -66,7 +66,11 @@ class UserController extends Controller
 
             $school_classes = $this->schoolClassRepository->getAllBySession($current_school_session_id);
 
-            $studentList = $this->userRepository->getAllStudents($current_school_session_id, $class_id, $section_id);
+            if ($class_id == 0 || $section_id == 0) {
+                $studentList = $this->userRepository->getAllStudentsBySession($current_school_session_id);
+            } else {
+                $studentList = $this->userRepository->getAllStudents($current_school_session_id, $class_id, $section_id);
+            }
 
             $data = [
                 'studentList'       => $studentList,
@@ -134,7 +138,8 @@ class UserController extends Controller
         }
     }
 
-    public function editStudent($student_id) {
+    public function editStudent($student_id) 
+    {
         $student = $this->userRepository->findStudent($student_id);
         $studentParentInfoRepository = new StudentParentInfoRepository();
         $parent_info = $studentParentInfoRepository->getParentInfo($student_id);
@@ -142,12 +147,26 @@ class UserController extends Controller
         $current_school_session_id = $this->getSchoolCurrentSession();
         $promotion_info = $promotionRepository->getPromotionInfoById($current_school_session_id, $student_id);
 
-        $data = [
-            'student'       => $student,
-            'parent_info'   => $parent_info,
-            'promotion_info'=> $promotion_info,
-        ];
-        return view('students.edit', $data);
+        // ── For admission-flow students: parent_info table is empty,
+        // source parent data from the admissions record instead.
+        $admission = $student->admission ?? null;
+        $father_name    = $parent_info->father_name    ?? $admission->father_name    ?? '';
+        $mother_name    = $parent_info->mother_name    ?? $admission->mother_name    ?? '';
+        $father_phone   = $parent_info->father_phone   ?? $admission->father_phone   ?? $admission->contact_mobile ?? '';
+        $mother_phone   = $parent_info->mother_phone   ?? $admission->mother_phone ?? '';
+        $parent_address = $parent_info->parent_address ?? $admission->full_address   ?? '';
+
+        return view('students.edit', [
+            'student'        => $student,
+            'parent_info'    => $parent_info,
+            'promotion_info' => $promotion_info,
+            // Pre-resolved parent fields safe for both student types
+            'f_father_name'    => $father_name,
+            'f_mother_name'    => $mother_name,
+            'f_father_phone'   => $father_phone,
+            'f_mother_phone'   => $mother_phone,
+            'f_parent_address' => $parent_address,
+        ]);
     }
 
     public function updateStudent(Request $request) {

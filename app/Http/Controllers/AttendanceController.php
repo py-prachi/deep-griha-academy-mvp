@@ -14,6 +14,7 @@ use App\Interfaces\SectionInterface;
 use App\Repositories\AttendanceRepository;
 use App\Repositories\CourseRepository;
 use App\Traits\SchoolSession;
+use App\Models\Promotion;
 use Carbon\Carbon;
 
 class AttendanceController extends Controller
@@ -178,36 +179,89 @@ public function create(Request $request)
     }
 
 
+// public function showStudentAttendance(Request $request, $id)
+// {
+//     // if (auth()->user()->role === "student" && auth()->user()->id != $id) {
+//     //     abort(404);
+//     // }
+//     $user = auth()->user();
+
+//     // ✅ Student: can only see own attendance
+//     if ($user->role === "student") {
+//         if ($user->id != $id) {
+//             abort(404);
+//         }
+//         // student is allowed → continue
+//     }
+//     // 🔐 Teacher/Admin: must have permission
+//     else {
+//         abort_unless($user->can('view attendances'), 403);
+//     }
+
+
+//     $current_school_session_id = $this->getSchoolCurrentSession();
+//     $selected_date = $request->query('date');
+
+//     $attendanceRepository = new AttendanceRepository();
+
+//     // ✅ FULL HISTORY — unchanged
+//     $attendances = $attendanceRepository
+//         ->getStudentAttendance($current_school_session_id, $id);
+
+//     // ✅ Attendance for selected date
+//     $attendance_for_date = null;
+//     if ($selected_date) {
+//         $attendance_for_date = Attendance::where('student_id', $id)
+//             ->where('session_id', $current_school_session_id)
+//             ->whereDate('created_at', $selected_date)
+//             ->first();
+//     }
+
+//     $student = $this->userRepository->findStudent($id);
+
+//     // 🔹 NEW: get attendance type
+//     $academic_setting = $this->academicSettingRepository->getAcademicSetting();
+//     $attendance_type = $academic_setting->attendance_type ?? 'section';
+
+//     // ✅ Derive class / section / course from existing attendance records
+//     $firstAttendance = $attendances->first();
+
+//     $class_id = $firstAttendance ? (int) $firstAttendance->class_id : 0;
+//     $section_id = $firstAttendance ? (int) $firstAttendance->section_id : 0;
+//     $course_id = $firstAttendance ? (int) $firstAttendance->course_id : 0;
+
+
+//     return view('attendances.attendance', [
+//         'attendances'               => $attendances,
+//         'student'                   => $student,
+//         'selected_date'             => $selected_date,
+//         'attendance_for_date'       => $attendance_for_date,
+//         'current_school_session_id' => $current_school_session_id,
+
+//         // 🔹 NEW: pass IDs + mode
+//         'attendance_type' => $attendance_type,
+//         'class_id'        => $class_id,
+//         'section_id'      => $section_id,
+//         'course_id'       => $course_id,
+//     ]);
+// }
 public function showStudentAttendance(Request $request, $id)
 {
-    // if (auth()->user()->role === "student" && auth()->user()->id != $id) {
-    //     abort(404);
-    // }
     $user = auth()->user();
 
-    // ✅ Student: can only see own attendance
-    if ($user->role === "student") {
-        if ($user->id != $id) {
-            abort(404);
-        }
-        // student is allowed → continue
-    }
-    // 🔐 Teacher/Admin: must have permission
-    else {
+    if ($user->role === 'student') {
+        if ($user->id != $id) abort(404);
+    } else {
         abort_unless($user->can('view attendances'), 403);
     }
 
-
     $current_school_session_id = $this->getSchoolCurrentSession();
-    $selected_date = $request->query('date');
+    $selected_date             = $request->query('date');
 
     $attendanceRepository = new AttendanceRepository();
 
-    // ✅ FULL HISTORY — unchanged
-    $attendances = $attendanceRepository
-        ->getStudentAttendance($current_school_session_id, $id);
+    $attendances = $attendanceRepository->getStudentAttendance($current_school_session_id, $id);
 
-    // ✅ Attendance for selected date
     $attendance_for_date = null;
     if ($selected_date) {
         $attendance_for_date = Attendance::where('student_id', $id)
@@ -216,19 +270,21 @@ public function showStudentAttendance(Request $request, $id)
             ->first();
     }
 
-    $student = $this->userRepository->findStudent($id);
-
-    // 🔹 NEW: get attendance type
+    $student          = $this->userRepository->findStudent($id);
     $academic_setting = $this->academicSettingRepository->getAcademicSetting();
-    $attendance_type = $academic_setting->attendance_type ?? 'section';
+    $attendance_type  = $academic_setting->attendance_type ?? 'section';
 
-    // ✅ Derive class / section / course from existing attendance records
-    $firstAttendance = $attendances->first();
+    // ── FIX: get class/section from PROMOTION record, not attendance history.
+    // Attendance history is unreliable: new students have none, deleted
+    // courses/sections leave orphaned records. Promotion is the source of truth.
+    $promotion = \App\Models\Promotion::where('student_id', $id)
+        ->where('session_id', $current_school_session_id)
+        ->first();
 
-    $class_id = $firstAttendance ? (int) $firstAttendance->class_id : 0;
-    $section_id = $firstAttendance ? (int) $firstAttendance->section_id : 0;
-    $course_id = $firstAttendance ? (int) $firstAttendance->course_id : 0;
-
+    $class_id      = $promotion ? (int) $promotion->class_id   : 0;
+    $section_id    = $promotion ? (int) $promotion->section_id : 0;
+    $course_id     = 0; // not stored on promotion; only needed for course-based mark form
+    $has_promotion = $promotion !== null;
 
     return view('attendances.attendance', [
         'attendances'               => $attendances,
@@ -236,12 +292,11 @@ public function showStudentAttendance(Request $request, $id)
         'selected_date'             => $selected_date,
         'attendance_for_date'       => $attendance_for_date,
         'current_school_session_id' => $current_school_session_id,
-
-        // 🔹 NEW: pass IDs + mode
-        'attendance_type' => $attendance_type,
-        'class_id'        => $class_id,
-        'section_id'      => $section_id,
-        'course_id'       => $course_id,
+        'attendance_type'           => $attendance_type,
+        'class_id'                  => $class_id,
+        'section_id'                => $section_id,
+        'course_id'                 => $course_id,
+        'has_promotion'             => $has_promotion,
     ]);
 }
 

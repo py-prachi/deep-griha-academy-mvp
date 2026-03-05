@@ -1,13 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<style>
-/* .table th:first-child,
-.table td:first-child {
-  position: relative;
-  background-color: #f8f9fa;
-} */
-</style>
 <div class="container">
     <div class="row justify-content-start">
         @include('layouts.left-menu')
@@ -24,6 +17,22 @@
                           <li class="breadcrumb-item active" aria-current="page">Profile</li>
                         </ol>
                     </nav>
+
+                    @php
+                        $p = $student->parent_info ?? null;
+                        $a = $student->admission   ?? null;
+
+                        $father_name    = $p->father_name    ?? $a->father_name    ?? '—';
+                        $mother_name    = $p->mother_name    ?? $a->mother_name    ?? '—';
+                        $father_phone   = $p->father_phone   ?? $a->father_phone   ?? $a->contact_mobile ?? '—';
+                        $mother_phone   = $p->mother_phone   ?? $a->mother_phone   ?? '—';
+                        $parent_address = $p->parent_address ?? $a->full_address   ?? '—';
+
+                        $admission_no = $student->dga_admission_no
+                                     ?? $student->general_id
+                                     ?? ($a ? 'DGA-' . $a->id : '—');
+                    @endphp
+
                     <div class="mb-4">
                         <div class="row">
                             <div class="col-sm-4 col-md-3">
@@ -37,103 +46,125 @@
                                     </div>
                                     <div class="card-body">
                                         <h5 class="card-title">{{$student->first_name}} {{$student->last_name}}</h5>
-                                        <p class="card-text">#ID: {{$promotion_info->id_card_number}}</p>
+                                        <p class="card-text">#ID: {{ $promotion_info->id_card_number ?? $admission_no }}</p>
                                     </div>
                                     <ul class="list-group list-group-flush">
-                                        <li class="list-group-item">Gender: {{$student->gender}}</li>
-                                        <li class="list-group-item">Phone: {{$student->phone}}</li>
-                                        {{-- <li class="list-group-item"><a href="#">View Marks &amp; Results</a></li> --}}
+                                        <li class="list-group-item">Gender: {{$student->gender ?? '—'}}</li>
+                                        <li class="list-group-item">Phone: {{$student->phone ?? '—'}}</li>
                                     </ul>
                                 </div>
                             </div>
+
                             <div class="col-sm-8 col-md-9">
+
                                 <div class="p-3 mb-3 border rounded bg-white">
                                     <h6>Student Information</h6>
-                                    <table class="table table-responsive mt-3">
+                                    <table class="table table-responsive mt-3" style="table-layout:fixed;word-break:break-word;"><colgroup><col style="width:18%"><col style="width:32%"><col style="width:18%"><col style="width:32%"></colgroup>
                                         <tbody>
                                             <tr>
                                                 <th scope="row">First Name:</th>
-                                                <td>{{$student->first_name}}</td>
+                                                <td>{{$student->first_name ?? '—'}}</td>
                                                 <th>Last Name:</th>
-                                                <td>{{$student->last_name}}</td>
+                                                <td>{{$student->last_name ?? '—'}}</td>
                                             </tr>
                                             <tr>
                                                 <th scope="row">Email:</th>
-                                                <td>{{$student->email}}</td>
+                                                <td>{{$student->email ?? '—'}}</td>
                                                 <th>Birthday:</th>
-                                                <td>{{$student->birthday}}</td>
+                                                <td>{{ $student->birthday ? \Carbon\Carbon::parse($student->birthday)->format('d M Y') : '—' }}</td>
                                             </tr>
                                             <tr>
                                                 <th scope="row">Nationality:</th>
-                                                <td>{{$student->nationality}}</td>
+                                                <td>{{$student->nationality ?? '—'}}</td>
                                                 <th>Religion:</th>
-                                                <td>{{$student->religion}}</td>
+                                                <td>{{$student->religion ?? '—'}}</td>
                                             </tr>
                                             <tr>
                                                 <th scope="row">Address:</th>
-                                                <td>{{$student->address}}</td>
-                                                <th>Address2:</th>
-                                                <td>{{$student->address2}}</td>
+                                                <td colspan="3">{{$student->address ?? '—'}}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Address2:</th>
+                                                <td colspan="3">{{$student->address2 ?? '—'}}</td>
                                             </tr>
                                             <tr>
                                                 <th scope="row">City:</th>
-                                                <td>{{$student->city}}</td>
+                                                <td>{{$student->city ?? '—'}}</td>
                                                 <th>Zip:</th>
-                                                <td>{{$student->zip}}</td>
+                                                <td>{{$student->zip ?? '—'}}</td>
                                             </tr>
                                             <tr>
                                                 <th scope="row">Blood Type:</th>
-                                                <td>{{$student->blood_type}}</td>
+                                                <td>{{$student->blood_type ?? '—'}}</td>
                                                 <th>Phone:</th>
-                                                <td>{{$student->phone}}</td>
+                                                <td>{{$student->phone ?? '—'}}</td>
                                             </tr>
                                             <tr>
                                                 <th scope="row">Gender:</th>
-                                                <td colspan="3">{{$student->gender}}</td>
+                                                <td colspan="3">{{$student->gender ?? '—'}}</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
+
                                 <div class="p-3 mb-3 border rounded bg-white">
                                     <h6>Parents' Information</h6>
-                                    <table class="table table-responsive mt-3">
+                                    <table class="table table-responsive mt-3" style="table-layout:fixed;word-break:break-word;"><colgroup><col style="width:18%"><col style="width:32%"><col style="width:18%"><col style="width:32%"></colgroup>
                                         <tbody>
                                             <tr>
                                                 <th scope="row">Father's Name:</th>
-                                                <td>{{$student->parent_info->father_name}}</td>
+                                                <td>{{ $father_name }}</td>
                                                 <th>Mother's Name:</th>
-                                                <td>{{$student->parent_info->mother_name}}</td>
+                                                <td>{{ $mother_name }}</td>
                                             </tr>
                                             <tr>
                                                 <th scope="row">Father's Phone:</th>
-                                                <td>{{$student->parent_info->father_phone}}</td>
+                                                <td>{{ $father_phone }}</td>
                                                 <th>Mother's Phone:</th>
-                                                <td>{{$student->parent_info->mother_phone}}</td>
+                                                <td>{{ $mother_phone }}</td>
                                             </tr>
                                             <tr>
                                                 <th scope="row">Address:</th>
-                                                <td colspan="3">{{$student->parent_info->parent_address}}</td>
+                                                <td colspan="3">{{ $parent_address }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
+                                    @if(!$p && $a)
+                                        <p class="text-muted small mb-0 mt-1">
+                                            <i class="bi bi-info-circle"></i>
+                                            Sourced from <a href="{{ route('admissions.show', $a->id) }}">Admission record</a>.
+                                        </p>
+                                    @endif
                                 </div>
+
                                 <div class="p-3 mb-3 border rounded bg-white">
                                     <h6>Academic Information</h6>
-                                    <table class="table table-responsive mt-3">
-                                        <tbody>
-                                            <tr>
-                                                <th scope="row">Class:</th>
-                                                <td>{{$promotion_info->section->schoolClass->class_name}}</td>
-                                                <th>Board Reg. No.:</th>
-                                                <td>{{$student->academic_info->board_reg_no}}</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">Section:</th>
-                                                <td colspan="3">{{$promotion_info->section->section_name}}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                    @if($promotion_info)
+                                        <table class="table table-responsive mt-3" style="table-layout:fixed;word-break:break-word;"><colgroup><col style="width:18%"><col style="width:32%"><col style="width:18%"><col style="width:32%"></colgroup>
+                                            <tbody>
+                                                <tr>
+                                                    <th scope="row">Class:</th>
+                                                    <td>{{ $promotion_info->section->schoolClass->class_name ?? '—' }}</td>
+                                                    <th>Admission No.:</th>
+                                                    <td>{{ $admission_no }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">Section:</th>
+                                                    <td>{{ $promotion_info->section->section_name ?? '—' }}</td>
+                                                    <th>Fee Category:</th>
+                                                    <td>{{ ucfirst($student->fee_category ?? '—') }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    @else
+                                        <p class="text-muted mt-2 mb-1">
+                                            <i class="bi bi-info-circle"></i>
+                                            No class assignment found for the current session.
+                                            Please assign via <a href="{{ route('promotions.create') }}">Promotions</a>.
+                                        </p>
+                                    @endif
                                 </div>
+
                             </div>
                         </div>
                     </div>

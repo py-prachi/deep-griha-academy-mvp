@@ -291,25 +291,38 @@ class UserRepository implements UserInterface {
         }
     }
 
-    public function getAllStudents($session_id, $class_id, $section_id) {
-        if($class_id == 0 || $section_id == 0) {
-            $schoolClass = SchoolClass::where('session_id', $session_id)
-                                    ->first();
-            $section = Section::where('session_id', $session_id)
-                                    ->first();
-            if($schoolClass == null || $section == null){
-                throw new \Exception('There is no class and section');
-            } else {
-                $class_id = $schoolClass->id;
-                $section_id = $section->id;
-            }
+    // public function getAllStudents($session_id, $class_id, $section_id) {
+    //     if($class_id == 0 || $section_id == 0) {
+    //         $schoolClass = SchoolClass::where('session_id', $session_id)
+    //                                 ->first();
+    //         $section = Section::where('session_id', $session_id)
+    //                                 ->first();
+    //         if($schoolClass == null || $section == null){
+    //             throw new \Exception('There is no class and section');
+    //         } else {
+    //             $class_id = $schoolClass->id;
+    //             $section_id = $section->id;
+    //         }
             
+    //     }
+    //     try {
+    //         $promotionRepository = new PromotionRepository();
+    //         return $promotionRepository->getAll($session_id, $class_id, $section_id);
+    //     } catch (\Exception $e) {
+    //         throw new \Exception('Failed to get all Students. '.$e->getMessage());
+    //     }
+    // }
+    public function getAllStudents($session_id, $class_id, $section_id)
+    {
+        if ($class_id == 0 || $section_id == 0) {
+            throw new \Exception('Please select a valid class and section to view students.');
         }
+
         try {
             $promotionRepository = new PromotionRepository();
             return $promotionRepository->getAll($session_id, $class_id, $section_id);
         } catch (\Exception $e) {
-            throw new \Exception('Failed to get all Students. '.$e->getMessage());
+            throw new \Exception('Failed to get all Students. ' . $e->getMessage());
         }
     }
 
@@ -325,7 +338,7 @@ class UserRepository implements UserInterface {
 
     public function findStudent($id) {
         try {
-            return User::with('parent_info', 'academic_info')->where('id', $id)->first();
+            return User::with('parent_info', 'academic_info', 'admission')->where('id', $id)->first();
         } catch (\Exception $e) {
             throw new \Exception('Failed to get Student. '.$e->getMessage());
         }

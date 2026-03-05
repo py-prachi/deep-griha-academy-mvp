@@ -126,16 +126,24 @@
                                     <input type="text" name="distance_from_school" class="form-control" value="{{ old('distance_from_school', $admission->distance_from_school) }}">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">Mobile</label>
-                                    <input type="text" name="contact_mobile" class="form-control" value="{{ old('contact_mobile', $admission->contact_mobile) }}">
+                                    <label class="form-label">Father's Phone <span class="text-danger">*</span></label>
+                                    <input type="text" name="father_phone" class="form-control" value="{{ old('father_phone', $admission->father_phone) }}">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">Residence Phone</label>
-                                    <input type="text" name="contact_residence" class="form-control" value="{{ old('contact_residence', $admission->contact_residence) }}">
+                                    <label class="form-label">Mother's Phone</label>
+                                    <input type="text" name="mother_phone" class="form-control" value="{{ old('mother_phone', $admission->mother_phone) }}">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Emergency Contact</label>
                                     <input type="text" name="contact_emergency" class="form-control" value="{{ old('contact_emergency', $admission->contact_emergency) }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">City <span class="text-danger">*</span></label>
+                                    <input type="text" name="city" class="form-control" value="{{ old('city', $admission->city) }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">PIN Code</label>
+                                    <input type="text" name="zip" class="form-control" value="{{ old('zip', $admission->zip) }}">
                                 </div>
                             </div>
                         </div>
@@ -158,6 +166,20 @@
                                 <div class="col-md-6">
                                     <label class="form-label">Doctor's Name &amp; Phone</label>
                                     <input type="text" name="doctor_name_phone" class="form-control" value="{{ old('doctor_name_phone', $admission->doctor_name_phone) }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Blood Group <span class="text-muted small">(optional)</span></label>
+                                    <select name="blood_type" class="form-select">
+                                        <option value="">-- Not Known --</option>
+                                        <option value="A+"  {{ old("blood_type", $admission->blood_type) == "A+"  ? "selected" : "" }}>A+</option>
+                                        <option value="A-"  {{ old("blood_type", $admission->blood_type) == "A-"  ? "selected" : "" }}>A-</option>
+                                        <option value="B+"  {{ old("blood_type", $admission->blood_type) == "B+"  ? "selected" : "" }}>B+</option>
+                                        <option value="B-"  {{ old("blood_type", $admission->blood_type) == "B-"  ? "selected" : "" }}>B-</option>
+                                        <option value="O+"  {{ old("blood_type", $admission->blood_type) == "O+"  ? "selected" : "" }}>O+</option>
+                                        <option value="O-"  {{ old("blood_type", $admission->blood_type) == "O-"  ? "selected" : "" }}>O-</option>
+                                        <option value="AB+" {{ old("blood_type", $admission->blood_type) == "AB+" ? "selected" : "" }}>AB+</option>
+                                        <option value="AB-" {{ old("blood_type", $admission->blood_type) == "AB-" ? "selected" : "" }}>AB-</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
