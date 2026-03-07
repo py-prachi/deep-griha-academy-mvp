@@ -11,12 +11,23 @@ class FeeStructure extends Model
 
     protected $fillable = [
         'class_id',
+        'session_id',
         'academic_year',
+        'fee_category',
         'admission_fee',
         'tuition_fee',
         'transport_fee',
         'other_fee',
         'total_fee',
+    ];
+
+    const CATEGORIES = ['general', 'rte', 'coc', 'discount'];
+
+    const CATEGORY_LABELS = [
+        'general'  => 'General',
+        'rte'      => 'RTE',
+        'coc'      => 'COC',
+        'discount' => 'Discount',
     ];
 
     protected $casts = [

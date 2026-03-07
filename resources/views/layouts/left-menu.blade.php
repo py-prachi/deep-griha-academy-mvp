@@ -151,9 +151,37 @@
                         <a class="nav-link {{ request()->is('promotions*')? 'active' : '' }}" href="{{url('promotions/index')}}"><i class="bi bi-sort-numeric-up-alt"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Promotion</span></a>
                     </li>
                     @endif
+                    {{-- ── FEES (admin only) ── --}}
+                    @if (Auth::user()->role == "admin")
                     <li class="nav-item">
-                        <a class="nav-link disabled" href="#" aria-disabled="true"><i class="bi bi-currency-exchange"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Payment</span></a>
+                        <a type="button" href="#fees-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('fees*') || request()->is('fee-structures*') ? 'active' : '' }}">
+                            <i class="bi bi-currency-rupee"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Fees</span>
+                            <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
+                        </a>
+                        <ul class="nav collapse {{ request()->is('fees*') || request()->is('fee-structures*') ? 'show' : 'hide' }} bg-white" id="fees-submenu">
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('fee-structures.index') }}"><i class="bi bi-table me-2"></i> Fee Structures</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('student.list.show') }}"><i class="bi bi-cash-coin me-2"></i> Collect Fee</a></li>
+                        </ul>
                     </li>
+                    {{-- ── REPORTS (admin only) ── --}}
+                    <li class="nav-item">
+                        <a type="button" href="#reports-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('reports*') ? 'active' : '' }}">
+                            <i class="bi bi-bar-chart-line"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Reports</span>
+                            <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
+                        </a>
+                        <ul class="nav collapse {{ request()->is('reports*') ? 'show' : 'hide' }} bg-white" id="reports-submenu">
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.daily') }}"><i class="bi bi-calendar-day me-2"></i> Daily Collection</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.dateRange') }}"><i class="bi bi-calendar-range me-2"></i> Date Range</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.defaulters') }}"><i class="bi bi-exclamation-triangle me-2"></i> Defaulters</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.categorySummary') }}"><i class="bi bi-pie-chart me-2"></i> Category Summary</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.admissions') }}"><i class="bi bi-person-check me-2"></i> Admissions</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.classStrength') }}"><i class="bi bi-people me-2"></i> Class Strength</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.rte') }}"><i class="bi bi-star me-2"></i> RTE Students</a></li>
+                        </ul>
+                    </li>
+                    @endif
                     @if (Auth::user()->role == "admin")
                     <li class="nav-item">
                         <a class="nav-link disabled" href="#" aria-disabled="true"><i class="bi bi-person-lines-fill"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Staff</span></a>

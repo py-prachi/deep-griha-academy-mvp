@@ -183,6 +183,8 @@ return [
         App\Providers\CourseServiceProvider::class,
         App\Providers\UserServiceProvider::class,
         App\Providers\AdmissionServiceProvider::class,
+        App\Providers\FeeStructureServiceProvider::class,
+        App\Providers\FeePaymentServiceProvider::class,
         App\Providers\PurifySetupProvider::class,
     ],
 

@@ -197,4 +197,28 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admissions/{id}/cancel',              [App\Http\Controllers\AdmissionController::class, 'cancel'])->name('admissions.cancel');
     Route::post('/admissions/{id}/document/{doc_id}',   [App\Http\Controllers\AdmissionController::class, 'updateDocument'])->name('admissions.updateDocument');
     Route::get('/admissions-cancelled',                 [App\Http\Controllers\AdmissionController::class, 'cancelled'])->name('admissions.cancelled');
+
+    // ── FEE STRUCTURE ─────────────────────────────────────────────────────
+    Route::get('/fee-structures',                        [App\Http\Controllers\FeeStructureController::class, 'index'])->name('fee-structures.index');
+    Route::get('/fee-structures/create',                 [App\Http\Controllers\FeeStructureController::class, 'create'])->name('fee-structures.create');
+    Route::post('/fee-structures',                       [App\Http\Controllers\FeeStructureController::class, 'store'])->name('fee-structures.store');
+    Route::get('/fee-structures/{id}/edit',              [App\Http\Controllers\FeeStructureController::class, 'edit'])->name('fee-structures.edit');
+    Route::put('/fee-structures/{id}',                   [App\Http\Controllers\FeeStructureController::class, 'update'])->name('fee-structures.update');
+    Route::delete('/fee-structures/{id}',                [App\Http\Controllers\FeeStructureController::class, 'destroy'])->name('fee-structures.destroy');
+
+    // ── FEE PAYMENTS ──────────────────────────────────────────────────────
+    Route::get('/fees/student/{student_id}',             [App\Http\Controllers\FeePaymentController::class, 'ledger'])->name('fees.ledger');
+    Route::get('/fees/student/{student_id}/pay',         [App\Http\Controllers\FeePaymentController::class, 'create'])->name('fees.create');
+    Route::post('/fees/student/{student_id}/pay',        [App\Http\Controllers\FeePaymentController::class, 'store'])->name('fees.store');
+    Route::get('/fees/challan/{payment_id}',             [App\Http\Controllers\FeePaymentController::class, 'challan'])->name('fees.challan');
+    Route::get('/fees/challan/{payment_id}/pdf',         [App\Http\Controllers\FeePaymentController::class, 'challanPdf'])->name('fees.challan.pdf');
+
+    // ── FEE REPORTS ───────────────────────────────────────────────────────
+    Route::get('/reports/fees/daily',                    [App\Http\Controllers\FeeReportController::class, 'daily'])->name('reports.fees.daily');
+    Route::get('/reports/fees/date-range',               [App\Http\Controllers\FeeReportController::class, 'dateRange'])->name('reports.fees.dateRange');
+    Route::get('/reports/fees/defaulters',               [App\Http\Controllers\FeeReportController::class, 'defaulters'])->name('reports.fees.defaulters');
+    Route::get('/reports/fees/category-summary',         [App\Http\Controllers\FeeReportController::class, 'categorySummary'])->name('reports.fees.categorySummary');
+    Route::get('/reports/admissions',                    [App\Http\Controllers\FeeReportController::class, 'admissions'])->name('reports.admissions');
+    Route::get('/reports/class-strength',                [App\Http\Controllers\FeeReportController::class, 'classStrength'])->name('reports.classStrength');
+    Route::get('/reports/rte',                           [App\Http\Controllers\FeeReportController::class, 'rte'])->name('reports.rte');
 });
