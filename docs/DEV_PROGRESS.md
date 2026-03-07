@@ -48,64 +48,41 @@
 - Class 1+: general ID field shown, optional for now
 - Reports: PDF downloadable, date range filters
 
-### Done so far ✅
+### Done ✅
 - DomPDF installed (v2.2.0 for PHP 7.x)
 - Migration: add_fee_category_to_fee_structures_table (fee_category, session_id columns)
 - FeeStructure model updated ($fillable, CATEGORIES, CATEGORY_LABELS constants)
-- FeeStructureInterface created
-- FeeStructureRepository created
-- FeeStructureServiceProvider created and registered
-- FeePaymentInterface created
-- FeePaymentRepository created (with DB transaction for line items)
-- FeePaymentServiceProvider created and registered
-- Routes added (18 routes — fee structures, fee payments, reports)
-- FeeStructureController created (index, create, store, edit, update, destroy)
-- FeePaymentController created (ledger, create, store, challan, challanPdf)
-- FeeReportController created (daily, dateRange, defaulters, categorySummary, admissions, classStrength, rte)
-- Views created:
-  - resources/views/fee-structures/index.blade.php
-  - resources/views/fee-structures/create.blade.php
-  - resources/views/fee-structures/edit.blade.php
-  - resources/views/fees/ledger.blade.php
-  - resources/views/fees/create.blade.php
-  - resources/views/fees/challan.blade.php
-  - resources/views/fees/challan-pdf.blade.php
+- FeeStructureInterface + FeeStructureRepository + FeeStructureServiceProvider
+- FeePaymentInterface + FeePaymentRepository (with DB transaction for line items)
+- FeePaymentServiceProvider
+- Routes: 18 routes (fee structures, fee payments, reports)
+- FeeStructureController (index, create, store, edit, update, destroy)
+- FeePaymentController (ledger, create, store, challan, challanPdf)
+- FeeReportController (daily, dateRange, defaulters, categorySummary, admissions, classStrength, rte)
+- Views — fee-structures: index, create, edit
+- Views — fees: ledger, create, challan, challan-pdf
+- Views — reports/fees: daily, date-range, defaulters, category-summary (screen + PDF each)
+- Views — reports: admissions, class-strength, rte (screen + PDF each)
+- Left menu: Fees section (Fee Structures, Collect Fee)
+- Left menu: Reports section (7 report links)
 
 ### TODO — remaining Phase 3 tasks
-1. Report views (screen + PDF variants):
-   - resources/views/reports/fees/daily.blade.php + daily-pdf.blade.php
-   - resources/views/reports/fees/date-range.blade.php + date-range-pdf.blade.php
-   - resources/views/reports/fees/defaulters.blade.php + defaulters-pdf.blade.php
-   - resources/views/reports/fees/category-summary.blade.php + category-summary-pdf.blade.php
-   - resources/views/reports/admissions.blade.php + admissions-pdf.blade.php
-   - resources/views/reports/class-strength.blade.php + class-strength-pdf.blade.php
-   - resources/views/reports/rte.blade.php + rte-pdf.blade.php
-
-2. Update admission confirm flow:
+1. Admission confirm flow:
    - Add fee payment fields to admissions/show.blade.php confirm section
    - Update AdmissionController::confirm() to record first payment + generate challan
    - Update AdmissionRepository::confirm() if needed
 
-3. Navigation menu:
-   - Add Fees section to left menu
-   - Add Reports section to left menu
+2. Add fee permissions to RolesAndPermissionsSeeder
 
-4. Add fee permissions to RolesAndPermissionsSeeder
+3. Phase 3 feature tests (FeeTest.php)
 
-5. Phase 3 feature tests (FeeTest.php)
-
-6. Manual test checklist for Saru
+4. Manual test checklist for Saru
 
 ### Next immediate step when resuming
-```bash
-mkdir -p resources/views/reports/fees
-```
-Then build report views in this order:
-daily → date-range → defaulters → category-summary → admissions → class-strength → rte
-Then PDF variants.
-Then admission confirm flow update.
-Then nav menu.
-Then tests.
+- Show current admissions/show.blade.php confirm section
+- Show AdmissionController::confirm() method
+- Show AdmissionRepository::confirm() method
+- Then update confirm flow to accept first payment
 
 ## Known Issues (pre-existing — fix later)
 - View exams does not show created exam after creation
