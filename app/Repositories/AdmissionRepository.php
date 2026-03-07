@@ -150,6 +150,11 @@ class AdmissionRepository implements AdmissionInterface
             $admission->discounted_amount = $data['discounted_amount'] ?? null;
             $admission->section_id        = $data['section_id'] ?? $admission->section_id;
 
+            // If already confirmed, bail out early
+            if ($admission->status === 'confirmed') {
+                throw new \Exception('This admission has already been confirmed.');
+            }
+
             // Create the student user account
             $nameParts = explode(' ', $admission->student_name, 2);
             $student = User::create([

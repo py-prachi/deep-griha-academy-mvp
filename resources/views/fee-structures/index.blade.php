@@ -7,9 +7,14 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Fee Structures</h4>
-                    <a href="{{ route('fee-structures.create') }}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus"></i> Add Fee Structure
-                    </a>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url('home') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                        <a href="{{ route('fee-structures.create') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Add Fee Structure
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     @if(session('status'))
