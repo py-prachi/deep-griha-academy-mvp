@@ -9,6 +9,7 @@ use App\Interfaces\SchoolClassInterface;
 use App\Interfaces\SectionInterface;
 use App\Interfaces\SchoolSessionInterface;
 use App\Models\Admission;
+use App\Interfaces\FeePaymentInterface;
 
 class AdmissionController extends Controller
 {
@@ -18,12 +19,14 @@ class AdmissionController extends Controller
     protected $schoolClassRepository;
     protected $schoolSectionRepository;
     protected $schoolSessionRepository;
+    protected $feePaymentRepository;
 
     public function __construct(
         AdmissionInterface      $admissionRepository,
         SchoolClassInterface    $schoolClassRepository,
         SectionInterface        $schoolSectionRepository,
-        SchoolSessionInterface  $schoolSessionRepository
+        SchoolSessionInterface  $schoolSessionRepository,
+        FeePaymentInterface     $feePaymentRepository
     ) {
         // Only admin can access admissions
         $this->middleware(function ($request, $next) {
@@ -37,6 +40,7 @@ class AdmissionController extends Controller
         $this->schoolClassRepository   = $schoolClassRepository;
         $this->schoolSectionRepository = $schoolSectionRepository;
         $this->schoolSessionRepository = $schoolSessionRepository;
+        $this->feePaymentRepository    = $feePaymentRepository;
     }
 
     // ── LIST ALL ADMISSIONS ───────────────────────────────────────────────
@@ -162,12 +166,39 @@ class AdmissionController extends Controller
     public function confirm(Request $request, $id)
     {
         $request->validate([
-            'fee_category' => 'required|in:general,rte,coc,discount',
-            'section_id'   => 'required|exists:sections,id',
+            'fee_category'   => 'required|in:general,rte,coc,discount',
+            'section_id'     => 'required|exists:sections,id',
+            'payment_date'   => 'nullable|date',
+            'amount_paid'    => 'nullable|numeric|min:1',
+            'payment_mode'   => 'nullable|in:cash,cheque,qr',
+            'cheque_no'      => 'nullable|required_if:payment_mode,cheque',
+            'cheque_date'    => 'nullable|required_if:payment_mode,cheque|date',
+            'bank_name'      => 'nullable|required_if:payment_mode,cheque',
+            'transaction_ref'=> 'nullable|required_if:payment_mode,qr',
         ]);
 
         try {
-            $this->admissionRepository->confirm($id, $request->all());
+            $admission = $this->admissionRepository->confirm($id, $request->all());
+
+            if ($request->filled('amount_paid') && $request->amount_paid > 0) {
+                $payment = $this->feePaymentRepository->store([
+                    'student_user_id'      => $admission->student_user_id,
+                    'payment_date'         => $request->payment_date ?? now()->toDateString(),
+                    'amount_paid'          => $request->amount_paid,
+                    'payment_mode'         => $request->payment_mode ?? 'cash',
+                    'cheque_no'            => $request->cheque_no,
+                    'cheque_date'          => $request->cheque_date,
+                    'bank_name'            => $request->bank_name,
+                    'transaction_ref'      => $request->transaction_ref,
+                    'is_internal_transfer' => $request->fee_category === 'coc',
+                    'recorded_by'          => auth()->id(),
+                    'notes'                => 'First payment at admission confirmation',
+                    'line_items'           => [],
+                ]);
+                return redirect()->route('fees.challan', $payment->id)
+                                 ->with('status', 'Admission confirmed and first payment recorded!');
+            }
+
             return redirect()->route('admissions.show', $id)
                              ->with('status', 'Admission confirmed! Student account created.');
         } catch (\Exception $e) {

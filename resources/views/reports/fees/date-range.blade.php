@@ -1,4 +1,4 @@
-@extends('layouts.master')
+@extends('layouts.app')
 @section('title', 'Collection Report — Date Range')
 @section('content')
 <div class="container-fluid">

@@ -1,4 +1,4 @@
-@extends('layouts.master')
+@extends('layouts.app')
 @section('title', 'Fee Ledger')
 @section('content')
 <div class="container-fluid">
@@ -22,7 +22,7 @@
                             <a href="{{ route('fees.create', $student->id) }}" class="btn btn-primary">
                                 <i class="fas fa-plus"></i> Record Payment
                             </a>
-                            <a href="{{ route('students.profile', $student->id) }}" class="btn btn-outline-secondary ms-1">
+                            <a href="{{ route('student.profile.show', $student->id) }}" class="btn btn-outline-secondary ms-1">
                                 Back to Profile
                             </a>
                         </div>

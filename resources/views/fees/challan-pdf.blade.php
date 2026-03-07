@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <style>
     body { font-family: DejaVu Sans, sans-serif; font-size: 11px; margin: 0; }
-    .copy { width: 100%; border: 1px solid #000; margin-bottom: 10px; padding: 8px; }
+    .copy { width: 100%; border: 1px solid #000; margin-bottom: 10px; padding: 8px; page-break-after: always; }
+    .copy:last-child { page-break-after: avoid; }
     .copy-label { text-align: right; font-size: 9px; font-style: italic; color: #555; }
     .header { text-align: center; font-weight: bold; font-size: 13px; }
     .sub-header { text-align: center; font-size: 10px; }
@@ -106,7 +107,7 @@
         </div>
     </div>
 </div>
-@if(!$loop->last)<div class="divider"></div>@endif
+
 @endforeach
 </body>
 </html>

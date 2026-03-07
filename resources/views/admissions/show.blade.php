@@ -206,7 +206,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">Fee Category <span class="text-danger">*</span></label>
-                        <select name="fee_category" class="form-select" required>
+                        <select name="fee_category" class="form-select" id="feeCategorySelect" required>
                             <option value="">Select category</option>
                             <option value="general">General</option>
                             <option value="rte">RTE (₹0 tuition)</option>
@@ -243,10 +243,52 @@
                     @endif
 
                     @if($admission->hasIncompleteDocuments())
-                    <div class="alert alert-warning">
+                    <div class="alert alert-warning mb-3">
                         <i class="bi bi-exclamation-triangle"></i> Some documents are still pending. You can still confirm but please collect them soon.
                     </div>
                     @endif
+
+                    {{-- First Payment (optional) --}}
+                    <div id="firstPaymentSection">
+                        <hr>
+                        <h6 class="text-muted mb-3"><i class="bi bi-cash-coin me-1"></i> First Payment <span class="badge bg-secondary fw-normal">Optional</span></h6>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label small">Payment Date</label>
+                                <input type="date" name="payment_date" class="form-control form-control-sm" value="{{ now()->toDateString() }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Amount (₹)</label>
+                                <input type="number" name="amount_paid" class="form-control form-control-sm" step="0.01" min="0" placeholder="Leave blank to skip">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label small">Payment Mode</label>
+                                <select name="payment_mode" class="form-select form-select-sm" id="paymentModeSelect">
+                                    <option value="cash">Cash</option>
+                                    <option value="qr">QR / UPI</option>
+                                    <option value="cheque">Cheque</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="chequeFields" style="display:none;" class="row g-2 mt-1">
+                            <div class="col-md-4">
+                                <label class="form-label small">Cheque No</label>
+                                <input type="text" name="cheque_no" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small">Cheque Date</label>
+                                <input type="date" name="cheque_date" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small">Bank Name</label>
+                                <input type="text" name="bank_name" class="form-control form-control-sm">
+                            </div>
+                        </div>
+                        <div id="qrFields" style="display:none;" class="mt-1">
+                            <label class="form-label small">Transaction Reference</label>
+                            <input type="text" name="transaction_ref" class="form-control form-control-sm" placeholder="UPI transaction ID">
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -284,9 +326,13 @@
 </div>
 
 <script>
-// Show discount field only when discount category selected
-document.querySelector('select[name="fee_category"]').addEventListener('change', function() {
+document.getElementById('feeCategorySelect').addEventListener('change', function() {
     document.getElementById('discountField').style.display = this.value === 'discount' ? 'block' : 'none';
+    document.getElementById('firstPaymentSection').style.display = this.value === 'rte' ? 'none' : 'block';
+});
+document.getElementById('paymentModeSelect').addEventListener('change', function() {
+    document.getElementById('chequeFields').style.display = this.value === 'cheque' ? 'flex' : 'none';
+    document.getElementById('qrFields').style.display    = this.value === 'qr'     ? 'block' : 'none';
 });
 </script>
 @endsection

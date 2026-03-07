@@ -269,6 +269,14 @@ class AdmissionRepository implements AdmissionInterface
     {
         $slug = strtolower(str_replace(' ', '.', trim($name)));
         $slug = preg_replace('/[^a-z0-9.]/', '', $slug);
-        return $slug . '.' . $id . '@deepgriha.com';
+        $base  = $slug . '.' . $id . '@deepgriha.com';
+        if (!\App\Models\User::where('email', $base)->exists()) {
+            return $base;
+        }
+        $counter = 2;
+        while (\App\Models\User::where('email', $slug . '.' . $id . '.' . $counter . '@deepgriha.com')->exists()) {
+            $counter++;
+        }
+        return $slug . '.' . $id . '.' . $counter . '@deepgriha.com';
     }
 }

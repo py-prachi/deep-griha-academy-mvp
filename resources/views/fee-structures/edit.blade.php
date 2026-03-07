@@ -1,4 +1,4 @@
-@extends('layouts.master')
+@extends('layouts.app')
 @section('title', 'Edit Fee Structure')
 @section('content')
 <div class="container-fluid">

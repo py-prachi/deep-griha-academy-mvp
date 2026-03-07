@@ -1,4 +1,4 @@
-@extends('layouts.master')
+@extends('layouts.app')
 @section('title', 'Challan #{{ str_pad($payment->challan_no, 4, "0", STR_PAD_LEFT) }}')
 @section('content')
 <div class="container">

@@ -1,0 +1,67 @@
+@extends('layouts.app')
+@section('title', 'Create Fee Structure')
+@section('content')
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Create Fee Structure</h5>
+            <a href="{{ route('fee-structures.index') }}" class="btn btn-sm btn-light">Back</a>
+        </div>
+        <div class="card-body">
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+                </div>
+            @endif
+            <form method="POST" action="{{ route('fee-structures.store') }}">
+                @csrf
+                <input type="hidden" name="academic_year" value="{{ $session->session_name }}">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Class <span class="text-danger">*</span></label>
+                        <select name="class_id" class="form-select" required>
+                            <option value="">Select class</option>
+                            @foreach($school_classes as $class)
+                                <option value="{{ $class->id }}">{{ $class->class_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Fee Category <span class="text-danger">*</span></label>
+                        <select name="fee_category" class="form-select" required>
+                            <option value="">Select category</option>
+                            @foreach($categories as $key => $label)
+                                <option value="{{ $key }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Academic Year</label>
+                        <input type="text" class="form-control" value="{{ $session->session_name }}" readonly>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Admission Fee (₹)</label>
+                        <input type="number" name="admission_fee" class="form-control" step="0.01" min="0" value="0">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Tuition Fee (₹)</label>
+                        <input type="number" name="tuition_fee" class="form-control" step="0.01" min="0" value="0">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Transport Fee (₹)</label>
+                        <input type="number" name="transport_fee" class="form-control" step="0.01" min="0" value="0">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Other Fee (₹)</label>
+                        <input type="number" name="other_fee" class="form-control" step="0.01" min="0" value="0">
+                    </div>
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-success">Save Fee Structure</button>
+                        <a href="{{ route('fee-structures.index') }}" class="btn btn-secondary ms-2">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection
