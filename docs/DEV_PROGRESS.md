@@ -32,17 +32,17 @@
 - All 31 passing ✅
 - Run: docker exec app php artisan test tests/Feature/AdmissionTest.php --testdox
 
-## Phase 3 — Fees — IN PROGRESS 🚧
+## Phase 3 — Fees — COMPLETE ✅
 
 ### Branch: feature/phase3-fees
 
-### Decisions made
+### Key Decisions
 - Fee collection integrated into admission confirm flow (first payment at confirm)
 - Same challan for all fee types (academic + misc)
 - Partial payments allowed anytime
 - Payment modes: cash, QR/UPI, cheque
-- RTE → no challan, record document number only (Angela to confirm)
-- COC → challan marked as Internal Transfer, ₹0 from parent (Angela to confirm)
+- RTE → first payment section hidden at confirm
+- COC → challan marked as Internal Transfer
 - General ID: optional at confirm, manually entered (SARAL/ZP portal ID)
 - Nursery/LKG/UKG: auto DGA admission no, no general ID
 - Class 1+: general ID field shown, optional for now
@@ -50,43 +50,40 @@
 
 ### Done ✅
 - DomPDF installed (v2.2.0 for PHP 7.x)
-- Migration: add_fee_category_to_fee_structures_table (fee_category, session_id columns)
-- FeeStructure model updated ($fillable, CATEGORIES, CATEGORY_LABELS constants)
-- FeeStructureInterface + FeeStructureRepository + FeeStructureServiceProvider
-- FeePaymentInterface + FeePaymentRepository (with DB transaction for line items)
-- FeePaymentServiceProvider
-- Routes: 18 routes (fee structures, fee payments, reports)
-- FeeStructureController (index, create, store, edit, update, destroy)
+- Migration: add_fee_category_to_fee_structures_table
+- FeeStructure model, Interface, Repository, ServiceProvider
+- FeePayment model, Interface, Repository, ServiceProvider
+- 18 routes (fee structures, payments, reports)
+- FeeStructureController (CRUD)
 - FeePaymentController (ledger, create, store, challan, challanPdf)
 - FeeReportController (daily, dateRange, defaulters, categorySummary, admissions, classStrength, rte)
-- Views — fee-structures: index, create, edit
-- Views — fees: ledger, create, challan, challan-pdf
-- Views — reports/fees: daily, date-range, defaulters, category-summary (screen + PDF each)
-- Views — reports: admissions, class-strength, rte (screen + PDF each)
-- Left menu: Fees section (Fee Structures, Collect Fee)
-- Left menu: Reports section (7 report links)
+- All views: fee-structures, fees, reports (screen + PDF)
+- Left menu: Fees + Reports sections
+- Admission confirm flow: optional first payment + challan redirect
+- Confirm modal: static (no accidental dismiss), payment fields
+- Already-confirmed guard in AdmissionRepository
+- generateStudentEmail: handles duplicate emails
+- Challan PDF: 3 copies each on separate page
+- FeeTest.php: 27/27 passing ✅
+- Run: docker exec app php artisan test tests/Feature/FeeTest.php --testdox
 
-### TODO — remaining Phase 3 tasks
-1. Admission confirm flow:
-   - Add fee payment fields to admissions/show.blade.php confirm section
-   - Update AdmissionController::confirm() to record first payment + generate challan
-   - Update AdmissionRepository::confirm() if needed
+### Pending Angela review
+- Challan format/layout — may need tweaks
+- RTE confirm flow — no challan, record doc number only (to confirm)
+- COC confirm flow — Internal Transfer challan (to confirm)
 
-2. Add fee permissions to RolesAndPermissionsSeeder
-
-3. Phase 3 feature tests (FeeTest.php)
-
-4. Manual test checklist for Saru
-
-### Next immediate step when resuming
-- Show current admissions/show.blade.php confirm section
-- Show AdmissionController::confirm() method
-- Show AdmissionRepository::confirm() method
-- Then update confirm flow to accept first payment
-
-## Known Issues (pre-existing — fix later)
-- View exams does not show created exam after creation
-- Exam dropdown not filtered by teacher's assigned classes
+### Manual test checklist for Saru (resume tomorrow)
+- Flow 2: Confirm without payment → admission show page ✅ success message
+- Flow 3: Cheque payment → challan with cheque details
+- Flow 4: QR/UPI payment → challan with transaction ref
+- Flow 5: RTE confirm → payment section hidden, no challan
+- Flow 6: Discount confirm → discounted amount + challan
+- Fee Structures: create/edit/delete
+- Ledger: correct due/paid/balance shown
+- Back to Profile link on ledger works
+- All 7 report pages load
+- All 7 report PDF downloads work
+- Nav menu: Fees + Reports links all work
 
 ## Phase 4 — NOT STARTED
 - LeavingCertificateController
@@ -105,7 +102,7 @@
 ## Branch Strategy
 - main → stable only
 - develop → integration branch
-- feature/phase3-fees → current branch 🚧
+- feature/phase3-fees → current branch (ready to merge when Saru testing done)
 
 ## Tech Stack
 - Laravel 8.x + Blade + Bootstrap 5
