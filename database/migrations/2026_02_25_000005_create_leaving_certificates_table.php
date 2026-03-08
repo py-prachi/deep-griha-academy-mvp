@@ -10,31 +10,43 @@ class CreateLeavingCertificatesTable extends Migration
     {
         Schema::create('leaving_certificates', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('student_user_id');
-            $table->unsignedInteger('lc_number')->unique();
-            $table->string('student_name');
+            $table->unsignedBigInteger('admission_id');
+
+            // Certificate meta
+            $table->string('lc_number', 20)->unique();
+            $table->date('issue_date');
+            $table->string('issue_place')->default('Pune');
+
+            // Student info snapshotted at issue time
+            $table->string('pupil_name')->nullable();
             $table->string('mother_name')->nullable();
             $table->string('race_and_caste')->nullable();
-            $table->string('nationality')->nullable();
+            $table->string('nationality')->default('Indian');
             $table->string('place_of_birth')->nullable();
             $table->date('date_of_birth')->nullable();
+
+            // Academic history
             $table->string('last_school_attended')->nullable();
             $table->date('date_of_admission')->nullable();
-            $table->string('standard_studying')->nullable();
-            $table->string('in_standard_since')->nullable();
-            $table->string('register_no')->nullable();
-            $table->enum('progress', ['good', 'average', 'poor'])->nullable();
-            $table->enum('conduct', ['good', 'satisfactory', 'poor'])->nullable();
+            $table->string('progress')->nullable();
+            $table->string('conduct', 100)->default('Good');
             $table->date('date_of_leaving');
-            $table->text('reason_for_leaving')->nullable();
-            $table->text('remark')->nullable();
-            $table->decimal('outstanding_balance_at_lc', 10, 2)->default(0);
-            $table->boolean('fee_warning_acknowledged')->default(false);
-            $table->unsignedBigInteger('issued_by');
-            $table->date('issued_date');
+            $table->string('standard_studying', 100)->nullable();
+            $table->date('studying_since')->nullable();
+            $table->string('reason_for_leaving')->nullable();
+            $table->text('remarks')->nullable();
+
+            // Fee snapshot
+            $table->boolean('fees_cleared')->default(false);
+            $table->decimal('fees_due', 10, 2)->default(0);
+
+            // Audit
+            $table->unsignedBigInteger('issued_by')->nullable();
             $table->timestamps();
-            $table->foreign('student_user_id')->references('id')->on('users')->cascadeOnDelete();
-            $table->foreign('issued_by')->references('id')->on('users');
+            $table->softDeletes();
+
+            $table->foreign('admission_id')->references('id')->on('admissions')->onDelete('cascade');
+            $table->foreign('issued_by')->references('id')->on('users')->onDelete('set null');
         });
     }
 

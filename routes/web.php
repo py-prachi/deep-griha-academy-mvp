@@ -24,6 +24,7 @@ use App\Http\Controllers\SchoolSessionController;
 use App\Http\Controllers\AcademicSettingController;
 use App\Http\Controllers\AssignedTeacherController;
 use App\Http\Controllers\Auth\UpdatePasswordController;
+use App\Http\Controllers\LeavingCertificateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -221,4 +222,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/admissions',                    [App\Http\Controllers\FeeReportController::class, 'admissions'])->name('reports.admissions');
     Route::get('/reports/class-strength',                [App\Http\Controllers\FeeReportController::class, 'classStrength'])->name('reports.classStrength');
     Route::get('/reports/rte',                           [App\Http\Controllers\FeeReportController::class, 'rte'])->name('reports.rte');
+
+    // ── LEAVING CERTIFICATES ──────────────────────────────────────────────
+    Route::prefix('lc')->name('lc.')->group(function () {
+        Route::get('/',             [LeavingCertificateController::class, 'index'])->name('index');
+        Route::get('/create',       [LeavingCertificateController::class, 'create'])->name('create');
+        Route::post('/',            [LeavingCertificateController::class, 'store'])->name('store');
+        Route::get('/student-info', [LeavingCertificateController::class, 'studentInfo'])->name('student-info');
+        Route::get('/{id}',         [LeavingCertificateController::class, 'show'])->name('show');
+        Route::get('/{id}/pdf',     [LeavingCertificateController::class, 'pdf'])->name('pdf');
+    });
 });

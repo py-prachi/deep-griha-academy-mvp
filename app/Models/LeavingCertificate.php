@@ -3,16 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LeavingCertificate extends Model
 {
-    use HasFactory;
+    use SoftDeletes;
+
+    protected $table = 'leaving_certificates';
 
     protected $fillable = [
-        'student_user_id',
+        'admission_id',
         'lc_number',
-        'student_name',
+        'issue_date',
+        'issue_place',
+        'pupil_name',
         'mother_name',
         'race_and_caste',
         'nationality',
@@ -20,34 +24,31 @@ class LeavingCertificate extends Model
         'date_of_birth',
         'last_school_attended',
         'date_of_admission',
-        'standard_studying',
-        'in_standard_since',
-        'register_no',
         'progress',
         'conduct',
         'date_of_leaving',
+        'standard_studying',
+        'studying_since',
         'reason_for_leaving',
-        'remark',
-        'outstanding_balance_at_lc',
-        'fee_warning_acknowledged',
+        'remarks',
+        'fees_cleared',
+        'fees_due',
         'issued_by',
-        'issued_date',
     ];
 
     protected $casts = [
-        'date_of_birth'              => 'date',
-        'date_of_admission'          => 'date',
-        'date_of_leaving'            => 'date',
-        'issued_date'                => 'date',
-        'outstanding_balance_at_lc'  => 'decimal:2',
-        'fee_warning_acknowledged'   => 'boolean',
+        'issue_date'        => 'date',
+        'date_of_birth'     => 'date',
+        'date_of_admission' => 'date',
+        'date_of_leaving'   => 'date',
+        'studying_since'    => 'date',
+        'fees_cleared'      => 'boolean',
+        'fees_due'          => 'decimal:2',
     ];
 
-    // ── RELATIONSHIPS ─────────────────────────────────────────────────────
-
-    public function student()
+    public function admission()
     {
-        return $this->belongsTo(User::class, 'student_user_id');
+        return $this->belongsTo(Admission::class);
     }
 
     public function issuedBy()
@@ -55,18 +56,17 @@ class LeavingCertificate extends Model
         return $this->belongsTo(User::class, 'issued_by');
     }
 
-    // ── HELPER METHODS ────────────────────────────────────────────────────
-
-    // Generate next global LC number
-    public static function nextLcNumber()
+    public static function generateLcNumber(): string
     {
-        $last = self::orderBy('lc_number', 'desc')->first();
-        return $last ? $last->lc_number + 1 : 1;
-    }
+        $last = static::withTrashed()->orderBy('id', 'desc')->first();
 
-    // Format LC number for display: LC001, LC002...
-    public function formattedLcNumber()
-    {
-        return 'LC' . str_pad($this->lc_number, 3, '0', STR_PAD_LEFT);
+        if (!$last) {
+            return 'LC001';
+        }
+
+        $numeric = (int) ltrim(substr($last->lc_number, 2), '0');
+        $next    = $numeric + 1;
+
+        return 'LC' . str_pad($next, 3, '0', STR_PAD_LEFT);
     }
 }

@@ -186,6 +186,7 @@ return [
         App\Providers\FeeStructureServiceProvider::class,
         App\Providers\FeePaymentServiceProvider::class,
         App\Providers\PurifySetupProvider::class,
+        App\Providers\LeavingCertificateServiceProvider::class,
     ],
 
     /*
