@@ -25,8 +25,8 @@
         <h4>Fee Defaulters Report — {{ now()->format('d M Y') }}</h4>
     </div>
     <div class="summary-boxes">
-        <div class="box"><div class="label">Total Defaulters</div><div class="value">{{ $defaulters->count() }}</div></div>
-        <div class="box"><div class="label">Total Outstanding</div><div class="value">₹{{ number_format($defaulters->sum('balance'), 2) }}</div></div>
+        <div class="box"><div class="label">Total Defaulters</div><div class="value">{{ count($defaulters) }}</div></div>
+        <div class="box"><div class="label">Total Outstanding</div><div class="value">₹{{ number_format(collect($defaulters)->sum('balance'), 2) }}</div></div>
     </div>
     <table>
         <thead>
@@ -47,7 +47,7 @@
             @endforeach
         </tbody>
         <tfoot>
-            <tr><td colspan="7" class="text-end">Total Outstanding</td><td class="text-end text-danger">₹{{ number_format($defaulters->sum('balance'), 2) }}</td></tr>
+            <tr><td colspan="7" class="text-end">Total Outstanding</td><td class="text-end text-danger">₹{{ number_format(collect($defaulters)->sum('balance'), 2) }}</td></tr>
         </tfoot>
     </table>
     <div class="footer">Generated on {{ now()->format('d M Y, h:i A') }}</div>

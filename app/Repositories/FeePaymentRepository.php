@@ -119,7 +119,8 @@ class FeePaymentRepository implements FeePaymentInterface
                 u.fee_category,
                 COUNT(DISTINCT u.id) AS student_count,
                 COALESCE(SUM(fs.total_fee), 0) AS total_due,
-                COALESCE(SUM(fp_totals.amount_paid), 0) AS total_collected
+                COALESCE(SUM(fp_totals.amount_paid), 0) AS total_collected,
+                COALESCE(SUM(fs.total_fee), 0) - COALESCE(SUM(fp_totals.amount_paid), 0) AS total_balance
             FROM users u
             JOIN promotions p ON p.student_id = u.id AND p.session_id = ?
             LEFT JOIN fee_structures fs ON fs.class_id = p.class_id

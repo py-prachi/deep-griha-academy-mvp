@@ -13,7 +13,7 @@
             <div class="card text-white bg-danger">
                 <div class="card-body text-center">
                     <h6 class="card-title">Total Defaulters</h6>
-                    <h3>{{ $defaulters->count() }}</h3>
+                    <h3>{{ count($defaulters) }}</h3>
                 </div>
             </div>
         </div>
@@ -21,7 +21,7 @@
             <div class="card text-white bg-warning">
                 <div class="card-body text-center">
                     <h6 class="card-title">Total Outstanding</h6>
-                    <h3>₹{{ number_format($defaulters->sum('balance'), 2) }}</h3>
+                    <h3>₹{{ number_format(collect($defaulters)->sum('balance'), 2) }}</h3>
                 </div>
             </div>
         </div>
@@ -29,14 +29,14 @@
             <div class="card text-white bg-secondary">
                 <div class="card-body text-center">
                     <h6 class="card-title">Avg. Balance Due</h6>
-                    <h3>₹{{ $defaulters->count() ? number_format($defaulters->avg('balance'), 2) : '0.00' }}</h3>
+                    <h3>₹{{ count($defaulters) ? number_format(collect($defaulters)->avg('balance'), 2) : '0.00' }}</h3>
                 </div>
             </div>
         </div>
     </div>
     <div class="card">
         <div class="card-body">
-            @if($defaulters->isEmpty())
+            @if(empty($defaulters))
                 <p class="text-center text-success py-4"><i class="fas fa-check-circle fa-2x mb-2"></i><br>No defaulters! All students are up to date.</p>
             @else
             <div class="table-responsive">
@@ -66,7 +66,7 @@
                     <tfoot>
                         <tr class="table-danger fw-bold">
                             <td colspan="6" class="text-end">Total Outstanding</td>
-                            <td class="text-end">₹{{ number_format($defaulters->sum('balance'), 2) }}</td>
+                            <td class="text-end">₹{{ number_format(collect($defaulters)->sum('balance'), 2) }}</td>
                             <td></td>
                         </tr>
                     </tfoot>

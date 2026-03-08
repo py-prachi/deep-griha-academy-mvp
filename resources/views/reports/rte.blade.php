@@ -38,7 +38,7 @@
                             <td>{{ $student->admission->rte_doc_no ?? '—' }}</td>
                             <td>{{ $student->birthday ? \Carbon\Carbon::parse($student->birthday)->format('d M Y') : '—' }}</td>
                             <td>{{ $student->admission->father_name ?? '—' }}</td>
-                            <td class="text-center"><a href="{{ route('students.profile', $student->id) }}" class="btn btn-sm btn-outline-primary">View</a></td>
+                            <td class="text-center"><a href="{{ route('student.profile.show', $student->id) }}" class="btn btn-sm btn-outline-primary">View</a></td>
                         </tr>
                         @endforeach
                     </tbody>

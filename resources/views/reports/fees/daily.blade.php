@@ -81,8 +81,8 @@
                             <td><strong>{{ str_pad($payment->challan_no, 4, '0', STR_PAD_LEFT) }}</strong></td>
                             <td>{{ $payment->student->first_name ?? '—' }} {{ $payment->student->last_name ?? '' }}</td>
                             <td>
-                                {{ optional($payment->student->promotions->first())->section->schoolClass->class_name ?? '—' }}
-                                {{ optional($payment->student->promotions->first())->section->section_name ?? '' }}
+                                {{ optional(optional(optional($payment->student)->promotions)->first())->section->schoolClass->class_name ?? '—' }}
+                                {{ optional(optional(optional($payment->student)->promotions)->first())->section->section_name ?? '' }}
                             </td>
                             <td>
                                 <span class="badge bg-secondary">

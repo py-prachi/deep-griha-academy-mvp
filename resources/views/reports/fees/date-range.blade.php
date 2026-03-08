@@ -89,7 +89,7 @@
                             <td><strong>{{ str_pad($payment->challan_no, 4, '0', STR_PAD_LEFT) }}</strong></td>
                             <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('d M Y') }}</td>
                             <td>{{ $payment->student->first_name ?? '—' }} {{ $payment->student->last_name ?? '' }}</td>
-                            <td>{{ optional($payment->student->promotions->first())->section->schoolClass->class_name ?? '—' }} {{ optional($payment->student->promotions->first())->section->section_name ?? '' }}</td>
+                            <td>{{ optional(optional(optional($payment->student)->promotions)->first())->section->schoolClass->class_name ?? '—' }} {{ optional(optional(optional($payment->student)->promotions)->first())->section->section_name ?? '' }}</td>
                             <td><span class="badge bg-secondary">{{ $payment->is_internal_transfer ? 'COC/Internal' : ucfirst($payment->student->fee_category ?? 'general') }}</span></td>
                             <td><span class="badge bg-{{ $payment->payment_mode == 'cash' ? 'secondary' : ($payment->payment_mode == 'qr' ? 'info' : 'warning') }}">{{ strtoupper($payment->payment_mode) }}</span></td>
                             <td class="text-end fw-bold">₹{{ number_format($payment->amount_paid, 2) }}</td>

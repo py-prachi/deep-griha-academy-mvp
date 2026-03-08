@@ -21,7 +21,7 @@
         <div class="col-md-2"><div class="card text-white bg-info"><div class="card-body text-center py-2"><div class="small">RTE</div><h4 class="mb-0">{{ $grandRte }}</h4></div></div></div>
         <div class="col-md-2"><div class="card text-white bg-dark"><div class="card-body text-center py-2"><div class="small">COC</div><h4 class="mb-0">{{ $grandCoc }}</h4></div></div></div>
         <div class="col-md-2"><div class="card text-white bg-warning"><div class="card-body text-center py-2"><div class="small">Discount</div><h4 class="mb-0">{{ $grandDiscount }}</h4></div></div></div>
-        <div class="col-md-2"><div class="card text-white bg-success"><div class="card-body text-center py-2"><div class="small">Classes</div><h4 class="mb-0">{{ count($strength) }}</h4></div></div></div>
+        <div class="col-md-2"><div class="card text-white bg-success"><div class="card-body text-center py-2"><div class="small">Classes</div><h4 class="mb-0">{{ count((array)$strength) }}</h4></div></div></div>
     </div>
     <div class="card">
         <div class="card-body">
