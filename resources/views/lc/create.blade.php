@@ -19,6 +19,7 @@
         </div>
     @endif
 
+    {{-- Pass route URL safely into JS via a data attribute (avoids Blade-in-JS-template-literal issues) --}}
     <form method="POST" action="{{ route('lc.store') }}" id="lcForm">
         @csrf
         <div class="row g-3">
@@ -31,6 +32,7 @@
                     <div class="card-header bg-light fw-semibold">Select Student (Confirmed Admissions only)</div>
                     <div class="card-body">
                         <select name="admission_id" id="admissionSelect"
+                                data-info-url="{{ route('lc.student-info') }}"
                                 class="form-select @error('admission_id') is-invalid @enderror" required>
                             <option value="">— choose student —</option>
                             @foreach($admissions as $a)
@@ -218,17 +220,20 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const select       = document.getElementById('admissionSelect');
-    const feeWarn      = document.getElementById('feeWarningBox');
-    const feeDue       = document.getElementById('feeDueAmount');
-    const lcWarn       = document.getElementById('existingLcWarning');
-    const lcNo         = document.getElementById('existingLcNo');
-    const submitBtn    = document.getElementById('submitBtn');
-    const previewName  = document.getElementById('previewName');
-    const previewAdmNo = document.getElementById('previewAdmNo');
-    const previewClass = document.getElementById('previewClass');
+    var select       = document.getElementById('admissionSelect');
+    var feeWarn      = document.getElementById('feeWarningBox');
+    var feeDue       = document.getElementById('feeDueAmount');
+    var lcWarn       = document.getElementById('existingLcWarning');
+    var lcNo         = document.getElementById('existingLcNo');
+    var submitBtn    = document.getElementById('submitBtn');
+    var previewName  = document.getElementById('previewName');
+    var previewAdmNo = document.getElementById('previewAdmNo');
+    var previewClass = document.getElementById('previewClass');
 
-    const fields = {
+    // Route URL stored in data attribute — avoids Blade rendering inside JS template literals
+    var infoUrl = select.getAttribute('data-info-url');
+
+    var fields = {
         pupil_name:  document.getElementById('fPupilName'),
         mother_name: document.getElementById('fMotherName'),
         nationality: document.getElementById('fNationality'),
@@ -239,26 +244,27 @@ document.addEventListener('DOMContentLoaded', function () {
         standard:    document.getElementById('fStandard'),
     };
 
-    // Auto-trigger if admission_id pre-selected (e.g. from admission show page)
-    if (select.value) {
-        select.dispatchEvent(new Event('change'));
+    function resetPreview() {
+        feeWarn.classList.add('d-none');
+        lcWarn.classList.add('d-none');
+        submitBtn.disabled = false;
+        previewName.textContent  = '—';
+        previewAdmNo.textContent = '—';
+        previewClass.textContent = '—';
     }
 
-    select.addEventListener('change', function () {
-        const aid = this.value;
+    function loadStudentInfo(aid) {
         if (!aid) {
-            feeWarn.classList.add('d-none');
-            lcWarn.classList.add('d-none');
-            submitBtn.disabled = false;
-            previewName.textContent = previewAdmNo.textContent = previewClass.textContent = '—';
+            resetPreview();
             return;
         }
 
-        fetch(`{{ route('lc.student-info') }}?admission_id=${aid}`)
-            .then(r => r.json())
-            .then(d => {
-                const a = d.admission;
+        fetch(infoUrl + '?admission_id=' + aid)
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                var a = d.admission;
 
+                // Populate form fields
                 if (fields.pupil_name  && a.student_name)   fields.pupil_name.value  = a.student_name;
                 if (fields.mother_name && a.mother_name)     fields.mother_name.value = a.mother_name;
                 if (fields.nationality && a.nationality)     fields.nationality.value = a.nationality;
@@ -268,17 +274,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (fields.adm_date    && a.confirmed_date)  fields.adm_date.value    = a.confirmed_date;
                 if (fields.standard    && a.class_label)     fields.standard.value    = a.class_label;
 
+                // Update preview panel
                 previewName.textContent  = a.student_name || '—';
                 previewAdmNo.textContent = a.general_id || a.dga_admission_no || '—';
                 previewClass.textContent = a.class_label || '—';
 
-                if (d.fee_check.has_due) {
+                // Fee warning
+                if (d.fee_check && d.fee_check.has_due) {
                     feeDue.textContent = '₹' + parseFloat(d.fee_check.amount).toFixed(2);
                     feeWarn.classList.remove('d-none');
                 } else {
                     feeWarn.classList.add('d-none');
                 }
 
+                // Duplicate LC warning
                 if (d.has_lc) {
                     lcNo.textContent = d.lc_number;
                     lcWarn.classList.remove('d-none');
@@ -288,8 +297,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     submitBtn.disabled = false;
                 }
             })
-            .catch(e => console.error('Admission info error:', e));
+            .catch(function (e) { console.error('Admission info error:', e); });
+    }
+
+    // Attach listener FIRST
+    select.addEventListener('change', function () {
+        loadStudentInfo(this.value);
     });
+
+    // Auto-trigger AFTER listener is attached (handles pre-selected admission_id from admission show page)
+    if (select.value) {
+        loadStudentInfo(select.value);
+    }
 });
 </script>
 @endpush

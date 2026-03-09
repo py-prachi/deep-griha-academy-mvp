@@ -177,14 +177,8 @@ https://github.com/py-prachi/deep-griha-academy-mvp
 - TC-03 New Admission Inquiry ✅
 - TC-04 Full Admission Flow — steps 1-4 ✅, step 5 pass with note
   - Added Fee Ledger + Issue LC buttons to admission show page ✅
+- TC-05 LC Create Page ✅ (fixed: @stack(\'scripts\') missing from layout, route() moved to data-info-url attribute, auto-trigger ordering fixed)
 
-### Current Bug Being Fixed
-- LC create page preview panel shows — for Student/Admission No/Class
-- Fee warning not appearing after student selected from dropdown
-- AJAX returns correct data (verified via tinker)
-- JS auto-trigger added for pre-selected admission_id
-- general_id fix applied to preview and PDF register no field
-- Root cause not yet found — JS may not be firing on select change
 
 ### Angela Clarification Items (separate doc being maintained)
 1. Misc/ad-hoc payments (books, uniform) — how to handle
