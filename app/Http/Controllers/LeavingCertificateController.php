@@ -16,6 +16,12 @@ class LeavingCertificateController extends Controller
     {
         $this->lcRepo = $lcRepo;
         $this->middleware('auth');
+        $this->middleware(function ($request, $next) {
+            if (!in_array(auth()->user()->role, ['admin'])) {
+                abort(403);
+            }
+            return $next($request);
+        });
     }
 
     // ── Index ──────────────────────────────────────────────────────────────────
