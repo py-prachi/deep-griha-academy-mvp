@@ -113,12 +113,14 @@
                             <li><a class="dropdown-item" href="{{url('marks/results')}}">View Results</a></li>
                         </ul>
                     </li> --}}
+                    @if(auth()->user()->role === 'admin')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('lc*') ? 'active' : '' }}" href="{{ route('lc.index') }}">
                             <i class="bi bi-file-earmark-minus"></i>
                             <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Leaving Certificates</span>
                         </a>
                     </li>
+                    @endif
                     @endif
                     @if (Auth::user()->role == "admin")
                     {{-- ── ADMISSIONS (admin only) ── --}}

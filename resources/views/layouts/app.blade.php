@@ -107,5 +107,6 @@
     <div id="watermark">
         <p>Deep Griha Academy</p>
     </div>
+@stack('scripts')
 </body>
 </html>

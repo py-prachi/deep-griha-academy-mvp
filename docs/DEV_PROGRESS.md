@@ -168,3 +168,29 @@
 
 ## Repo
 https://github.com/py-prachi/deep-griha-academy-mvp
+
+## Manual Testing Session — In Progress (feature/manual-testing-fixes)
+
+### Completed
+- TC-01 Admin Login ✅
+- TC-02 Teacher Login ✅ (fixed: LC restricted to admin only, menu guard added)
+- TC-03 New Admission Inquiry ✅
+- TC-04 Full Admission Flow — steps 1-4 ✅, step 5 pass with note
+  - Added Fee Ledger + Issue LC buttons to admission show page ✅
+- TC-05 LC Create Page ✅ (fixed: @stack(\'scripts\') missing from layout, route() moved to data-info-url attribute, auto-trigger ordering fixed)
+
+
+### Angela Clarification Items (separate doc being maintained)
+1. Misc/ad-hoc payments (books, uniform) — how to handle
+2. Register No. of Pupil on LC — use general_id ?? dga_admission_no
+3. Student IDs — when does pre-primary student get general_id
+
+### Next Steps
+- Fix LC preview panel and fee warning
+- Resume TC-04 step 5 onwards
+- TC-05 Cancel admission
+- Then Phase 3 fee flows (TC-07 onwards)
+EOF
+git add DEV_PROGRESS.md
+git commit -m "docs: update testing progress for handoff to new chat"
+git push origin feature/manual-testing-fixes

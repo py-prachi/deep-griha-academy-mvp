@@ -59,6 +59,18 @@
                                 </button>
                             @endif
 
+                            {{-- Fee Ledger (confirmed only) --}}
+                            @if($admission->status == 'confirmed' && $admission->student_user_id)
+                                <a href="{{ route('fees.ledger', $admission->student_user_id) }}" class="btn btn-outline-info">
+                                    <i class="bi bi-cash-stack"></i> Fee Ledger
+                                </a>
+                            @endif
+                            {{-- Issue LC (confirmed only, no existing LC) --}}
+                            @if($admission->status == 'confirmed' && auth()->user()->role === 'admin')
+                                <a href="{{ route('lc.create', ['admission_id' => $admission->id]) }}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-file-earmark-minus"></i> Issue LC
+                                </a>
+                            @endif
                             {{-- Cancel --}}
                             @if($admission->status != 'confirmed')
                                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
