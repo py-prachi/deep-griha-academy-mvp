@@ -7,39 +7,45 @@ class AddFeeCategoryToFeeStructuresTable extends Migration
 {
     public function up()
     {
-        Schema::table('fee_structures', function (Blueprint $table) {
-            $table->enum('fee_category', ['general', 'rte', 'coc', 'discount'])
-                  ->default('general')->after('academic_year');
-            $table->unsignedBigInteger('session_id')->nullable()->after('fee_category');
+        Schema::table("fee_structures", function (Blueprint $table) {
+            $table->enum("fee_category", ["general", "rte", "coc", "discount"])
+                  ->default("general")->after("academic_year");
+            $table->unsignedBigInteger("session_id")->nullable()->after("fee_category");
         });
 
-        if (DB::getDriverName() === 'mysql') {
-            // Drop foreign key on fee_payments that references fee_structures first
-            DB::statement('ALTER TABLE fee_payments DROP FOREIGN KEY fee_payments_fee_structure_id_foreign');
-            // Now safe to drop the unique index
-            DB::statement('ALTER TABLE fee_structures DROP INDEX fee_structures_class_id_academic_year_unique');
-            // Recreate with fee_category included
-            DB::statement('ALTER TABLE fee_structures ADD UNIQUE KEY fee_structures_class_academic_category_unique (class_id, academic_year, fee_category)');
-            // Restore the foreign key
-            DB::statement('ALTER TABLE fee_payments ADD CONSTRAINT fee_payments_fee_structure_id_foreign FOREIGN KEY (fee_structure_id) REFERENCES fee_structures (id) ON DELETE CASCADE');
+        if (DB::getDriverName() === "mysql") {
+            // Drop foreign key safely using Schema builder
+            if (Schema::hasColumn("fee_payments", "fee_structure_id")) {
+                Schema::table("fee_payments", function (Blueprint $table) {
+                    $table->dropForeign(["fee_structure_id"]);
+                });
+            }
+            DB::statement("ALTER TABLE fee_structures DROP INDEX fee_structures_class_id_academic_year_unique");
+            DB::statement("ALTER TABLE fee_structures ADD UNIQUE KEY fee_structures_class_academic_category_unique (class_id, academic_year, fee_category)");
+            // Restore foreign key
+            Schema::table("fee_payments", function (Blueprint $table) {
+                $table->foreign("fee_structure_id")->references("id")->on("fee_structures")->onDelete("cascade");
+            });
         }
     }
 
     public function down()
     {
-        if (DB::getDriverName() === 'mysql') {
-            // Drop foreign key first
-            DB::statement('ALTER TABLE fee_payments DROP FOREIGN KEY fee_payments_fee_structure_id_foreign');
-            // Drop new unique index
-            DB::statement('ALTER TABLE fee_structures DROP INDEX fee_structures_class_academic_category_unique');
-            // Restore original unique index
-            DB::statement('ALTER TABLE fee_structures ADD UNIQUE KEY fee_structures_class_id_academic_year_unique (class_id, academic_year)');
-            // Restore foreign key
-            DB::statement('ALTER TABLE fee_payments ADD CONSTRAINT fee_payments_fee_structure_id_foreign FOREIGN KEY (fee_structure_id) REFERENCES fee_structures (id) ON DELETE CASCADE');
+        if (DB::getDriverName() === "mysql") {
+            if (Schema::hasColumn("fee_payments", "fee_structure_id")) {
+                Schema::table("fee_payments", function (Blueprint $table) {
+                    $table->dropForeign(["fee_structure_id"]);
+                });
+            }
+            DB::statement("ALTER TABLE fee_structures DROP INDEX fee_structures_class_academic_category_unique");
+            DB::statement("ALTER TABLE fee_structures ADD UNIQUE KEY fee_structures_class_id_academic_year_unique (class_id, academic_year)");
+            Schema::table("fee_payments", function (Blueprint $table) {
+                $table->foreign("fee_structure_id")->references("id")->on("fee_structures")->onDelete("cascade");
+            });
         }
 
-        Schema::table('fee_structures', function (Blueprint $table) {
-            $table->dropColumn(['fee_category', 'session_id']);
+        Schema::table("fee_structures", function (Blueprint $table) {
+            $table->dropColumn(["fee_category", "session_id"]);
         });
     }
 }
