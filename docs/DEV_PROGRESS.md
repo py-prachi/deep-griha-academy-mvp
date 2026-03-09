@@ -85,10 +85,29 @@
 - All 7 report PDF downloads work
 - Nav menu: Fees + Reports links all work
 
-## Phase 4 — NOT STARTED
-- LeavingCertificateController
-- LC PDF generation
-- LC numbers: global running sequence (LC001, LC002...)
+## Phase 4 — Leaving Certificate — COMPLETE ✅
+
+### Branch: feature/phase4-lc
+
+### Key Decisions
+- LC numbers: global running sequence (LC001, LC002...) — never reset
+- Linked to admissions table (no separate students table in this project)
+- Only confirmed admissions can get an LC
+- Fees outstanding = WARNING only, never blocks issuance
+- fees_due snapshotted at time of issue
+- One LC per admission — duplicate issuance blocked
+- PDF matches Angela's real LC format exactly
+
+### Done ✅
+- Migration: create_leaving_certificates_table (linked to admissions)
+- LeavingCertificate model + generateLcNumber()
+- LeavingCertificateInterface + Repository + ServiceProvider
+- LeavingCertificateController (index, create, store, show, pdf, studentInfo AJAX)
+- Views: index, create, show, pdf (PHP 7 compatible — no ?-> operators)
+- Left menu: Leaving Certificates link
+- PDF: matches real DGA LC format (Society header, all fields, NB text, signatures)
+- LeavingCertificateTest.php: 25/25 passing ✅
+- Run: docker exec app php artisan test tests/Feature/LeavingCertificateTest.php --testdox
 
 ## Key Decisions
 - Challan numbers: global running sequence (0001, 0002...)
@@ -99,10 +118,12 @@
 - LC issuance: warning only if fees due, never blocked
 - Soft delete for cancelled admissions
 
-## Branch Strategy
-- main → stable only
+## Branch Strategy (updated)
+- main → stable only (never commit directly)
 - develop → integration branch
-- feature/phase3-fees → current branch (ready to merge when Saru testing done)
+- feature/phase3-fees → MERGED to develop ✅
+- feature/phase4-lc → current branch (Phase 4 complete, 25/25 tests passing, pending Saru manual testing)
+- Workflow: feature/phaseN → develop → main
 
 ## Tech Stack
 - Laravel 8.x + Blade + Bootstrap 5
@@ -112,6 +133,33 @@
 - Repository pattern
 - PHPUnit 9.5 for feature tests
 - DomPDF v2.2.0
+## Tech Stack — Important PHP 7 Constraints
+- PHP 7.x inside Docker — NO nullsafe operator (?->) anywhere in controllers or views
+- Use ternary instead: `$x ? $x->method() : '—'`  not  `$x?->method()`
+- No named arguments, no match expressions, no union types
+- Always check PHP version before writing new code: `docker exec app php -v`
+
+## Project Structure — Critical Facts
+- NO Student model / students table — students ARE admissions
+- Admission model = student record (status: confirmed = active student)
+- Only confirmed admissions appear in student lists, LC, fee ledger etc.
+- No AdmissionFactory exists — tests use Admission::create() + DB::table() directly
+- Test pattern: copy AdmissionTest.php setUp() pattern exactly for all new feature tests
+- Views live at: resources/views/ on Mac, /var/www/resources/views/ in container
+- App code lives at: app/ on Mac, /var/www/app/ in container (NOT /var/www/html/)
+- Tests live at: tests/ on Mac, /var/www/tests/ in container
+
+## Docker Workflow
+- After editing any file locally: docker cp <local_path> app:<container_path>
+- After editing views: also run docker exec app php artisan view:clear
+- Files are NOT auto-synced — every change needs explicit docker cp
+- To copy a view: docker cp resources/views/lc/foo.blade.php app:/var/www/resources/views/lc/foo.blade.php
+
+## Running Tests
+- docker exec app php artisan test tests/Feature/AdmissionTest.php --testdox   # 31 tests
+- docker exec app php artisan test tests/Feature/FeeTest.php --testdox          # 27 tests  
+- docker exec app php artisan test tests/Feature/LeavingCertificateTest.php --testdox  # 25 tests
+
 
 ## Login Credentials
 - Admin: admin@deepgriha.com / dga@admin2026
