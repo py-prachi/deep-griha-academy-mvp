@@ -144,14 +144,15 @@ class LeavingCertificateController extends Controller
         $feeCheck = $this->lcRepo->checkFeesDue($admission->id);
         $existing = $this->lcRepo->findByAdmission($admission->id)->first();
 
-        $classLabel = ($admission->schoolClass->name ?? '') .
-                      ($admission->section ? ' - ' . $admission->section->name : '');
+        $classLabel = ($admission->schoolClass->class_name ?? '') .
+                      ($admission->section ? ' - ' . $admission->section->section_name : '');
 
         return response()->json([
             'admission' => [
                 'id'                   => $admission->id,
                 'student_name'         => $admission->student_name,
                 'dga_admission_no'     => $admission->dga_admission_no,
+                'general_id'           => $admission->general_id,
                 'mother_name'          => $admission->mother_name ?? '',
                 'father_name'          => $admission->father_name ?? '',
                 'date_of_birth'        => $admission->date_of_birth ? $admission->date_of_birth->format('Y-m-d') : null,

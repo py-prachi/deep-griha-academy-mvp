@@ -68,11 +68,34 @@ class LeavingCertificateRepository implements LeavingCertificateInterface
      */
     public function checkFeesDue(int $admissionId): array
     {
-        $totalDue  = DB::table('fee_payments')->where('admission_id', $admissionId)->sum('amount_due');
-        $totalPaid = DB::table('fee_payments')->where('admission_id', $admissionId)->sum('amount_paid');
+        $admission = DB::table('admissions')->where('id', $admissionId)->first();
+        if (!$admission || !$admission->student_user_id) {
+            return ['has_due' => false, 'amount' => 0];
+        }
+        $studentUserId = $admission->student_user_id;
 
-        $balance = max(0, (float) $totalDue - (float) $totalPaid);
+        $promotion = DB::table('promotions')
+            ->where('student_id', $studentUserId)
+            ->orderByDesc('id')
+            ->first();
 
+        $totalDue = 0;
+        if ($promotion) {
+            $student = DB::table('users')->where('id', $studentUserId)->first();
+            $feeCategory = $student->fee_category ?? 'general';
+            $feeStructure = DB::table('fee_structures')
+                ->where('class_id', $promotion->class_id)
+                ->where('fee_category', $feeCategory)
+                ->orderByDesc('id')
+                ->first();
+            $totalDue = $feeStructure ? (float) $feeStructure->total_fee : 0;
+        }
+
+        $totalPaid = (float) DB::table('fee_payments')
+            ->where('student_user_id', $studentUserId)
+            ->sum('amount_paid');
+
+        $balance = max(0, $totalDue - $totalPaid);
         return [
             'has_due' => $balance > 0,
             'amount'  => $balance,

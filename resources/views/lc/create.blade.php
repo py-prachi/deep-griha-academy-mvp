@@ -36,8 +36,7 @@
                             @foreach($admissions as $a)
                                 <option value="{{ $a->id }}"
                                     {{ old('admission_id', ($admission ? $admission->id : '')) == $a->id ? 'selected' : '' }}>
-                                    {{ $a->student_name }}
-                                    ({{ $a->schoolClass->name ?? '' }}{{ $a->section ? ' - ' . $a->section->name : '' }})
+                                    {{ $a->student_name }} ({{ $a->schoolClass->class_name ?? '' }}{{ $a->section ? ' - ' . $a->section->section_name : '' }})
                                     {{ $a->dga_admission_no ? '| ' . $a->dga_admission_no : '' }}
                                 </option>
                             @endforeach
@@ -240,6 +239,11 @@ document.addEventListener('DOMContentLoaded', function () {
         standard:    document.getElementById('fStandard'),
     };
 
+    // Auto-trigger if admission_id pre-selected (e.g. from admission show page)
+    if (select.value) {
+        select.dispatchEvent(new Event('change'));
+    }
+
     select.addEventListener('change', function () {
         const aid = this.value;
         if (!aid) {
@@ -265,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (fields.standard    && a.class_label)     fields.standard.value    = a.class_label;
 
                 previewName.textContent  = a.student_name || '—';
-                previewAdmNo.textContent = a.dga_admission_no || '—';
+                previewAdmNo.textContent = a.general_id || a.dga_admission_no || '—';
                 previewClass.textContent = a.class_label || '—';
 
                 if (d.fee_check.has_due) {

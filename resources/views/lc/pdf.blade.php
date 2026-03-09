@@ -259,7 +259,7 @@
             </td>
             <td style="width:50%; text-align:right;">
                 Register No. of Pupil :
-                <span class="date-field" style="min-width:130px;">&nbsp;{{ $lc->student->gr_number ?? '' }}&nbsp;</span>
+                <span class="date-field" style="min-width:130px;">&nbsp;{{ $lc->admission->general_id ?? $lc->admission->dga_admission_no ?? '' }}&nbsp;</span>
             </td>
         </tr>
     </table>
