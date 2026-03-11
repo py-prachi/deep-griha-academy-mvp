@@ -67,7 +67,7 @@
                             @endif
                             {{-- Edit (confirmed only) --}}
                             @if($admission->status == 'confirmed')
-                                <a href="{{ route('student.edit.show', $admission->student_user_id) }}" class="btn btn-outline-primary">
+                                <a href="{{ route('admissions.edit', $admission->id) }}" class="btn btn-outline-primary">
                                     <i class="bi bi-pen"></i> Edit Details
                                 </a>
                             @endif

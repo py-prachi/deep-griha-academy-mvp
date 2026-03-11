@@ -23,6 +23,9 @@
                         <form class="row g-3" action="{{route('school.student.update')}}" method="POST">
                             @csrf
                             <input type="hidden" name="student_id" value="{{$student->id}}">
+                            @if(isset($admission_id) && $admission_id)
+                            <input type="hidden" name="admission_id" value="{{$admission_id}}">
+                            @endif
                             <div class="row g-3">
                                 <div class="col-3">
                                     <label for="inputFirstName" class="form-label">First Name<sup><i class="bi bi-asterisk text-primary"></i></sup></label>

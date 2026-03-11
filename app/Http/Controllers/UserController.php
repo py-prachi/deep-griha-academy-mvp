@@ -166,6 +166,7 @@ class UserController extends Controller
             'f_father_phone'   => $father_phone,
             'f_mother_phone'   => $mother_phone,
             'f_parent_address' => $parent_address,
+            'admission_id'     => $admission ? $admission->id : null,
         ]);
     }
 
