@@ -65,6 +65,12 @@
                                     <i class="bi bi-cash-stack"></i> Fee Ledger
                                 </a>
                             @endif
+                            {{-- Edit (confirmed only) --}}
+                            @if($admission->status == 'confirmed')
+                                <a href="{{ route('student.edit.show', $admission->student_user_id) }}" class="btn btn-outline-primary">
+                                    <i class="bi bi-pen"></i> Edit Details
+                                </a>
+                            @endif
                             {{-- Issue LC (confirmed only, no existing LC) --}}
                             @if($admission->status == 'confirmed' && auth()->user()->role === 'admin')
                                 <a href="{{ route('lc.create', ['admission_id' => $admission->id]) }}" class="btn btn-outline-secondary">

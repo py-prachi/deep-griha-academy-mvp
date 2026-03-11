@@ -77,9 +77,7 @@
                                             <div class="btn-group" role="group">
                                                 <a href="{{route('student.attendance.show', ['id' => $student->student->id])}}" role="button" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> Attendance</a>
                                                 <a href="{{url('students/view/profile/'.$student->student->id)}}" role="button" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> Profile</a>
-                                                @can('edit users')
-                                                <a href="{{route('student.edit.show', ['id' => $student->student->id])}}" role="button" class="btn btn-sm btn-outline-primary"><i class="bi bi-pen"></i> Edit</a>
-                                                @endcan
+                                                {{-- Edit removed -- use Edit Details on admission show page instead --}}
                                                 {{-- <button type="button" class="btn btn-sm btn-primary"><i class="bi bi-trash2"></i> Delete</button> --}}
                                             </div>
                                         </td>
@@ -95,25 +93,36 @@
         </div>
     </div>
 </div>
+@push('scripts')
 <script>
-    function getSections(obj) {
+    function getSections(obj, preselectedSectionId) {
         var class_id = obj.options[obj.selectedIndex].value;
-
-        var url = "{{route('get.sections.courses.by.classId')}}?class_id=" + class_id 
-
+        var url = "{{route('get.sections.courses.by.classId')}}?class_id=" + class_id;
         fetch(url)
         .then((resp) => resp.json())
         .then(function(data) {
             var sectionSelect = document.getElementById('section-select');
             sectionSelect.options.length = 0;
-            data.sections.unshift({'id': 0,'section_name': 'Please select a section'})
+            data.sections.unshift({'id': 0, 'section_name': 'Please select a section'});
             data.sections.forEach(function(section, key) {
                 sectionSelect[key] = new Option(section.section_name, section.id);
             });
+            if (preselectedSectionId) {
+                sectionSelect.value = preselectedSectionId;
+            }
         })
         .catch(function(error) {
             console.log(error);
         });
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var classSelect = document.querySelector('select[name="class_id"]');
+        var preselectedSectionId = '{{ request()->query("section_id") }}';
+        if (classSelect && classSelect.value) {
+            getSections(classSelect, preselectedSectionId);
+        }
+    });
 </script>
+@endpush
 @endsection
