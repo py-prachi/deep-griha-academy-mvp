@@ -85,7 +85,7 @@ class FeePaymentRepository implements FeePaymentInterface
         // and their total paid < total due from fee structure
         return DB::select("
             SELECT
-                u.id,
+                u.id AS student_id,
                 u.first_name,
                 u.last_name,
                 u.fee_category,
