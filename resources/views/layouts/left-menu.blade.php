@@ -178,8 +178,8 @@
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
                         <ul class="nav collapse {{ request()->is('reports*') ? 'show' : 'hide' }} bg-white" id="reports-submenu">
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.daily') }}"><i class="bi bi-calendar-day me-2"></i> Daily Collection</a></li>
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.dateRange') }}"><i class="bi bi-calendar-range me-2"></i> Date Range</a></li>
+                            {{-- Daily Collection hidden — redundant with Collection Report, pending Angela confirmation --}}
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.dateRange') }}"><i class="bi bi-calendar-range me-2"></i> Collection Report</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.defaulters') }}"><i class="bi bi-exclamation-triangle me-2"></i> Defaulters</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.categorySummary') }}"><i class="bi bi-pie-chart me-2"></i> Category Summary</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.admissions') }}"><i class="bi bi-person-check me-2"></i> Admissions</a></li>

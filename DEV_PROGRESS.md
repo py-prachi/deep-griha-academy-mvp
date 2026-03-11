@@ -72,19 +72,6 @@
 - RTE confirm flow — no challan, record doc number only (to confirm)
 - COC confirm flow — Internal Transfer challan (to confirm)
 
-### Manual test checklist for Saru (resume tomorrow)
-- Flow 2: Confirm without payment → admission show page ✅ success message
-- Flow 3: Cheque payment → challan with cheque details
-- Flow 4: QR/UPI payment → challan with transaction ref
-- Flow 5: RTE confirm → payment section hidden, no challan
-- Flow 6: Discount confirm → discounted amount + challan
-- Fee Structures: create/edit/delete
-- Ledger: correct due/paid/balance shown
-- Back to Profile link on ledger works
-- All 7 report pages load
-- All 7 report PDF downloads work
-- Nav menu: Fees + Reports links all work
-
 ## Phase 4 — Leaving Certificate — COMPLETE ✅
 
 ### Branch: feature/phase4-lc
@@ -121,8 +108,8 @@
 ## Branch Strategy (updated)
 - main → stable only (never commit directly)
 - develop → integration branch
-- feature/phase3-fees → MERGED to develop ✅
-- feature/phase4-lc → current branch (Phase 4 complete, 25/25 tests passing, pending Saru manual testing)
+- feature/manual-testing-fixes → MERGED to develop ✅
+- feature/manual-testing-tc15 → current branch (TC-15 reports in progress)
 - Workflow: feature/phaseN → develop → main
 
 ## Tech Stack
@@ -133,6 +120,7 @@
 - Repository pattern
 - PHPUnit 9.5 for feature tests
 - DomPDF v2.2.0
+
 ## Tech Stack — Important PHP 7 Constraints
 - PHP 7.x inside Docker — NO nullsafe operator (?->) anywhere in controllers or views
 - Use ternary instead: `$x ? $x->method() : '—'`  not  `$x?->method()`
@@ -157,9 +145,8 @@
 
 ## Running Tests
 - docker exec app php artisan test tests/Feature/AdmissionTest.php --testdox   # 31 tests
-- docker exec app php artisan test tests/Feature/FeeTest.php --testdox          # 27 tests  
+- docker exec app php artisan test tests/Feature/FeeTest.php --testdox          # 27 tests
 - docker exec app php artisan test tests/Feature/LeavingCertificateTest.php --testdox  # 25 tests
-
 
 ## Login Credentials
 - Admin: admin@deepgriha.com / dga@admin2026
@@ -169,28 +156,82 @@
 ## Repo
 https://github.com/py-prachi/deep-griha-academy-mvp
 
-## Manual Testing Session — In Progress (feature/manual-testing-fixes)
+## Manual Testing Session — In Progress (feature/manual-testing-tc15)
 
 ### Completed
 - TC-01 Admin Login ✅
 - TC-02 Teacher Login ✅ (fixed: LC restricted to admin only, menu guard added)
 - TC-03 New Admission Inquiry ✅
-- TC-04 Full Admission Flow — steps 1-4 ✅, step 5 pass with note
-  - Added Fee Ledger + Issue LC buttons to admission show page ✅
-- TC-05 LC Create Page ✅ (fixed: @stack(\'scripts\') missing from layout, route() moved to data-info-url attribute, auto-trigger ordering fixed)
+- TC-04 Full Admission Flow ✅
+- TC-05 Cancel Admission ✅
+- TC-06 Edit Admission ✅ (fixed: Edit Details on admission show page → admissions.edit)
 
+### Saru Testing (develop branch)
+- TC-07 to TC-14 fees testing in progress
 
-### Angela Clarification Items (separate doc being maintained)
-1. Misc/ad-hoc payments (books, uniform) — how to handle
-2. Register No. of Pupil on LC — use general_id ?? dga_admission_no
-3. Student IDs — when does pre-primary student get general_id
+### TC-15 Reports — In Progress (feature/manual-testing-tc15)
+- Collection Report (date range) ✅ fixed:
+  - Left menu + breadcrumb layout wrapper added
+  - Class/Div fixed in view and PDF (admissions table, not promotions)
+  - Renamed from Date Range to Collection Report in menu
+  - Daily Collection hidden from menu (pending Angela confirmation)
+- Defaulters report — BROKEN: Undefined property stdClass::$student_id
+  - Need to check getDefaulters() in FeePaymentRepository.php
+  - View calls route('fees.ledger', $d->student_id) but query doesn't return student_id
+- Category Summary, Admissions, Class Strength, RTE — need same layout fix as Collection Report
+
+### UI Fixes Done (merged to develop ✅)
+- @stack('scripts') missing from layouts/app.blade.php — fixed
+- LC create page preview panel, fee warning, auto-populate — fixed
+- Migration: drop class_id FK before modifying unique index — fixed
+- Students menu hidden for admin, shown for teacher only
+- Edit removed from student list
+- Section dropdown persists on student list filter
+- Edit Details on confirmed admission → admissions.edit (not students/edit)
+- Student exit flow — deferred to Phase 5 (pending Angela's exit form)
+
+### Angela Clarification Items
+1. Misc/ad-hoc payments — how to handle (books, uniform etc.)
+2. Register No. on LC — general_id ?? dga_admission_no
+3. Student IDs — when does pre-primary get general_id
+4. Student photos — needed? mandatory? when uploaded?
+5. Student exit flow — mark as exited after LC? exit form needed
+6. Challan copies — 3 copies for every transaction or only first payment?
+7. RTE confirm flow — no challan, just record doc number?
+8. COC confirm flow — Internal Transfer label correct?
+9. Reports — is Daily Collection needed or redundant with Collection Report?
+10. Reports — are all 7 reports useful? any missing?
+11. Defaulters — how to define a defaulter (any balance due, or past due date)?
 
 ### Next Steps
-- Fix LC preview panel and fee warning
-- Resume TC-04 step 5 onwards
-- TC-05 Cancel admission
-- Then Phase 3 fee flows (TC-07 onwards)
-EOF
-git add DEV_PROGRESS.md
-git commit -m "docs: update testing progress for handoff to new chat"
-git push origin feature/manual-testing-fixes
+- Fix Defaulters report (student_id undefined on stdClass)
+- Fix layout on remaining reports (Category Summary, Admissions, Class Strength, RTE)
+- TC-15 complete once all reports load + PDFs download correctly
+- TC-16 to TC-22 LC tests
+- TC-23 Left Menu Navigation
+- TC-24 Session and Logout
+- TC-25 Angela Challan Review
+
+## Phase 5 — Pending (post-testing)
+
+### Student Exit Flow
+- When a student leaves mid-session (LC issued), admission stays as 'confirmed' — not handled yet
+- Need new status 'exited' on admissions table
+- Exit date + reason to be captured (Angela's exit form pending)
+- Exited students to be removed from active student list
+- New archived/exited view needed
+- Waiting for Angela's exit form before implementation
+
+### Student Photos
+- Current admission form has no photo upload
+- Old student profile page has placeholder only
+- Decision pending Angela confirmation:
+  - Is it needed?
+  - Mandatory or optional?
+  - At inquiry or after confirmation?
+- Storage plan: Cloudinary free tier (25GB free, survives redeploys, suitable for NGO scale)
+
+### Miscellaneous / Ad-hoc Payments
+- Books, uniform, excursion etc. not currently handled
+- Pending Angela clarification on flow and challan format
+

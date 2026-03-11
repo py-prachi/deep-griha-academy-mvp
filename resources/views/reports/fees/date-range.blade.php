@@ -1,7 +1,25 @@
 @extends('layouts.app')
-@section('title', 'Collection Report — Date Range')
+@section('title', 'Collection Report')
 @section('content')
-<div class="container-fluid">
+<div class="container">
+    <div class="row justify-content-start">
+        @include('layouts.left-menu')
+        <div class="col-xs-11 col-sm-11 col-md-11 col-lg-10 col-xl-10 col-xxl-10">
+            <div class="row pt-2">
+                <div class="col ps-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <a href="{{ route('home') }}" class="btn btn-sm btn-outline-secondary me-2">
+                            <i class="bi bi-arrow-left"></i>
+                        </a>
+                        <h4 class="mb-0">Collection Report</h4>
+                    </div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+                            <li class="breadcrumb-item active">Collection Report</li>
+                        </ol>
+                    </nav>
+        <div class="container-fluid px-0">
     <div class="row mb-3">
         <div class="col-md-12">
             <div class="card">
@@ -89,7 +107,7 @@
                             <td><strong>{{ str_pad($payment->challan_no, 4, '0', STR_PAD_LEFT) }}</strong></td>
                             <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('d M Y') }}</td>
                             <td>{{ $payment->student->first_name ?? '—' }} {{ $payment->student->last_name ?? '' }}</td>
-                            <td>{{ optional(optional(optional($payment->student)->promotions)->first())->section->schoolClass->class_name ?? '—' }} {{ optional(optional(optional($payment->student)->promotions)->first())->section->section_name ?? '' }}</td>
+                            <td>{{ optional(optional($payment->student)->admission)->schoolClass->class_name ?? '—' }} {{ optional(optional(optional($payment->student)->admission)->section)->section_name ?? '' }}</td>
                             <td><span class="badge bg-secondary">{{ $payment->is_internal_transfer ? 'COC/Internal' : ucfirst($payment->student->fee_category ?? 'general') }}</span></td>
                             <td><span class="badge bg-{{ $payment->payment_mode == 'cash' ? 'secondary' : ($payment->payment_mode == 'qr' ? 'info' : 'warning') }}">{{ strtoupper($payment->payment_mode) }}</span></td>
                             <td class="text-end fw-bold">₹{{ number_format($payment->amount_paid, 2) }}</td>
@@ -107,6 +125,12 @@
                 </table>
             </div>
             @endif
+        </div>
+    </div>
+</div>
+                </div>
+            </div>
+            @include('layouts.footer')
         </div>
     </div>
 </div>
