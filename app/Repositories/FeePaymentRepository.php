@@ -73,7 +73,7 @@ class FeePaymentRepository implements FeePaymentInterface
 
     public function getByDateRange($from, $to)
     {
-        return FeePayment::with('student', 'lineItems')
+        return FeePayment::with('student.admission.schoolClass', 'student.admission.section', 'lineItems')
             ->whereBetween('payment_date', [$from, $to])
             ->orderBy('payment_date')
             ->get();

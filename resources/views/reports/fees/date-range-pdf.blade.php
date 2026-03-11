@@ -40,7 +40,7 @@
                 <td>{{ str_pad($payment->challan_no, 4, '0', STR_PAD_LEFT) }}</td>
                 <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('d M Y') }}</td>
                 <td>{{ $payment->student->first_name ?? '—' }} {{ $payment->student->last_name ?? '' }}</td>
-                <td>{{ optional(optional(optional($payment->student)->promotions)->first())->section->schoolClass->class_name ?? '—' }} {{ optional(optional(optional($payment->student)->promotions)->first())->section->section_name ?? '' }}</td>
+                <td>{{ optional(optional($payment->student)->admission)->schoolClass->class_name ?? '—' }} {{ optional(optional(optional($payment->student)->admission)->section)->section_name ?? '' }}</td>
                 <td>{{ $payment->is_internal_transfer ? 'COC/Internal' : ucfirst($payment->student->fee_category ?? 'general') }}</td>
                 <td>{{ strtoupper($payment->payment_mode) }}</td>
                 <td class="text-end">₹{{ number_format($payment->amount_paid, 2) }}</td>
