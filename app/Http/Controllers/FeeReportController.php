@@ -119,7 +119,7 @@ class FeeReportController extends Controller
             JOIN school_classes sc ON sc.id = p.class_id
             JOIN sections s ON s.id = p.section_id
             WHERE p.session_id = ? AND u.role = 'student'
-            GROUP BY sc.class_name, s.section_name
+            GROUP BY sc.id, sc.class_name, s.section_name
             ORDER BY sc.id, s.section_name
         ", [$current_school_session_id]);
         if ($request->get('pdf')) {

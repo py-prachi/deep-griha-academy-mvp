@@ -90,6 +90,8 @@ class FeePaymentRepository implements FeePaymentInterface
                 u.last_name,
                 u.fee_category,
                 u.admission_id,
+                u.dga_admission_no,
+                u.general_id,
                 sc.class_name,
                 s.section_name,
                 COALESCE(fs.total_fee, 0) AS total_due,
@@ -105,7 +107,7 @@ class FeePaymentRepository implements FeePaymentInterface
             LEFT JOIN fee_payments fp ON fp.student_user_id = u.id
             WHERE u.role = 'student'
             GROUP BY u.id, u.first_name, u.last_name, u.fee_category,
-                     u.admission_id, sc.class_name, s.section_name,
+                     u.admission_id, u.dga_admission_no, u.general_id, sc.class_name, s.section_name,
                      fs.total_fee
             HAVING balance > 0
             ORDER BY sc.class_name, s.section_name, u.first_name

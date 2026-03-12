@@ -1,21 +1,29 @@
 @extends('layouts.app')
 @section('title', 'Fee Structures')
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Fee Structures</h4>
-                    <div class="d-flex gap-2">
-                        <a href="{{ url('home') }}" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-home"></i> Dashboard
+<div class="container">
+    <div class="row justify-content-start">
+        @include('layouts.left-menu')
+        <div class="col-xs-11 col-sm-11 col-md-11 col-lg-10 col-xl-10 col-xxl-10">
+            <div class="row pt-2">
+                <div class="col ps-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <a href="{{ url('home') }}" class="btn btn-sm btn-outline-secondary me-2">
+                            <i class="bi bi-arrow-left"></i>
                         </a>
-                        <a href="{{ route('fee-structures.create') }}" class="btn btn-primary btn-sm">
+                        <h4 class="mb-0">Fee Structures</h4>
+                        <a href="{{ route('fee-structures.create') }}" class="btn btn-primary btn-sm ms-auto">
                             <i class="fas fa-plus"></i> Add Fee Structure
                         </a>
                     </div>
-                </div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+                            <li class="breadcrumb-item active">Fee Structures</li>
+                        </ol>
+                    </nav>
+                    <div class="card">
+                        <div class="card-body">
                 <div class="card-body">
                     @if(session('status'))
                         <div class="alert alert-success">{{ session('status') }}</div>
@@ -73,6 +81,11 @@
                     @endif
                 </div>
             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @include('layouts.footer')
         </div>
     </div>
 </div>
