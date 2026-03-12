@@ -1,9 +1,12 @@
 @extends('layouts.app')
 @section('title', 'Record Payment')
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-9">
+<div class="container">
+    <div class="row justify-content-start">
+        @include('layouts.left-menu')
+        <div class="col-xs-11 col-sm-11 col-md-11 col-lg-10 col-xl-10 col-xxl-10">
+            <div class="row pt-2">
+                <div class="col ps-4">
 
             {{-- Student Summary --}}
             <div class="card mb-3 border-primary">
@@ -127,6 +130,9 @@
                     </form>
                 </div>
             </div>
+                </div>
+            </div>
+            @include('layouts.footer')
         </div>
     </div>
 </div>
