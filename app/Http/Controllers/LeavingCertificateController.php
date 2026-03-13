@@ -140,6 +140,7 @@ class LeavingCertificateController extends Controller
 
         $admission = Admission::with(['schoolClass', 'section'])
             ->findOrFail($request->admission_id);
+        $admission->load('session');
 
         $feeCheck = $this->lcRepo->checkFeesDue($admission->id);
         $existing = $this->lcRepo->findByAdmission($admission->id)->first();
@@ -162,6 +163,7 @@ class LeavingCertificateController extends Controller
                 'class_label'          => $classLabel,
                 'previous_school'      => $admission->previous_school ?? '',
                 'confirmed_date'       => $admission->confirmed_date ? $admission->confirmed_date->format('Y-m-d') : null,
+                'session_name'         => $admission->session ? $admission->session->session_name : null,
             ],
             'fee_check' => $feeCheck,
             'has_lc'    => (bool) $existing,

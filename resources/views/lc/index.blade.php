@@ -12,9 +12,6 @@
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h4 class="mb-0">Leaving Certificates</h4>
-                        <a href="{{ route('lc.create') }}" class="btn btn-primary btn-sm">
-                            <i class="bi bi-plus-circle me-1"></i> Issue LC
-                        </a>
                     </div>
 
                     <div class="card mb-3">
