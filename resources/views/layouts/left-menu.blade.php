@@ -121,7 +121,7 @@
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
                         <ul class="nav collapse {{ request()->is('lc*')? 'show' : 'hide' }} bg-white" id="exit-submenu">
-                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('lc*') ? 'active' : '' }}" href="{{ route('lc.index') }}"><i class="bi bi-file-earmark-minus me-2"></i> Leaving Certificates</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('lc.index') }}"><i class="bi bi-file-earmark-minus me-2"></i> Leaving Certificates</a></li>
                             {{-- Phase 5: Student Exit Form will be added here --}}
                         </ul>
                     </li>

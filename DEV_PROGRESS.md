@@ -34,8 +34,6 @@
 
 ## Phase 3 — Fees — COMPLETE ✅
 
-### Branch: feature/phase3-fees
-
 ### Key Decisions
 - Fee collection integrated into admission confirm flow (first payment at confirm)
 - Same challan for all fee types (academic + misc)
@@ -50,7 +48,6 @@
 
 ### Done ✅
 - DomPDF installed (v2.2.0 for PHP 7.x)
-- Migration: add_fee_category_to_fee_structures_table
 - FeeStructure model, Interface, Repository, ServiceProvider
 - FeePayment model, Interface, Repository, ServiceProvider
 - 18 routes (fee structures, payments, reports)
@@ -60,10 +57,6 @@
 - All views: fee-structures, fees, reports (screen + PDF)
 - Left menu: Fees + Reports sections
 - Admission confirm flow: optional first payment + challan redirect
-- Confirm modal: static (no accidental dismiss), payment fields
-- Already-confirmed guard in AdmissionRepository
-- generateStudentEmail: handles duplicate emails
-- Challan PDF: 3 copies each on separate page
 - FeeTest.php: 27/27 passing ✅
 - Run: docker exec app php artisan test tests/Feature/FeeTest.php --testdox
 
@@ -73,8 +66,6 @@
 - COC confirm flow — Internal Transfer challan (to confirm)
 
 ## Phase 4 — Leaving Certificate — COMPLETE ✅
-
-### Branch: feature/phase4-lc
 
 ### Key Decisions
 - LC numbers: global running sequence (LC001, LC002...) — never reset
@@ -91,7 +82,7 @@
 - LeavingCertificateInterface + Repository + ServiceProvider
 - LeavingCertificateController (index, create, store, show, pdf, studentInfo AJAX)
 - Views: index, create, show, pdf (PHP 7 compatible — no ?-> operators)
-- Left menu: Leaving Certificates link
+- Left menu: Leaving Certificates under Exit Formalities group
 - PDF: matches real DGA LC format (Society header, all fields, NB text, signatures)
 - LeavingCertificateTest.php: 25/25 passing ✅
 - Run: docker exec app php artisan test tests/Feature/LeavingCertificateTest.php --testdox
@@ -105,11 +96,9 @@
 - LC issuance: warning only if fees due, never blocked
 - Soft delete for cancelled admissions
 
-## Branch Strategy (updated)
+## Branch Strategy
 - main → stable only (never commit directly)
 - develop → integration branch
-- feature/manual-testing-fixes → MERGED to develop ✅
-- feature/manual-testing-tc15 → current branch (TC-15 reports in progress)
 - Workflow: feature/phaseN → develop → main
 
 ## Tech Stack
@@ -142,6 +131,7 @@
 - After editing views: also run docker exec app php artisan view:clear
 - Files are NOT auto-synced — every change needs explicit docker cp
 - To copy a view: docker cp resources/views/lc/foo.blade.php app:/var/www/resources/views/lc/foo.blade.php
+- PHP patches in container: use docker exec app php -r (NOT python3 — not installed, NOT sed — quote escaping issues)
 
 ## Running Tests
 - docker exec app php artisan test tests/Feature/AdmissionTest.php --testdox   # 31 tests
@@ -156,41 +146,45 @@
 ## Repo
 https://github.com/py-prachi/deep-griha-academy-mvp
 
-## Manual Testing Session — In Progress (feature/manual-testing-tc15)
+## Manual Testing — Status
 
-### Completed
+### Completed ✅
 - TC-01 Admin Login ✅
 - TC-02 Teacher Login ✅ (fixed: LC restricted to admin only, menu guard added)
 - TC-03 New Admission Inquiry ✅
 - TC-04 Full Admission Flow ✅
 - TC-05 Cancel Admission ✅
-- TC-06 Edit Admission ✅ (fixed: Edit Details on admission show page → admissions.edit)
+- TC-06 Edit Admission ✅
+- TC-15 Reports ✅ (all 6 reports load + PDFs work)
 
 ### Saru Testing (develop branch)
-- TC-07 to TC-14 fees testing in progress
+- TC-07 to TC-14 fees testing — in progress
 
-### TC-15 Reports — In Progress (feature/manual-testing-tc15)
-- Collection Report (date range) ✅ fixed:
-  - Left menu + breadcrumb layout wrapper added
-  - Class/Div fixed in view and PDF (admissions table, not promotions)
-  - Renamed from Date Range to Collection Report in menu
-  - Daily Collection hidden from menu (pending Angela confirmation)
-- Defaulters report — BROKEN: Undefined property stdClass::$student_id
-  - Need to check getDefaulters() in FeePaymentRepository.php
-  - View calls route('fees.ledger', $d->student_id) but query doesn't return student_id
-- Category Summary, Admissions, Class Strength, RTE — need same layout fix as Collection Report
+### Next
+- TC-16 to TC-22 LC tests — branch: feature/manual-testing-tc16-22
+- TC-23 Left Menu Navigation
+- TC-24 Session and Logout
+- TC-25 Angela Challan Review
 
-### UI Fixes Done (merged to develop ✅)
+## UI / Layout Fixes Done (all merged to develop ✅)
 - @stack('scripts') missing from layouts/app.blade.php — fixed
 - LC create page preview panel, fee warning, auto-populate — fixed
-- Migration: drop class_id FK before modifying unique index — fixed
 - Students menu hidden for admin, shown for teacher only
 - Edit removed from student list
 - Section dropdown persists on student list filter
-- Edit Details on confirmed admission → admissions.edit (not students/edit)
-- Student exit flow — deferred to Phase 5 (pending Angela's exit form)
+- Edit Details on confirmed admission → admissions.edit
+- Left menu: reordered for logical admin flow
+- Left menu: Exit Formalities collapsible group (LC inside, Phase 5 exit form to be added)
+- Left menu: Fees icon bi-cash-stack, removed redundant Collect Fee link
+- fee-structures index/create/edit: left menu + breadcrumb wrapper added
+- fees/create (Record Payment): left menu wrapper added
+- All report views: left menu + breadcrumb wrapper added (matching Collection Report layout)
+- Ledger: smart back button (reads referer — defaulters / profile / fallback)
+- Defaulters: getDefaulters() query fixed (student_id alias, dga_admission_no, general_id added)
+- Class Strength: GROUP BY sc.id added (only_full_group_by fix)
+- RTE report: View button → admissions.show (was student.profile.show)
 
-### Angela Clarification Items
+## Angela Clarification Items
 1. Misc/ad-hoc payments — how to handle (books, uniform etc.)
 2. Register No. on LC — general_id ?? dga_admission_no
 3. Student IDs — when does pre-primary get general_id
@@ -202,36 +196,28 @@ https://github.com/py-prachi/deep-griha-academy-mvp
 9. Reports — is Daily Collection needed or redundant with Collection Report?
 10. Reports — are all 7 reports useful? any missing?
 11. Defaulters — how to define a defaulter (any balance due, or past due date)?
-
-### Next Steps
-- Fix Defaulters report (student_id undefined on stdClass)
-- Fix layout on remaining reports (Category Summary, Admissions, Class Strength, RTE)
-- TC-15 complete once all reports load + PDFs download correctly
-- TC-16 to TC-22 LC tests
-- TC-23 Left Menu Navigation
-- TC-24 Session and Logout
-- TC-25 Angela Challan Review
+12. RTE doc number — what is it, where entered on admission form, mandatory?
 
 ## Phase 5 — Pending (post-testing)
 
 ### Student Exit Flow
-- When a student leaves mid-session (LC issued), admission stays as 'confirmed' — not handled yet
 - Need new status 'exited' on admissions table
 - Exit date + reason to be captured (Angela's exit form pending)
-- Exited students to be removed from active student list
-- New archived/exited view needed
+- Exited students removed from active student list
+- Left menu: Exit Formalities already has the collapsible group ready
 - Waiting for Angela's exit form before implementation
 
 ### Student Photos
-- Current admission form has no photo upload
-- Old student profile page has placeholder only
-- Decision pending Angela confirmation:
-  - Is it needed?
-  - Mandatory or optional?
-  - At inquiry or after confirmation?
-- Storage plan: Cloudinary free tier (25GB free, survives redeploys, suitable for NGO scale)
+- No photo upload currently
+- Decision pending Angela: needed? mandatory? at inquiry or after confirmation?
+- Storage plan: Cloudinary free tier
 
 ### Miscellaneous / Ad-hoc Payments
 - Books, uniform, excursion etc. not currently handled
 - Pending Angela clarification on flow and challan format
 
+### RTE Doc Number Field
+- rte_doc_no column does not exist in admissions table
+- RTE report shows '—' for all students currently
+- Needs: migration + field on admission form (shown only when fee_category = rte)
+- Pending Angela confirmation on item 12 above
