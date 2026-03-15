@@ -53,8 +53,10 @@ RUN echo '#!/bin/bash' > /start.sh && \
     echo 'cd /var/www && php artisan migrate --force' >> /start.sh && \
     echo 'php artisan config:cache' >> /start.sh && \
     echo 'chown -R www-data:www-data /var/www/storage' >> /start.sh && \
+    echo 'echo "=== PORT is: $PORT ==="' >> /start.sh && \
+    echo 'sed -i "s/listen 80/listen ${PORT:-80}/g" /etc/nginx/sites-available/default' >> /start.sh && \
     echo 'echo "=== Starting Nginx ==="' >> /start.sh && \
-    echo 'nginx -g "daemon off;"' >> /start.sh && \
+    echo 'nginx -g "daemon off;" 2>&1 || echo "NGINX CRASHED: $?"' >> /start.sh && \
     chmod +x /start.sh
 
 EXPOSE 80
