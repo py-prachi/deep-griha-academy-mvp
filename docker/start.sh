@@ -45,9 +45,15 @@ chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 echo "Starting nginx on port ${PORT:-8080}..."
 nginx &
-sleep 5
+sleep 2
+
+echo "=== SELF TEST ==="
+curl -v http://127.0.0.1:${PORT:-8080}/ 2>&1 || true
+
+sleep 3
 echo "=== NGINX ERROR LOG ==="
 cat /var/log/nginx/error.log
-echo "=== PHP-FPM LOG ==="
-cat /var/log/php7.4-fpm.log
-tail -f /var/log/nginx/error.log /var/log/php7.4-fpm.log /var/www/storage/logs/laravel.log
+echo "=== LARAVEL LOG ==="
+cat /var/www/storage/logs/laravel.log
+
+tail -f /var/log/nginx/error.log /var/log/nginx/access.log /var/log/php7.4-fpm.log /var/www/storage/logs/laravel.log
