@@ -39,8 +39,11 @@ RUN rm -f /etc/nginx/sites-enabled/default \
 
 # Write startup script
 RUN echo '#!/bin/bash' > /start.sh && \
+    echo 'echo "Configuring PHP-FPM to use TCP port 9000..."' >> /start.sh && \
+    echo 'sed -i "s|listen = /run/php/php7.4-fpm.sock|listen = 127.0.0.1:9000|g" /etc/php/7.4/fpm/pool.d/www.conf' >> /start.sh && \
     echo 'echo "Starting PHP-FPM..."' >> /start.sh && \
     echo '/usr/sbin/php-fpm7.4 -D' >> /start.sh && \
+    echo 'sleep 2' >> /start.sh && \
     echo 'echo "Running migrations..."' >> /start.sh && \
     echo 'cd /var/www && php artisan migrate --force' >> /start.sh && \
     echo 'php artisan db:seed --force 2>/dev/null || true' >> /start.sh && \
