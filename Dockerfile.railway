@@ -59,6 +59,6 @@ RUN echo '#!/bin/bash' > /start.sh && \
     echo 'nginx -g "daemon off;" 2>&1 || echo "NGINX CRASHED: $?"' >> /start.sh && \
     chmod +x /start.sh
 
-EXPOSE 80
+EXPOSE 8080
 
 CMD ["/start.sh"]
