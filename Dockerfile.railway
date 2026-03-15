@@ -42,4 +42,5 @@ COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Copy startup script
 EXPOSE 80
 
-CMD bash -c "php artisan migrate --force && php artisan db:seed --force 2>/dev/null || true && php artisan config:cache && chown -R www-data:www-data /var/www/storage && supervisord -c /etc/supervisor/conf.d/supervisord.conf"
+ENTRYPOINT []
+CMD ["bash", "-c", "php artisan migrate --force; php artisan db:seed --force 2>/dev/null; php artisan config:cache; chown -R www-data:www-data /var/www/storage; /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
