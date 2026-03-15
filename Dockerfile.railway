@@ -1,4 +1,4 @@
-FROM php:7.4-cli
+FROM php:7.4-fpm
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -9,8 +9,6 @@ RUN apt-get update && apt-get install -y \
     libxml2 \
     wget \
     nginx \
-    supervisor \
-    php7.4-fpm \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
@@ -20,16 +18,12 @@ RUN docker-php-ext-install gd && docker-php-ext-enable gd
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Set working directory
 WORKDIR /var/www
 
-# Copy application files
 COPY . /var/www
 
-# Install PHP dependencies (no dev dependencies in production)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Set correct permissions
 RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www/storage \
     && chmod -R 755 /var/www/bootstrap/cache
@@ -37,11 +31,16 @@ RUN chown -R www-data:www-data /var/www \
 # Copy Nginx config
 COPY docker/nginx/railway.conf /etc/nginx/sites-available/default
 
-# Copy supervisor config
-COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Write startup script directly into image
+RUN echo '#!/bin/bash' > /usr/local/bin/start.sh && \
+    echo 'php artisan migrate --force' >> /usr/local/bin/start.sh && \
+    echo 'php artisan db:seed --force 2>/dev/null || true' >> /usr/local/bin/start.sh && \
+    echo 'php artisan config:cache' >> /usr/local/bin/start.sh && \
+    echo 'chown -R www-data:www-data /var/www/storage' >> /usr/local/bin/start.sh && \
+    echo 'nginx' >> /usr/local/bin/start.sh && \
+    echo 'php-fpm' >> /usr/local/bin/start.sh && \
+    chmod +x /usr/local/bin/start.sh
 
-# Copy startup script
 EXPOSE 80
 
-ENTRYPOINT []
-CMD ["bash", "-c", "php artisan migrate --force; php artisan db:seed --force 2>/dev/null; php artisan config:cache; chown -R www-data:www-data /var/www/storage; /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
+CMD ["/usr/local/bin/start.sh"]
