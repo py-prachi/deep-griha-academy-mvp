@@ -47,4 +47,10 @@ chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 echo "Starting nginx on port ${PORT:-8080}..."
-exec nginx -g 'daemon off;'
+nginx &
+sleep 5
+echo "=== NGINX ERROR LOG ==="
+cat /var/log/nginx/error.log
+echo "=== PHP-FPM LOG ==="
+cat /var/log/php7.4-fpm.log
+tail -f /var/log/nginx/error.log /var/log/php7.4-fpm.log
