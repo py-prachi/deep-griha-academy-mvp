@@ -56,7 +56,9 @@ RUN echo '#!/bin/bash' > /start.sh && \
     echo 'echo "=== PORT is: $PORT ==="' >> /start.sh && \
     echo 'sed -i "s/listen 80/listen ${PORT:-80}/g" /etc/nginx/sites-available/default' >> /start.sh && \
     echo 'echo "=== Starting Nginx ==="' >> /start.sh && \
-    echo 'nginx -g "daemon off;" 2>&1 || echo "NGINX CRASHED: $?"' >> /start.sh && \
+    echo 'nginx -g "daemon off;" 2>&1' >> /start.sh && \
+    echo 'echo "=== Nginx exited with: $? ==="' >> /start.sh && \
+    echo 'cat /var/log/nginx/error.log' >> /start.sh && \
     chmod +x /start.sh
 
 EXPOSE 8080
