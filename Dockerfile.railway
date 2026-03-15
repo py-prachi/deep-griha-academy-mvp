@@ -55,6 +55,7 @@ RUN echo '#!/bin/bash' > /start.sh && \
     echo 'chown -R www-data:www-data /var/www/storage' >> /start.sh && \
     echo 'echo "=== PORT is: $PORT ==="' >> /start.sh && \
     echo 'sed -i "s/listen 80/listen ${PORT:-80}/g" /etc/nginx/sites-available/default' >> /start.sh && \
+    echo 'cat /etc/nginx/nginx.conf' >> /start.sh && \
     echo 'echo "=== Starting Nginx ==="' >> /start.sh && \
     echo 'nginx -g "daemon off;" 2>&1' >> /start.sh && \
     echo 'echo "=== Nginx exited with: $? ==="' >> /start.sh && \
