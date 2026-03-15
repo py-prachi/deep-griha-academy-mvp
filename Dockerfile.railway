@@ -1,0 +1,48 @@
+FROM php:7.4-fpm
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libzip-dev \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libxml2 \
+    wget \
+    nginx \
+    supervisor \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql zip exif pcntl
+RUN docker-php-ext-install gd && docker-php-ext-enable gd
+
+# Install composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Set working directory
+WORKDIR /var/www
+
+# Copy application files
+COPY . /var/www
+
+# Install PHP dependencies (no dev dependencies in production)
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Set correct permissions
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 755 /var/www/storage \
+    && chmod -R 755 /var/www/bootstrap/cache
+
+# Copy Nginx config
+COPY docker/nginx/railway.conf /etc/nginx/sites-available/default
+
+# Copy supervisor config
+COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copy startup script
+COPY docker/start.sh /start.sh
+RUN chmod +x /start.sh
+
+EXPOSE 80
+
+CMD ["/start.sh"]
