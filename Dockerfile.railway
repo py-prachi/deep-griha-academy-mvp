@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y \
     php7.4-bcmath \
     php7.4-mbstring \
     php7.4-curl \
-    php7.4-pcntl \
     nginx \
     curl \
     unzip \
