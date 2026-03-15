@@ -115,6 +115,11 @@
 - Use ternary instead: `$x ? $x->method() : '—'`  not  `$x?->method()`
 - No named arguments, no match expressions, no union types
 - Always check PHP version before writing new code: `docker exec app php -v`
+- Laravel 8.x + Blade + Bootstrap 5, MySQL (dga_school), Docker (app/db/nginx)
+- PHP 7.x — NO ?->, no named args, no match expressions
+- Repository pattern, Spatie permissions, DomPDF v2.2.0, PHPUnit 9.5
+- No Student model — students ARE confirmed admissions
+- No AdmissionFactory — tests use Admission::create() directly
 
 ## Project Structure — Critical Facts
 - NO Student model / students table — students ARE admissions
@@ -158,13 +163,13 @@ https://github.com/py-prachi/deep-griha-academy-mvp
 - TC-15 Reports ✅ (all 6 reports load + PDFs work)
 
 ### Saru Testing (develop branch)
-- TC-07 to TC-14 fees testing — in progress
+- TC-07 to TC-14 fees testing —  ✅
 
 ### Next
-- TC-16 to TC-22 LC tests — branch: feature/manual-testing-tc16-22
-- TC-23 Left Menu Navigation
-- TC-24 Session and Logout
-- TC-25 Angela Challan Review
+- TC-16 to TC-22 LC tests —  ✅
+- TC-23 Left Menu Navigationn-  ✅
+- TC-24 Session and Logout -  ✅
+- TC-25 Angela Challan Review - Needs few confirmations
 
 ## UI / Layout Fixes Done (all merged to develop ✅)
 - @stack('scripts') missing from layouts/app.blade.php — fixed
@@ -221,3 +226,24 @@ https://github.com/py-prachi/deep-griha-academy-mvp
 - RTE report shows '—' for all students currently
 - Needs: migration + field on admission form (shown only when fee_category = rte)
 - Pending Angela confirmation on item 12 above
+
+
+## Deployment Strategy
+
+### Platform Decision
+- Railway.app — selected for initial staging/review deployment
+- Free tier sufficient for Angela/Rahul review phase
+- Production: migrate to DigitalOcean $6/month droplet (stable, no sleep)
+- NGO consideration: DigitalOcean gives $200 free credit to new accounts
+
+### Architecture (Cloud)
+- App container (Laravel + PHP 7.x + Nginx) → Railway service
+- MySQL database → Railway managed MySQL plugin
+- Storage → local for now (photos pending Angela decision)
+- Domain → optional, cheap (~$10/year via Namecheap)
+
+### Deployment Flow
+- GitHub (develop branch) → Railway auto-deploy on push
+- Migrations run on deploy
+- Environment variables set in Railway dashboard (not in code)
+- Public URL shared with Angela/Rahul for review: e.g. dga.railway.app
