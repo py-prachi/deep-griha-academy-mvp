@@ -39,17 +39,21 @@ RUN rm -f /etc/nginx/sites-enabled/default \
 
 # Write startup script
 RUN echo '#!/bin/bash' > /start.sh && \
-    echo 'echo "Configuring PHP-FPM to use TCP port 9000..."' >> /start.sh && \
+    echo 'echo "=== Checking PHP-FPM config ==="' >> /start.sh && \
+    echo 'cat /etc/php/7.4/fpm/pool.d/www.conf | grep listen' >> /start.sh && \
     echo 'sed -i "s|listen = /run/php/php7.4-fpm.sock|listen = 127.0.0.1:9000|g" /etc/php/7.4/fpm/pool.d/www.conf' >> /start.sh && \
-    echo 'echo "Starting PHP-FPM..."' >> /start.sh && \
+    echo 'echo "=== After sed ==="' >> /start.sh && \
+    echo 'cat /etc/php/7.4/fpm/pool.d/www.conf | grep listen' >> /start.sh && \
     echo '/usr/sbin/php-fpm7.4 -D' >> /start.sh && \
     echo 'sleep 2' >> /start.sh && \
-    echo 'echo "Running migrations..."' >> /start.sh && \
+    echo 'echo "=== Checking port 9000 ==="' >> /start.sh && \
+    echo 'ss -tlnp | grep 9000 || echo "PORT 9000 NOT LISTENING"' >> /start.sh && \
+    echo 'echo "=== Checking nginx config ==="' >> /start.sh && \
+    echo 'nginx -t' >> /start.sh && \
     echo 'cd /var/www && php artisan migrate --force' >> /start.sh && \
-    echo 'php artisan db:seed --force 2>/dev/null || true' >> /start.sh && \
     echo 'php artisan config:cache' >> /start.sh && \
     echo 'chown -R www-data:www-data /var/www/storage' >> /start.sh && \
-    echo 'echo "Starting Nginx..."' >> /start.sh && \
+    echo 'echo "=== Starting Nginx ==="' >> /start.sh && \
     echo 'nginx -g "daemon off;"' >> /start.sh && \
     chmod +x /start.sh
 
