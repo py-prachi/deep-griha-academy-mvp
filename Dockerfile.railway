@@ -40,9 +40,6 @@ COPY docker/nginx/railway.conf /etc/nginx/sites-available/default
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Copy startup script
-COPY docker/start.sh /start.sh
-RUN chmod +x /start.sh
-
 EXPOSE 80
 
-CMD ["/start.sh"]
+CMD bash -c "php artisan migrate --force && php artisan db:seed --force 2>/dev/null || true && php artisan config:cache && chown -R www-data:www-data /var/www/storage && supervisord -c /etc/supervisor/conf.d/supervisord.conf"
