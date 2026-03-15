@@ -3,26 +3,21 @@ set -e
 
 echo "=== Starting container, PORT=${PORT} ==="
 
-# Fix PHP-FPM to use TCP
 sed -i 's|listen = /run/php/php7.4-fpm.sock|listen = 127.0.0.1:9000|g' /etc/php/7.4/fpm/pool.d/www.conf
 
-# Start PHP-FPM
 /usr/sbin/php-fpm7.4 -D
 sleep 1
 
 echo "PHP-FPM check:"
 ss -tlnp | grep 9000 || echo "ERROR: PHP-FPM not listening on 9000"
 
-# Set port in nginx config BEFORE starting nginx
 sed -i "s/listen 80/listen ${PORT:-8080}/g" /etc/nginx/sites-available/default
 
 echo "Nginx config port check:"
 grep "listen" /etc/nginx/sites-available/default
 
-# Test nginx config
 nginx -t
 
-# Wait for DB
 echo "Waiting for database..."
 until php -r "
     \$conn = @mysqli_connect(
@@ -43,6 +38,8 @@ php artisan config:clear
 php artisan config:cache
 php artisan migrate --force
 
+mkdir -p /var/www/storage/logs
+touch /var/www/storage/logs/laravel.log
 chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
