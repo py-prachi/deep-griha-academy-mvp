@@ -40,6 +40,7 @@ use App\Http\Controllers\LeavingCertificateController;
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('/health', function () { return response('OK', 200); });
 
 Auth::routes();
 
