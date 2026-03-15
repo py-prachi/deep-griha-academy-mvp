@@ -39,9 +39,8 @@ RUN rm -f /etc/nginx/sites-enabled/default \
 
 # Write startup script
 RUN echo '#!/bin/bash' > /start.sh && \
-    echo 'set -e' >> /start.sh && \
     echo 'echo "Starting PHP-FPM..."' >> /start.sh && \
-    echo 'service php7.4-fpm start' >> /start.sh && \
+    echo '/usr/sbin/php-fpm7.4 -D' >> /start.sh && \
     echo 'echo "Running migrations..."' >> /start.sh && \
     echo 'cd /var/www && php artisan migrate --force' >> /start.sh && \
     echo 'php artisan db:seed --force 2>/dev/null || true' >> /start.sh && \
