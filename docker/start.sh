@@ -53,4 +53,4 @@ echo "=== NGINX ERROR LOG ==="
 cat /var/log/nginx/error.log
 echo "=== PHP-FPM LOG ==="
 cat /var/log/php7.4-fpm.log
-tail -f /var/log/nginx/error.log /var/log/php7.4-fpm.log
+tail -f /var/log/nginx/error.log /var/log/php7.4-fpm.log /var/www/storage/logs/laravel.log
