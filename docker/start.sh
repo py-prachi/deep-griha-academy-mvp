@@ -1,68 +1,50 @@
 #!/bin/bash
+set -e
 
-echo "=== DGA School - Starting up ==="
+echo "=== Starting container, PORT=${PORT} ==="
 
-# Wait for MySQL to be ready (Railway DB can take a few seconds)
+# Fix PHP-FPM to use TCP
+sed -i 's|listen = /run/php/php7.4-fpm.sock|listen = 127.0.0.1:9000|g' /etc/php/7.4/fpm/pool.d/www.conf
+
+# Start PHP-FPM
+/usr/sbin/php-fpm7.4 -D
+sleep 1
+
+echo "PHP-FPM check:"
+ss -tlnp | grep 9000 || echo "ERROR: PHP-FPM not listening on 9000"
+
+# Set port in nginx config BEFORE starting nginx
+sed -i "s/listen 80/listen ${PORT:-8080}/g" /etc/nginx/sites-available/default
+
+echo "Nginx config port check:"
+grep "listen" /etc/nginx/sites-available/default
+
+# Test nginx config
+nginx -t
+
+# Wait for DB
 echo "Waiting for database..."
 until php -r "
     \$conn = @mysqli_connect(
-        getenv('DB_HOST'),
-        getenv('DB_USERNAME'),
-        getenv('DB_PASSWORD'),
-        getenv('DB_DATABASE'),
+        getenv('DB_HOST'), getenv('DB_USERNAME'),
+        getenv('DB_PASSWORD'), getenv('DB_DATABASE'),
         getenv('DB_PORT') ?: 3306
     );
     if (\$conn) { echo 'ok'; exit(0); }
     exit(1);
 " 2>/dev/null | grep -q ok; do
-    echo "Database not ready yet, retrying in 3s..."
+    echo "DB not ready, retrying in 3s..."
     sleep 3
 done
-echo "Database is ready ✓"
+echo "DB ready"
 
-# Generate app key if not set
-if [ -z "$APP_KEY" ]; then
-    echo "Generating APP_KEY..."
-    php artisan key:generate --force
-fi
-
-# Cache config for performance
-echo "Caching config..."
+cd /var/www
+php artisan config:clear
 php artisan config:cache
-
-# Run migrations
-echo "Running migrations..."
 php artisan migrate --force
 
-# Run seeders (only if DB is empty - first deploy)
-ROLE_COUNT=$(php -r "
-    \$conn = mysqli_connect(
-        getenv('DB_HOST'),
-        getenv('DB_USERNAME'),
-        getenv('DB_PASSWORD'),
-        getenv('DB_DATABASE'),
-        getenv('DB_PORT') ?: 3306
-    );
-    \$result = mysqli_query(\$conn, 'SELECT COUNT(*) as cnt FROM roles');
-    \$row = mysqli_fetch_assoc(\$result);
-    echo \$row['cnt'];
-" 2>/dev/null)
-
-if [ "$ROLE_COUNT" = "0" ] || [ -z "$ROLE_COUNT" ]; then
-    echo "Fresh database detected - running seeders..."
-    php artisan db:seed --force
-    echo "Seeding complete ✓"
-else
-    echo "Database already seeded, skipping ✓"
-fi
-
-# Set storage permissions
-echo "Setting permissions..."
 chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
-# Create supervisor log directory
-mkdir -p /var/log/supervisor
-
-echo "=== Starting PHP-FPM + Nginx via supervisor ==="
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+echo "Starting nginx on port ${PORT:-8080}..."
+exec nginx -g 'daemon off;'
