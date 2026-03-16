@@ -8,13 +8,7 @@ sed -i 's|listen = /run/php/php7.4-fpm.sock|listen = 127.0.0.1:9000|g' /etc/php/
 /usr/sbin/php-fpm7.4 -D
 sleep 1
 
-echo "PHP-FPM check:"
-ss -tlnp | grep 9000 || echo "ERROR: PHP-FPM not listening on 9000"
-
 sed -i "s/listen 80/listen ${PORT:-8080}/g" /etc/nginx/sites-available/default
-
-echo "Nginx config port check:"
-grep "listen" /etc/nginx/sites-available/default
 
 nginx -t
 
@@ -38,22 +32,29 @@ php artisan config:clear
 php artisan config:cache
 php artisan migrate --force
 
+ROLE_COUNT=$(php -r "
+    \$conn = mysqli_connect(
+        getenv('DB_HOST'), getenv('DB_USERNAME'),
+        getenv('DB_PASSWORD'), getenv('DB_DATABASE'),
+        getenv('DB_PORT') ?: 3306
+    );
+    \$result = mysqli_query(\$conn, 'SELECT COUNT(*) as cnt FROM roles');
+    \$row = mysqli_fetch_assoc(\$result);
+    echo \$row['cnt'];
+" 2>/dev/null)
+
+if [ "$ROLE_COUNT" = "0" ] || [ -z "$ROLE_COUNT" ]; then
+    echo "Empty database - running seeders..."
+    php artisan db:seed --force
+    echo "Seeding complete"
+else
+    echo "Database already seeded, skipping"
+fi
+
 mkdir -p /var/www/storage/logs
 touch /var/www/storage/logs/laravel.log
 chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 echo "Starting nginx on port ${PORT:-8080}..."
-nginx &
-sleep 2
-
-echo "=== SELF TEST ==="
-curl -v http://127.0.0.1:${PORT:-8080}/ 2>&1 || true
-
-sleep 3
-echo "=== NGINX ERROR LOG ==="
-cat /var/log/nginx/error.log
-echo "=== LARAVEL LOG ==="
-cat /var/www/storage/logs/laravel.log
-
-tail -f /var/log/nginx/error.log /var/log/nginx/access.log /var/log/php7.4-fpm.log /var/www/storage/logs/laravel.log
+exec nginx -g 'daemon off;'
