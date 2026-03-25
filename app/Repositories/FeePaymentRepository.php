@@ -17,23 +17,68 @@ class FeePaymentRepository implements FeePaymentInterface
             ->get();
     }
 
+    // Fee payments only — used for balance calculation
+    public function getFeePaymentsByStudent($student_user_id)
+    {
+        return FeePayment::with('lineItems', 'recordedBy')
+            ->where('student_user_id', $student_user_id)
+            ->where('payment_category', FeePayment::CATEGORY_FEE)
+            ->orderBy('payment_date', 'desc')
+            ->get();
+    }
+
     public function store($data)
     {
         DB::beginTransaction();
         try {
+            // Determine payment_category from line items if provided
+            // If any misc line item has amount > 0, it's a misc payment
+            // If any fee line item has amount > 0, it's a fee payment
+            // If no line items, default to fee
+            $payment_category = FeePayment::CATEGORY_FEE; // default
+            if (!empty($data['line_items'])) {
+                $miscKeys = array_keys(FeeLineItem::miscLabels());
+                $feeKeys  = array_keys(FeeLineItem::feeLabels());
+
+                $hasMisc = false;
+                $hasFee  = false;
+                foreach ($data['line_items'] as $description => $amount) {
+                    if ($amount > 0) {
+                        if (in_array($description, $miscKeys)) $hasMisc = true;
+                        if (in_array($description, $feeKeys))  $hasFee  = true;
+                    }
+                }
+
+                // This should already be blocked at controller level,
+                // but double-check here as well
+                if ($hasMisc && $hasFee) {
+                    throw new \Exception('Cannot mix fee and misc items in one payment. Please record separately.');
+                }
+
+                if ($hasMisc) {
+                    $payment_category = FeePayment::CATEGORY_MISC;
+                }
+            }
+
+            // Allow caller to override category (e.g. no line items selected but intent is misc)
+            if (isset($data['payment_category'])) {
+                $payment_category = $data['payment_category'];
+            }
+
             $payment = FeePayment::create([
-                'student_user_id'     => $data['student_user_id'],
-                'challan_no'          => FeePayment::nextChallanNo(),
-                'payment_date'        => $data['payment_date'],
-                'amount_paid'         => $data['amount_paid'],
-                'payment_mode'        => $data['payment_mode'],
-                'cheque_no'           => $data['cheque_no']        ?? null,
-                'cheque_date'         => $data['cheque_date']       ?? null,
-                'bank_name'           => $data['bank_name']         ?? null,
-                'transaction_ref'     => $data['transaction_ref']   ?? null,
-                'is_internal_transfer'=> $data['is_internal_transfer'] ?? false,
-                'recorded_by'         => $data['recorded_by'],
-                'notes'               => $data['notes']             ?? null,
+                'student_user_id'      => $data['student_user_id'],
+                'challan_no'           => FeePayment::nextChallanNo(),
+                'payment_date'         => $data['payment_date'],
+                'amount_paid'          => $data['amount_paid'],
+                'payment_mode'         => $data['payment_mode'],
+                'payment_category'     => $payment_category,
+                'cheque_no'            => $data['cheque_no']             ?? null,
+                'cheque_date'          => $data['cheque_date']           ?? null,
+                'bank_name'            => $data['bank_name']             ?? null,
+                'transaction_ref'      => $data['transaction_ref']       ?? null,
+                'is_internal_transfer' => $data['is_internal_transfer']  ?? false,
+                'recorded_by'          => $data['recorded_by'],
+                'notes'                => $data['notes']                 ?? null,
             ]);
 
             // Store line items
@@ -67,6 +112,7 @@ class FeePaymentRepository implements FeePaymentInterface
     {
         return FeePayment::with('student', 'lineItems')
             ->whereDate('payment_date', $date)
+            ->where('payment_category', FeePayment::CATEGORY_FEE)
             ->orderBy('challan_no')
             ->get();
     }
@@ -75,14 +121,23 @@ class FeePaymentRepository implements FeePaymentInterface
     {
         return FeePayment::with('student.admission.schoolClass', 'student.admission.section', 'lineItems')
             ->whereBetween('payment_date', [$from, $to])
+            ->where('payment_category', FeePayment::CATEGORY_FEE)
+            ->orderBy('payment_date')
+            ->get();
+    }
+
+    // Misc sales by date range — for the new misc sales report
+    public function getMiscByDateRange($from, $to)
+    {
+        return FeePayment::with('student.admission', 'lineItems')
+            ->whereBetween('payment_date', [$from, $to])
+            ->where('payment_category', FeePayment::CATEGORY_MISC)
             ->orderBy('payment_date')
             ->get();
     }
 
     public function getDefaulters($session_id)
     {
-        // Students who have a promotion in this session
-        // and their total paid < total due from fee structure
         return DB::select("
             SELECT
                 u.id AS student_id,
@@ -105,6 +160,7 @@ class FeePaymentRepository implements FeePaymentInterface
                 AND fs.session_id = ?
                 AND fs.fee_category = u.fee_category
             LEFT JOIN fee_payments fp ON fp.student_user_id = u.id
+                AND fp.payment_category = 'fee'
             WHERE u.role = 'student'
             GROUP BY u.id, u.first_name, u.last_name, u.fee_category,
                      u.admission_id, u.dga_admission_no, u.general_id, sc.class_name, s.section_name,
@@ -131,6 +187,7 @@ class FeePaymentRepository implements FeePaymentInterface
             LEFT JOIN (
                 SELECT student_user_id, SUM(amount_paid) as amount_paid
                 FROM fee_payments
+                WHERE payment_category = 'fee'
                 GROUP BY student_user_id
             ) fp_totals ON fp_totals.student_user_id = u.id
             WHERE u.role = 'student'

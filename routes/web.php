@@ -223,6 +223,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/admissions',                    [App\Http\Controllers\FeeReportController::class, 'admissions'])->name('reports.admissions');
     Route::get('/reports/class-strength',                [App\Http\Controllers\FeeReportController::class, 'classStrength'])->name('reports.classStrength');
     Route::get('/reports/rte',                           [App\Http\Controllers\FeeReportController::class, 'rte'])->name('reports.rte');
+    Route::get('/reports/misc-sales',                    [App\Http\Controllers\FeeReportController::class, 'miscSales'])->name('reports.miscSales');
 
     // ── LEAVING CERTIFICATES ──────────────────────────────────────────────
     Route::prefix('lc')->name('lc.')->group(function () {

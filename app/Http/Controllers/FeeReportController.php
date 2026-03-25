@@ -148,4 +148,35 @@ class FeeReportController extends Controller
         }
         return view('reports.rte', compact('students'));
     }
+
+        public function miscSales(Request $request)
+    {
+        $from = $request->get('from', today()->startOfMonth()->toDateString());
+        $to   = $request->get('to',   today()->toDateString());
+
+        $payments = $this->feePaymentRepository->getMiscByDateRange($from, $to);
+
+        $summary = [];
+        $labels  = \App\Models\FeeLineItem::miscLabels();
+        foreach ($payments as $payment) {
+            foreach ($payment->lineItems as $item) {
+                $key = $item->description;
+                if (!isset($summary[$key])) {
+                    $summary[$key] = ['label' => $labels[$key] ?? $key, 'total' => 0, 'count' => 0];
+                }
+                $summary[$key]['total'] += $item->amount;
+                $summary[$key]['count'] += 1;
+            }
+        }
+
+        $grandTotal = array_sum(array_column($summary, 'total'));
+
+        if ($request->get('pdf')) {
+            $pdf = Pdf::loadView('reports.misc-sales-pdf', compact('payments', 'summary', 'grandTotal', 'from', 'to'))
+                ->setPaper('a4', 'portrait');
+            return $pdf->download('misc-sales-' . $from . '-to-' . $to . '.pdf');
+        }
+
+        return view('reports.misc-sales', compact('payments', 'summary', 'grandTotal', 'from', 'to'));
+    }
 }

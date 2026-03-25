@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -19,21 +17,43 @@ class FeeLineItem extends Model
         'amount' => 'decimal:2',
     ];
 
-    // Human readable labels for challan display
-    public static function descriptionLabels()
+    // ── LABEL GROUPS ──────────────────────────────────────────────────────
+
+    // Fee line items — these payments reduce the student's fee balance
+    public static function feeLabels()
     {
         return [
             'admission_fee'        => 'Admission Fee',
             'tuition_fee'          => 'Tuition Fees',
-            'other_fee'            => 'Other Fees',
+            'transport_charges'    => 'Transport Charges',
             'transfer_certificate' => 'Transfer Certificate',
             'bonafide_certificate' => 'Bonafide Certificate',
-            'transport_charges'    => 'Transport Charges',
-            'stationery'           => 'Stationery',
-            'uniform'              => 'Uniform',
-            'sports'               => 'Sports',
-            'notebooks'            => 'Notebooks',
+            'other_fee'            => 'Other (Fee)',
         ];
+    }
+
+    // Misc line items — challan issued but fee balance is NOT affected
+    public static function miscLabels()
+    {
+        return [
+            'uniform'    => 'Uniform',
+            'notebooks'  => 'Notebooks',
+            'stationery' => 'Stationery',
+            'sports'     => 'Sports',
+            'other_misc' => 'Other (Misc)',
+        ];
+    }
+
+    // All labels combined — used for challan display, reports etc.
+    public static function descriptionLabels()
+    {
+        return array_merge(self::feeLabels(), self::miscLabels());
+    }
+
+    // Check if a description key belongs to misc category
+    public static function isMiscDescription($description)
+    {
+        return array_key_exists($description, self::miscLabels());
     }
 
     // ── RELATIONSHIPS ─────────────────────────────────────────────────────
