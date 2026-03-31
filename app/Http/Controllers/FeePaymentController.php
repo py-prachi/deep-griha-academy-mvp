@@ -7,6 +7,7 @@ use App\Interfaces\FeePaymentInterface;
 use App\Interfaces\FeeStructureInterface;
 use App\Interfaces\SchoolSessionInterface;
 use App\Models\User;
+use App\Models\FeePayment;
 use App\Models\FeeStructure;
 use App\Models\FeeLineItem;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -30,50 +31,72 @@ class FeePaymentController extends Controller
             }
             return $next($request);
         });
-        $this->feePaymentRepository  = $feePaymentRepository;
+        $this->feePaymentRepository   = $feePaymentRepository;
         $this->feeStructureRepository = $feeStructureRepository;
         $this->schoolSessionRepository = $schoolSessionRepository;
     }
 
-    // Student fee ledger — shows total due, paid, balance, payment history
+    // ── HELPERS ───────────────────────────────────────────────────────────
+
+    // Calculates balance using fee payments only (excludes misc)
+    private function calculateBalance($student, $feeStructure, $student_id)
+    {
+        $feePayments = $this->feePaymentRepository->getFeePaymentsByStudent($student_id);
+        $totalPaid   = $feePayments->sum('amount_paid');
+        $totalDue    = $feeStructure ? $feeStructure->total_fee : 0;
+        $balance     = $totalDue - $totalPaid;
+        return compact('totalPaid', 'totalDue', 'balance');
+    }
+
+    // ── LEDGER ────────────────────────────────────────────────────────────
+
     public function ledger($student_id)
     {
         $student = User::with('admission')->findOrFail($student_id);
         $current_school_session_id = $this->getSchoolCurrentSession();
         $session = $this->schoolSessionRepository->getLatestSession();
 
-        // Get fee structure for this student's class and category
         $promotion = \App\Models\Promotion::where('student_id', $student_id)
             ->where('session_id', $current_school_session_id)
             ->with('section.schoolClass')
             ->first();
 
         $feeStructure = null;
+        $admission = $student->admission;
         if ($promotion) {
             $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
                 $promotion->class_id,
                 $session->session_name,
                 $student->fee_category ?? 'general'
             );
+        } elseif ($admission) {
+            // Fallback for students without a promotion record
+            $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
+                $admission->class_id,
+                $session->session_name,
+                $admission->fee_category ?? 'general'
+            );
         }
 
+        // All payments for history display (fee + misc)
         $payments = $this->feePaymentRepository->getByStudent($student_id);
-        $totalPaid = $payments->sum('amount_paid');
-        $totalDue  = $feeStructure ? $feeStructure->total_fee : 0;
-        $balance   = $totalDue - $totalPaid;
+
+        // Balance uses fee payments only
+        $calc = $this->calculateBalance($student, $feeStructure, $student_id);
 
         return view('fees.ledger', [
             'student'      => $student,
             'promotion'    => $promotion,
             'feeStructure' => $feeStructure,
             'payments'     => $payments,
-            'totalDue'     => $totalDue,
-            'totalPaid'    => $totalPaid,
-            'balance'      => $balance,
+            'totalDue'     => $calc['totalDue'],
+            'totalPaid'    => $calc['totalPaid'],
+            'balance'      => $calc['balance'],
         ]);
     }
 
-    // Record payment form
+    // ── CREATE PAYMENT FORM ───────────────────────────────────────────────
+
     public function create($student_id)
     {
         $student = User::with('admission')->findOrFail($student_id);
@@ -94,34 +117,54 @@ class FeePaymentController extends Controller
             );
         }
 
-        $payments  = $this->feePaymentRepository->getByStudent($student_id);
-        $totalPaid = $payments->sum('amount_paid');
-        $totalDue  = $feeStructure ? $feeStructure->total_fee : 0;
-        $balance   = $totalDue - $totalPaid;
+        $calc = $this->calculateBalance($student, $feeStructure, $student_id);
 
         return view('fees.create', [
             'student'      => $student,
             'promotion'    => $promotion,
             'feeStructure' => $feeStructure,
-            'totalDue'     => $totalDue,
-            'totalPaid'    => $totalPaid,
-            'balance'      => $balance,
-            'lineItemLabels' => FeeLineItem::descriptionLabels(),
+            'totalDue'     => $calc['totalDue'],
+            'totalPaid'    => $calc['totalPaid'],
+            'balance'      => $calc['balance'],
+            'feeLabels'    => FeeLineItem::feeLabels(),
+            'miscLabels'   => FeeLineItem::miscLabels(),
         ]);
     }
 
-    // Store payment
+    // ── STORE PAYMENT ─────────────────────────────────────────────────────
+
     public function store(Request $request, $student_id)
     {
         $request->validate([
-            'payment_date' => 'required|date',
-            'amount_paid'  => 'required|numeric|min:1',
-            'payment_mode' => 'required|in:cash,cheque,qr',
-            'cheque_no'    => 'nullable|required_if:payment_mode,cheque',
-            'cheque_date'  => 'nullable|required_if:payment_mode,cheque|date',
-            'bank_name'    => 'nullable|required_if:payment_mode,cheque',
+            'payment_date'    => 'required|date',
+            'amount_paid'     => 'required|numeric|min:1',
+            'payment_mode'    => 'required|in:cash,cheque,qr',
+            'payment_category'=> 'required|in:fee,misc',
+            'cheque_no'       => 'nullable|required_if:payment_mode,cheque',
+            'cheque_date'     => 'nullable|required_if:payment_mode,cheque|date',
+            'bank_name'       => 'nullable|required_if:payment_mode,cheque',
             'transaction_ref' => 'nullable|required_if:payment_mode,qr',
         ]);
+
+        // Block mixed fee + misc line items
+        $lineItems = $request->line_items ?? [];
+        $miscKeys  = array_keys(FeeLineItem::miscLabels());
+        $feeKeys   = array_keys(FeeLineItem::feeLabels());
+
+        $hasMisc = false;
+        $hasFee  = false;
+        foreach ($lineItems as $description => $amount) {
+            if ($amount > 0) {
+                if (in_array($description, $miscKeys)) $hasMisc = true;
+                if (in_array($description, $feeKeys))  $hasFee  = true;
+            }
+        }
+
+        if ($hasMisc && $hasFee) {
+            return back()
+                ->withError('Fee and misc items cannot be mixed in one payment. Please record them as separate transactions.')
+                ->withInput();
+        }
 
         try {
             $payment = $this->feePaymentRepository->store([
@@ -129,6 +172,7 @@ class FeePaymentController extends Controller
                 'payment_date'         => $request->payment_date,
                 'amount_paid'          => $request->amount_paid,
                 'payment_mode'         => $request->payment_mode,
+                'payment_category'     => $request->payment_category,
                 'cheque_no'            => $request->cheque_no,
                 'cheque_date'          => $request->cheque_date,
                 'bank_name'            => $request->bank_name,
@@ -136,7 +180,7 @@ class FeePaymentController extends Controller
                 'is_internal_transfer' => $request->is_internal_transfer ?? false,
                 'recorded_by'          => auth()->id(),
                 'notes'                => $request->notes,
-                'line_items'           => $request->line_items ?? [],
+                'line_items'           => $lineItems,
             ]);
 
             return redirect()->route('fees.challan', $payment->id)
@@ -146,7 +190,8 @@ class FeePaymentController extends Controller
         }
     }
 
-    // Challan view
+    // ── CHALLAN ───────────────────────────────────────────────────────────
+
     public function challan($payment_id)
     {
         $payment = $this->feePaymentRepository->findById($payment_id);
@@ -165,7 +210,6 @@ class FeePaymentController extends Controller
         ]);
     }
 
-    // Challan PDF download
     public function challanPdf($payment_id)
     {
         $payment = $this->feePaymentRepository->findById($payment_id);

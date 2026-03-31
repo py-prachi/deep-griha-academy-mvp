@@ -56,14 +56,16 @@ class Admission extends Model
         'previous_school',
         'inquiry_date',
         'confirmed_date',
+        'exit_date',
     ];
 
     protected $casts = [
-        'date_of_birth'     => 'date',
-        'inquiry_date'      => 'date',
-        'confirmed_date'    => 'date',
-        'transport_required'=> 'boolean',
-        'discounted_amount' => 'decimal:2',
+        'date_of_birth'      => 'date',
+        'inquiry_date'       => 'date',
+        'confirmed_date'     => 'date',
+        'exit_date'          => 'date',
+        'transport_required' => 'boolean',
+        'discounted_amount'  => 'decimal:2',
     ];
 
     // ── STATUS CONSTANTS ──────────────────────────────────────────────────
@@ -71,6 +73,7 @@ class Admission extends Model
     const STATUS_PENDING   = 'pending';
     const STATUS_CONFIRMED = 'confirmed';
     const STATUS_CANCELLED = 'cancelled';
+    const STATUS_EXITED    = 'exited';
 
     // ── RELATIONSHIPS ─────────────────────────────────────────────────────
 
@@ -99,9 +102,13 @@ class Admission extends Model
         return $this->hasMany(AdmissionDocument::class, 'admission_id');
     }
 
+    public function exitForm()
+    {
+        return $this->hasOne(StudentExit::class, 'admission_id');
+    }
+
     // ── HELPER METHODS ────────────────────────────────────────────────────
 
-    // Check if all required documents are received
     public function hasIncompleteDocuments()
     {
         return $this->documents()
@@ -110,8 +117,6 @@ class Admission extends Model
                     ->exists();
     }
 
-    // Generate next DGA admission number for pre-primary
-    // Format: DGA/26-27/001
     public static function generateDgaAdmissionNo($academicYear)
     {
         $lastAdmission = self::withTrashed()
@@ -122,12 +127,10 @@ class Admission extends Model
 
         $nextNumber = 1;
         if ($lastAdmission) {
-            // Extract number from format DGA/26-27/001
             $parts = explode('/', $lastAdmission->dga_admission_no);
             $nextNumber = ((int) end($parts)) + 1;
         }
 
-        // Format year: 2026-2027 → 26-27
         $shortYear = substr($academicYear, 2, 2) . '-' . substr($academicYear, 7, 2);
 
         return 'DGA/' . $shortYear . '/' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
@@ -153,6 +156,11 @@ class Admission extends Model
     public function scopeCancelled($query)
     {
         return $query->withTrashed()->where('status', self::STATUS_CANCELLED);
+    }
+
+    public function scopeExited($query)
+    {
+        return $query->where('status', self::STATUS_EXITED);
     }
 
     public function scopeActive($query)

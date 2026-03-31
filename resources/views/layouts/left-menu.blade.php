@@ -106,10 +106,11 @@
                             <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Admissions</span>
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
-                        <ul class="nav collapse {{ request()->is('admissions*')? 'show' : 'hide' }} bg-white" id="admission-submenu">
+                        <ul class="nav collapse {{ request()->is('admissions*') || request()->is('import*') ? 'show' : 'hide' }} bg-white" id="admission-submenu">
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('admissions.index') }}"><i class="bi bi-list-ul me-2"></i> All Admissions</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('admissions.create') }}"><i class="bi bi-person-plus me-2"></i> New Inquiry</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('admissions.cancelled') }}"><i class="bi bi-archive me-2"></i> Cancelled</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('import*') ? 'active' : '' }}" href="{{ route('import.students') }}"><i class="bi bi-file-earmark-arrow-up me-2"></i> Import Students</a></li>
                         </ul>
                     </li>
 
@@ -122,7 +123,7 @@
                         </a>
                         <ul class="nav collapse {{ request()->is('lc*')? 'show' : 'hide' }} bg-white" id="exit-submenu">
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('lc.index') }}"><i class="bi bi-file-earmark-minus me-2"></i> Leaving Certificates</a></li>
-                            {{-- Phase 5: Student Exit Form will be added here --}}
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->routeIs('exits.*') ? 'active' : '' }}" href="{{ route('exits.index') }}"><i class="bi bi-box-arrow-right me-2"></i> Student Exits</a></li>
                         </ul>
                     </li>
 
@@ -153,6 +154,7 @@
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.admissions') }}"><i class="bi bi-person-check me-2"></i> Admissions</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.classStrength') }}"><i class="bi bi-people me-2"></i> Class Strength</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.rte') }}"><i class="bi bi-star me-2"></i> RTE Students</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.miscSales') }}"><i class="bi bi-bag me-2"></i> Misc Sales</a></li>
                         </ul>
                     </li>
 

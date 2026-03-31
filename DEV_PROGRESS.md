@@ -65,6 +65,38 @@
 - RTE confirm flow — no challan, record doc number only (to confirm)
 - COC confirm flow — Internal Transfer challan (to confirm)
 
+## Phase 3.5 — Misc Payments — COMPLETE ✅
+
+### Key Decisions
+- Same fee_payments + fee_line_items tables, split by payment_category (fee / misc)
+- Fee payments → reduce student fee balance
+- Misc payments → challan issued, fee balance untouched
+- Mixing fee + misc in one transaction blocked (validation error)
+- Amount Paid auto-calculated from line items (no manual entry error)
+- Two separate "Other" options: Other (Fee) and Other (Misc) for future flexibility
+
+### Fee Line Items
+- admission_fee, tuition_fee, transport_charges, transfer_certificate, bonafide_certificate, other_fee
+
+### Misc Line Items
+- uniform, notebooks, stationery, sports, other_misc
+
+### Done ✅
+- Migration: 2026_03_25_000001_add_payment_category_to_fee_payments
+  - Added payment_category enum (fee/misc) to fee_payments table
+  - Updated fee_line_items description enum with new values
+- FeeLineItem model: feeLabels(), miscLabels(), descriptionLabels(), isMiscDescription()
+- FeePayment model: CATEGORY_FEE/CATEGORY_MISC constants, totalFeesPaidByStudent(), totalMiscPaidByStudent(), totalPaidByStudent() now fee-only
+- FeePaymentRepository: getFeePaymentsByStudent(), getMiscByDateRange(), store() auto-sets category, all balance queries filter payment_category = fee, getDefaulters() and getCategoryWiseSummary() fixed
+- FeePaymentController: calculateBalance() helper (fee-only), mixed payment validation
+- FeePaymentInterface: getFeePaymentsByStudent(), getMiscByDateRange() added
+- fees/create.blade.php: Fee/Misc toggle, two separate line item sections, auto-sum into Amount Paid
+- FeeReportController: miscSales() method added
+- routes/web.php: /reports/misc-sales route added
+- reports/misc-sales.blade.php: screen view with summary + detail table, date range filter, PDF button
+- reports/misc-sales-pdf.blade.php: PDF view
+- Left menu: Misc Sales added under Reports
+
 ## Phase 4 — Leaving Certificate — COMPLETE ✅
 
 ### Key Decisions
@@ -163,13 +195,13 @@ https://github.com/py-prachi/deep-griha-academy-mvp
 - TC-15 Reports ✅ (all 6 reports load + PDFs work)
 
 ### Saru Testing (develop branch)
-- TC-07 to TC-14 fees testing —  ✅
+- TC-07 to TC-14 fees testing — ✅
 
 ### Next
-- TC-16 to TC-22 LC tests —  ✅
-- TC-23 Left Menu Navigationn-  ✅
-- TC-24 Session and Logout -  ✅
-- TC-25 Angela Challan Review - Needs few confirmations
+- TC-16 to TC-22 LC tests — ✅
+- TC-23 Left Menu Navigation — ✅
+- TC-24 Session and Logout — ✅
+- TC-25 Angela Challan Review — Needs few confirmations
 
 ## UI / Layout Fixes Done (all merged to develop ✅)
 - @stack('scripts') missing from layouts/app.blade.php — fixed
@@ -190,43 +222,55 @@ https://github.com/py-prachi/deep-griha-academy-mvp
 - RTE report: View button → admissions.show (was student.profile.show)
 
 ## Angela Clarification Items
-1. Misc/ad-hoc payments — how to handle (books, uniform etc.)
-2. Register No. on LC — general_id ?? dga_admission_no
-3. Student IDs — when does pre-primary get general_id
-4. Student photos — needed? mandatory? when uploaded?
-5. Student exit flow — mark as exited after LC? exit form needed
-6. Challan copies — 3 copies for every transaction or only first payment?
-7. RTE confirm flow — no challan, just record doc number?
-8. COC confirm flow — Internal Transfer label correct?
-9. Reports — is Daily Collection needed or redundant with Collection Report?
-10. Reports — are all 7 reports useful? any missing?
-11. Defaulters — how to define a defaulter (any balance due, or past due date)?
-12. RTE doc number — what is it, where entered on admission form, mandatory?
+1. Misc/ad-hoc payments — DONE ✅ (separate payment_category, misc sales report)
+2. Register No. on LC — CONFIRMED: general_id for class 1+, dga_admission_no for pre-primary — DONE ✅
+3. Student IDs — CONFIRMED: general_id from class 1 onwards
+4. Student photos — Deferred, storage decision pending (Cloudinary free tier plan ready)
+5. Student exit flow — DONE ✅ (Phase 5 complete)
+6. Challan copies — CONFIRMED: 3 copies on every transaction
+7. RTE confirm flow — not confirmed yet
+8. COC confirm flow — not confirmed yet
+9. Reports — Daily Collection hidden (redundant with Collection Report) ✅
+10. Reports — screenshots/PDFs sent for review
+11. Defaulters — not confirmed yet (currently: balance > 0)
+12. RTE doc number — CONFIRMED: same as general_id — PENDING implementation
 
-## Phase 5 — Pending (post-testing)
+## Phase 5 — Student Exit Flow — COMPLETE ✅
 
-### Student Exit Flow
-- Need new status 'exited' on admissions table
-- Exit date + reason to be captured (Angela's exit form pending)
-- Exited students removed from active student list
-- Left menu: Exit Formalities already has the collapsible group ready
-- Waiting for Angela's exit form before implementation
+### Done ✅
+- Migration: add_exited_status_to_admissions_table (status enum + exit_date)
+- Migration: create_student_exits_table (all exit form fields)
+- StudentExit model, Interface, Repository, ServiceProvider
+- StudentExitController (index, create, store, show, studentInfo AJAX)
+- exits/ views: index, create (live name search), show (with LC prompt banner)
+- Left menu: Exit Formalities group (LC + Exit Form)
+- On exit: admission marked as exited, removed from active student list
+- Exited students shown in exits/index
 
-### Student Photos
-- No photo upload currently
-- Decision pending Angela: needed? mandatory? at inquiry or after confirmation?
-- Storage plan: Cloudinary free tier
+### LC Fixes Done ✅
+- Issue LC button removed from admissions/show — LC only issued from exits/show
+- LC create: pre-populates student details for exited admissions
+- LC create: date_of_leaving pre-fills from admission exit_date
+- LC PDF: Register No — general_id for class_id >= 4 (Class 1+), dga_admission_no for pre-primary ✅ (Angela confirmed #2)
+- LC show: phone field added; back button routes to exit record when student is exited
+- LC create: back arrow + breadcrumb route through exits/ when accessed from exit flow
 
-### Miscellaneous / Ad-hoc Payments
-- Books, uniform, excursion etc. not currently handled
-- Pending Angela clarification on flow and challan format
+### Other Fixes Done ✅
+- admissions/show: Cancel Admission + Edit hidden for exited status
+- admissions/create: guardian_address autocomplete disabled (was auto-filling on city entry)
+- Fee ledger: fallback to admission class/fee_category when no promotion record exists
+- exits/create: live text search replaces dropdown (filters as you type, works for 200+ students)
+- exits/create student preview: mobile falls back to father_phone → contact_mobile → mother_phone
 
-### RTE Doc Number Field
-- rte_doc_no column does not exist in admissions table
-- RTE report shows '—' for all students currently
+### RTE Doc Number Field — PENDING
+- rte_doc_no = same as general_id (Angela confirmed #12)
 - Needs: migration + field on admission form (shown only when fee_category = rte)
-- Pending Angela confirmation on item 12 above
+- RTE report currently shows '—' for all students
 
+### Student Photos — DEFERRED
+- No photo upload currently
+- Decision pending Angela: mandatory? at inquiry or after confirmation?
+- Storage plan: Cloudinary free tier
 
 ## Deployment Strategy
 
@@ -247,3 +291,27 @@ https://github.com/py-prachi/deep-griha-academy-mvp
 - Migrations run on deploy
 - Environment variables set in Railway dashboard (not in code)
 - Public URL shared with Angela/Rahul for review: e.g. dga.railway.app
+
+### Railway Deployment — Completed 16 Mar 2026
+- Production
+  URL: https://deep-griha-academy-mvp-production.up.railway.app
+  Branch: main
+  Database: Separate production MySQL on Railway
+  Status: Live, seeded with initial data
+
+- Staging
+  URL: https://deep-griha-academy-mvp-staging.up.railway.app
+  Branch: develop
+  Database: Separate staging MySQL on Railway
+  Status: Live, seeded with test data
+
+### Workflow
+- Feature branches → merge to develop → auto deploys to staging
+- Staging approved → merge to main → auto deploys to production
+
+### Known Railway Settings
+- Networking port must be set to 8080 on app service
+- APP_URL and ASSET_URL must be set to the https domain
+- TrustProxies set to '*' for https asset loading behind Railway proxy
+- Builder: Dockerfile (not Railpack)
+- Dockerfile path: Dockerfile.railway

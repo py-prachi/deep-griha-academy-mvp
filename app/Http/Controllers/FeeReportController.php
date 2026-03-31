@@ -92,16 +92,21 @@ class FeeReportController extends Controller
             'pending'   => Admission::where('academic_year', $academic_year)->where('status', 'pending')->count(),
             'confirmed' => Admission::where('academic_year', $academic_year)->where('status', 'confirmed')->count(),
             'cancelled' => Admission::withTrashed()->where('academic_year', $academic_year)->where('status', 'cancelled')->count(),
+            'exited'    => Admission::where('academic_year', $academic_year)->where('status', 'exited')->count(),
         ];
-        $admissions = Admission::with('schoolClass')
+        $statusFilter = $request->get('status');
+        $query = Admission::with('schoolClass')
             ->where('academic_year', $academic_year)
-            ->orderBy('status')->orderBy('created_at', 'desc')
-            ->withTrashed()->get();
+            ->withTrashed();
+        if ($statusFilter) {
+            $query->where('status', $statusFilter);
+        }
+        $admissions = $query->orderBy('status')->orderBy('created_at', 'desc')->get();
         if ($request->get('pdf')) {
             $pdf = Pdf::loadView('reports.admissions-pdf', compact('summary', 'admissions', 'academic_year'))->setPaper('a4', 'portrait');
             return $pdf->download('admissions-report.pdf');
         }
-        return view('reports.admissions', compact('summary', 'admissions', 'academic_year'));
+        return view('reports.admissions', compact('summary', 'admissions', 'academic_year', 'statusFilter'));
     }
 
     public function classStrength(Request $request)
@@ -147,5 +152,36 @@ class FeeReportController extends Controller
             return $pdf->download('rte-students.pdf');
         }
         return view('reports.rte', compact('students'));
+    }
+
+        public function miscSales(Request $request)
+    {
+        $from = $request->get('from', today()->startOfMonth()->toDateString());
+        $to   = $request->get('to',   today()->toDateString());
+
+        $payments = $this->feePaymentRepository->getMiscByDateRange($from, $to);
+
+        $summary = [];
+        $labels  = \App\Models\FeeLineItem::miscLabels();
+        foreach ($payments as $payment) {
+            foreach ($payment->lineItems as $item) {
+                $key = $item->description;
+                if (!isset($summary[$key])) {
+                    $summary[$key] = ['label' => $labels[$key] ?? $key, 'total' => 0, 'count' => 0];
+                }
+                $summary[$key]['total'] += $item->amount;
+                $summary[$key]['count'] += 1;
+            }
+        }
+
+        $grandTotal = array_sum(array_column($summary, 'total'));
+
+        if ($request->get('pdf')) {
+            $pdf = Pdf::loadView('reports.misc-sales-pdf', compact('payments', 'summary', 'grandTotal', 'from', 'to'))
+                ->setPaper('a4', 'portrait');
+            return $pdf->download('misc-sales-' . $from . '-to-' . $to . '.pdf');
+        }
+
+        return view('reports.misc-sales', compact('payments', 'summary', 'grandTotal', 'from', 'to'));
     }
 }

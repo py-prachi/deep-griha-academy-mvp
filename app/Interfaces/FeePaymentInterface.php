@@ -10,4 +10,6 @@ interface FeePaymentInterface
     public function getByDateRange($from, $to);
     public function getDefaulters($session_id);
     public function getCategoryWiseSummary($session_id);
+    public function getFeePaymentsByStudent($student_user_id);
+    public function getMiscByDateRange($from, $to);
 }

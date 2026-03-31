@@ -35,8 +35,8 @@
                         <h6 class="mb-3">Actions</h6>
                         <div class="d-flex flex-wrap gap-2">
 
-                            {{-- Edit always available if not confirmed --}}
-                            @if($admission->status != 'confirmed')
+                            {{-- Edit always available if not confirmed and not exited --}}
+                            @if(!in_array($admission->status, ['confirmed', 'exited']))
                                 <a href="{{ route('admissions.edit', $admission->id) }}" class="btn btn-outline-primary">
                                     <i class="bi bi-pen"></i> Edit Details
                                 </a>
@@ -71,14 +71,8 @@
                                     <i class="bi bi-pen"></i> Edit Details
                                 </a>
                             @endif
-                            {{-- Issue LC (confirmed only, no existing LC) --}}
-                            @if($admission->status == 'confirmed' && auth()->user()->role === 'admin')
-                                <a href="{{ route('lc.create', ['admission_id' => $admission->id]) }}" class="btn btn-outline-secondary">
-                                    <i class="bi bi-file-earmark-minus"></i> Issue LC
-                                </a>
-                            @endif
                             {{-- Cancel --}}
-                            @if($admission->status != 'confirmed')
+                            @if(!in_array($admission->status, ['confirmed', 'exited']))
                                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
                                     <i class="bi bi-x-circle"></i> Cancel Admission
                                 </button>

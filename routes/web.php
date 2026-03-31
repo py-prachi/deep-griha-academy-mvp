@@ -200,6 +200,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admissions/{id}/document/{doc_id}',   [App\Http\Controllers\AdmissionController::class, 'updateDocument'])->name('admissions.updateDocument');
     Route::get('/admissions-cancelled',                 [App\Http\Controllers\AdmissionController::class, 'cancelled'])->name('admissions.cancelled');
 
+    // ── BULK IMPORT ───────────────────────────────────────────────────────
+    Route::get('/import/students',          [App\Http\Controllers\StudentImportController::class, 'showForm'])->name('import.students');
+    Route::get('/import/students/template', [App\Http\Controllers\StudentImportController::class, 'downloadTemplate'])->name('import.students.template');
+    Route::post('/import/students/preview', [App\Http\Controllers\StudentImportController::class, 'preview'])->name('import.students.preview');
+    Route::post('/import/students/commit',  [App\Http\Controllers\StudentImportController::class, 'commit'])->name('import.students.commit');
+
     // ── FEE STRUCTURE ─────────────────────────────────────────────────────
     Route::get('/fee-structures',                        [App\Http\Controllers\FeeStructureController::class, 'index'])->name('fee-structures.index');
     Route::get('/fee-structures/create',                 [App\Http\Controllers\FeeStructureController::class, 'create'])->name('fee-structures.create');
@@ -223,6 +229,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/admissions',                    [App\Http\Controllers\FeeReportController::class, 'admissions'])->name('reports.admissions');
     Route::get('/reports/class-strength',                [App\Http\Controllers\FeeReportController::class, 'classStrength'])->name('reports.classStrength');
     Route::get('/reports/rte',                           [App\Http\Controllers\FeeReportController::class, 'rte'])->name('reports.rte');
+    Route::get('/reports/misc-sales',                    [App\Http\Controllers\FeeReportController::class, 'miscSales'])->name('reports.miscSales');
 
     // ── LEAVING CERTIFICATES ──────────────────────────────────────────────
     Route::prefix('lc')->name('lc.')->group(function () {
@@ -233,4 +240,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}',         [LeavingCertificateController::class, 'show'])->name('show');
         Route::get('/{id}/pdf',     [LeavingCertificateController::class, 'pdf'])->name('pdf');
     });
+
+    // ── STUDENT EXIT ──────────────────────────────────────────────
+    Route::get('/exits',              [App\Http\Controllers\StudentExitController::class, 'index'])->name('exits.index');
+    Route::get('/exits/create',       [App\Http\Controllers\StudentExitController::class, 'create'])->name('exits.create');
+    Route::post('/exits',             [App\Http\Controllers\StudentExitController::class, 'store'])->name('exits.store');
+    Route::get('/exits/student-info', [App\Http\Controllers\StudentExitController::class, 'studentInfo'])->name('exits.studentInfo');
+    Route::get('/exits/{id}',         [App\Http\Controllers\StudentExitController::class, 'show'])->name('exits.show');
 });

@@ -21,7 +21,7 @@
                             </p>
                         </div>
                         <div class="col-md-6 text-end">
-                            <div class="text-muted small">Balance Remaining</div>
+                            <div class="text-muted small">Fee Balance Remaining</div>
                             <h4 class="text-{{ $balance > 0 ? 'danger' : 'success' }} mb-0">
                                 ₹{{ number_format($balance, 2) }}
                             </h4>
@@ -39,23 +39,61 @@
                     @if(session('error'))
                         <div class="alert alert-danger">{{ session('error') }}</div>
                     @endif
+                    @if($errors->any())
+                        <div class="alert alert-danger">
+                            @foreach($errors->all() as $error)
+                                <div>{{ $error }}</div>
+                            @endforeach
+                        </div>
+                    @endif
 
-                    <form action="{{ route('fees.store', $student->id) }}" method="POST">
+                    <form action="{{ route('fees.store', $student->id) }}" method="POST" id="paymentForm">
                         @csrf
+
+                        {{-- Payment Type Toggle --}}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Payment Type <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="payment_category"
+                                        id="cat_fee" value="fee"
+                                        {{ old('payment_category', 'fee') == 'fee' ? 'checked' : '' }}
+                                        onchange="switchCategory('fee')">
+                                    <label class="form-check-label" for="cat_fee">
+                                        <span class="badge bg-primary">Fee Payment</span>
+                                        <small class="text-muted ms-1">Reduces fee balance</small>
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="payment_category"
+                                        id="cat_misc" value="misc"
+                                        {{ old('payment_category') == 'misc' ? 'checked' : '' }}
+                                        onchange="switchCategory('misc')">
+                                    <label class="form-check-label" for="cat_misc">
+                                        <span class="badge bg-warning text-dark">Misc Purchase</span>
+                                        <small class="text-muted ms-1">Challan only, no balance deduction</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Payment Date <span class="text-danger">*</span></label>
-                                <input type="date" name="payment_date" value="{{ old('payment_date', today()->toDateString()) }}"
+                                <input type="date" name="payment_date"
+                                    value="{{ old('payment_date', today()->toDateString()) }}"
                                     class="form-control @error('payment_date') is-invalid @enderror" required>
                                 @error('payment_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Amount Paid (₹) <span class="text-danger">*</span></label>
-                                <input type="number" name="amount_paid" step="0.01" min="1"
+                                <input type="number" name="amount_paid" id="amount_paid_field" step="0.01" min="1"
                                     value="{{ old('amount_paid') }}"
                                     class="form-control @error('amount_paid') is-invalid @enderror" required>
                                 @error('amount_paid')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                <small id="amount_paid_hint" class="text-success" style="display:none">
+                                    <i class="bi bi-check-circle"></i> Auto-calculated from line items
+                                </small>
                             </div>
                         </div>
 
@@ -96,24 +134,56 @@
                             </div>
                         </div>
 
-                        {{-- Line items --}}
                         <hr>
-                        <h6 class="text-muted mb-3">What is this payment for? <small>(optional — tick all that apply)</small></h6>
-                        <div class="row">
-                            @foreach($lineItemLabels as $key => $label)
-                            <div class="col-md-6 mb-2">
-                                <div class="input-group">
-                                    <div class="input-group-text">
-                                        <input type="checkbox" class="line-item-check" data-key="{{ $key }}"
-                                            onchange="toggleLineItem('{{ $key }}', this.checked)">
+
+                        {{-- FEE LINE ITEMS --}}
+                        <div id="fee_items_section">
+                            <h6 class="text-primary mb-3">
+                                <i class="bi bi-cash-stack"></i>
+                                Fee breakdown <small class="text-muted fw-normal">(optional — tick all that apply)</small>
+                            </h6>
+                            <div class="row">
+                                @foreach($feeLabels as $key => $label)
+                                <div class="col-md-6 mb-2">
+                                    <div class="input-group">
+                                        <div class="input-group-text">
+                                            <input type="checkbox" class="fee-item-check"
+                                                data-key="{{ $key }}"
+                                                onchange="toggleLineItem('{{ $key }}', this.checked)">
+                                        </div>
+                                        <span class="input-group-text" style="min-width:200px">{{ $label }}</span>
+                                        <input type="number" name="line_items[{{ $key }}]" id="li_{{ $key }}"
+                                            step="0.01" min="0" value="{{ old('line_items.'.$key, 0) }}"
+                                            class="form-control" disabled>
                                     </div>
-                                    <span class="input-group-text" style="min-width:180px">{{ $label }}</span>
-                                    <input type="number" name="line_items[{{ $key }}]" id="li_{{ $key }}"
-                                        step="0.01" min="0" value="0"
-                                        class="form-control" disabled>
                                 </div>
+                                @endforeach
                             </div>
-                            @endforeach
+                        </div>
+
+                        {{-- MISC LINE ITEMS --}}
+                        <div id="misc_items_section" style="display:none">
+                            <h6 class="text-warning mb-3">
+                                <i class="bi bi-bag"></i>
+                                Items purchased <small class="text-muted fw-normal">(optional — tick all that apply)</small>
+                            </h6>
+                            <div class="row">
+                                @foreach($miscLabels as $key => $label)
+                                <div class="col-md-6 mb-2">
+                                    <div class="input-group">
+                                        <div class="input-group-text">
+                                            <input type="checkbox" class="misc-item-check"
+                                                data-key="{{ $key }}"
+                                                onchange="toggleLineItem('{{ $key }}', this.checked)">
+                                        </div>
+                                        <span class="input-group-text" style="min-width:200px">{{ $label }}</span>
+                                        <input type="number" name="line_items[{{ $key }}]" id="li_{{ $key }}"
+                                            step="0.01" min="0" value="{{ old('line_items.'.$key, 0) }}"
+                                            class="form-control" disabled>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
                         </div>
 
                         <div class="mb-3 mt-3">
@@ -123,7 +193,7 @@
 
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-save"></i> Record Payment & Generate Challan
+                                <i class="bi bi-save"></i> Record Payment &amp; Generate Challan
                             </button>
                             <a href="{{ route('fees.ledger', $student->id) }}" class="btn btn-secondary btn-lg">Cancel</a>
                         </div>
@@ -138,16 +208,74 @@
 </div>
 
 <script>
+function switchCategory(category) {
+    var feeSection  = document.getElementById('fee_items_section');
+    var miscSection = document.getElementById('misc_items_section');
+
+    if (category === 'fee') {
+        feeSection.style.display  = 'block';
+        miscSection.style.display = 'none';
+        // Uncheck and disable all misc inputs
+        document.querySelectorAll('.misc-item-check').forEach(function(cb) {
+            cb.checked = false;
+            toggleLineItem(cb.dataset.key, false);
+        });
+    } else {
+        feeSection.style.display  = 'none';
+        miscSection.style.display = 'block';
+        // Uncheck and disable all fee inputs
+        document.querySelectorAll('.fee-item-check').forEach(function(cb) {
+            cb.checked = false;
+            toggleLineItem(cb.dataset.key, false);
+        });
+    }
+}
+
 function toggleLineItem(key, checked) {
-    const input = document.getElementById('li_' + key);
-    input.disabled = !checked;
-    if (!checked) input.value = 0;
+    var input = document.getElementById('li_' + key);
+    if (input) {
+        input.disabled = !checked;
+        if (!checked) input.value = 0;
+        // Re-attach or remove the oninput listener
+        if (checked) {
+            input.addEventListener('input', recalcTotal);
+        } else {
+            input.removeEventListener('input', recalcTotal);
+        }
+    }
+    recalcTotal();
+}
+
+function recalcTotal() {
+    var total = 0;
+    // Sum all enabled (active) line item inputs
+    document.querySelectorAll('input[name^="line_items"]').forEach(function(input) {
+        if (!input.disabled) {
+            var val = parseFloat(input.value) || 0;
+            total += val;
+        }
+    });
+    var amountField = document.getElementById('amount_paid_field');
+    if (total > 0) {
+        amountField.value = total.toFixed(2);
+        amountField.readOnly = true;
+        document.getElementById('amount_paid_hint').style.display = 'block';
+    } else {
+        amountField.readOnly = false;
+        document.getElementById('amount_paid_hint').style.display = 'none';
+    }
 }
 
 document.getElementById('payment_mode').addEventListener('change', function() {
-    const mode = this.value;
-    document.getElementById('cheque_fields').style.display      = mode === 'cheque' ? 'block' : 'none';
+    var mode = this.value;
+    document.getElementById('cheque_fields').style.display       = mode === 'cheque' ? 'block' : 'none';
     document.getElementById('transaction_ref_div').style.display = mode === 'qr'     ? 'block' : 'none';
 });
+
+// Set initial state based on old() value (handles validation failure redirects)
+(function() {
+    var selected = document.querySelector('input[name="payment_category"]:checked');
+    if (selected) switchCategory(selected.value);
+})();
 </script>
 @endsection
