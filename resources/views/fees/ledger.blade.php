@@ -49,8 +49,16 @@
                                     <div class="col-md-8">
                                         <h5 class="mb-1">{{ $student->first_name }} {{ $student->last_name }}</h5>
                                         <p class="mb-0 text-muted">
-                                            {{ $promotion->section->schoolClass->class_name ?? '—' }}
-                                            {{ $promotion->section->section_name ?? '' }} &nbsp;|&nbsp;
+                                            @if($promotion && $promotion->section)
+                                                {{ $promotion->section->schoolClass->class_name ?? '—' }}
+                                                {{ $promotion->section->section_name ?? '' }}
+                                            @elseif($student->admission && $student->admission->schoolClass)
+                                                {{ $student->admission->schoolClass->class_name }}
+                                                {{ $student->admission->section ? $student->admission->section->section_name : '' }}
+                                            @else
+                                                —
+                                            @endif
+                                            &nbsp;|&nbsp;
                                             Category: <strong>{{ ucfirst($student->fee_category ?? 'general') }}</strong> &nbsp;|&nbsp;
                                             Admission No: <strong>{{ $student->dga_admission_no ?? $student->general_id ?? '—' }}</strong>
                                         </p>

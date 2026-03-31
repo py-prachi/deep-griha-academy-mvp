@@ -239,7 +239,17 @@
                 No. <strong style="font-size:14px; letter-spacing:1px;">{{ $lc->lc_number }}</strong>
             </td>
             <td style="width:60%; text-align:center;">
-                Register No. of Pupil :&nbsp;&nbsp;<strong style="font-size:13px;">{{ $lc->admission ? ($lc->admission->dga_admission_no ?? $lc->admission->general_id ?? '—') : '—' }}</strong>
+                Register No. of Pupil :&nbsp;&nbsp;<strong style="font-size:13px;">
+                    @if($lc->admission)
+                        @if($lc->admission->class_id >= 4)
+                            {{ $lc->admission->general_id ? $lc->admission->general_id : '—' }}
+                        @else
+                            {{ $lc->admission->dga_admission_no ? $lc->admission->dga_admission_no : '—' }}
+                        @endif
+                    @else
+                        —
+                    @endif
+                </strong>
             </td>
         </tr>
     </table>

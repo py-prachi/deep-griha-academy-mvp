@@ -234,4 +234,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}',         [LeavingCertificateController::class, 'show'])->name('show');
         Route::get('/{id}/pdf',     [LeavingCertificateController::class, 'pdf'])->name('pdf');
     });
+
+    // ── STUDENT EXIT ──────────────────────────────────────────────
+    Route::get('/exits',              [App\Http\Controllers\StudentExitController::class, 'index'])->name('exits.index');
+    Route::get('/exits/create',       [App\Http\Controllers\StudentExitController::class, 'create'])->name('exits.create');
+    Route::post('/exits',             [App\Http\Controllers\StudentExitController::class, 'store'])->name('exits.store');
+    Route::get('/exits/student-info', [App\Http\Controllers\StudentExitController::class, 'studentInfo'])->name('exits.studentInfo');
+    Route::get('/exits/{id}',         [App\Http\Controllers\StudentExitController::class, 'show'])->name('exits.show');
 });

@@ -59,6 +59,7 @@
                                         <tr><td class="text-muted">Date of Birth</td><td>{{ $lc->date_of_birth ? $lc->date_of_birth->format('d M Y') : '—' }}</td></tr>
                                         <tr><td class="text-muted">Mother's Name</td><td>{{ $lc->mother_name ?? '—' }}</td></tr>
                                         <tr><td class="text-muted">Father's Name</td><td>{{ ($lc->admission ? $lc->admission->father_name : '—') ?? '—' }}</td></tr>
+                                        <tr><td class="text-muted">Phone</td><td>{{ $lc->admission ? ($lc->admission->father_phone ?? $lc->admission->contact_mobile ?? $lc->admission->mother_phone ?? '—') : '—' }}</td></tr>
                                         <tr><td class="text-muted">Caste</td><td>{{ $lc->race_and_caste ?? '—' }}</td></tr>
                                         <tr><td class="text-muted">Nationality</td><td>{{ $lc->nationality ?? '—' }}</td></tr>
                                         <tr><td class="text-muted">Place of Birth</td><td>{{ $lc->place_of_birth ?? '—' }}</td></tr>
@@ -99,9 +100,15 @@
                     </div>
 
                     <div class="mt-3">
-                        <a href="{{ route('admissions.show', $lc->admission_id) }}" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-person me-1"></i> Back to Student Profile
-                        </a>
+                        @if($exit)
+                            <a href="{{ route('exits.show', $exit->id) }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-box-arrow-right me-1"></i> Back to Exit Record
+                            </a>
+                        @else
+                            <a href="{{ route('admissions.show', $lc->admission_id) }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-person me-1"></i> Back to Student Profile
+                            </a>
+                        @endif
                     </div>
 
                 </div>

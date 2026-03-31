@@ -62,11 +62,19 @@ class FeePaymentController extends Controller
             ->first();
 
         $feeStructure = null;
+        $admission = $student->admission;
         if ($promotion) {
             $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
                 $promotion->class_id,
                 $session->session_name,
                 $student->fee_category ?? 'general'
+            );
+        } elseif ($admission) {
+            // Fallback for students without a promotion record
+            $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
+                $admission->class_id,
+                $session->session_name,
+                $admission->fee_category ?? 'general'
             );
         }
 

@@ -11,7 +11,7 @@
                 <div class="col ps-4">
 
                     <div class="d-flex align-items-center mb-3">
-                        <a href="{{ $admission ? route('admissions.show', $admission->id) : route('lc.index') }}"
+                        <a href="{{ $exit ? route('exits.show', $exit->id) : ($admission ? route('admissions.show', $admission->id) : route('lc.index')) }}"
                            class="btn btn-sm btn-outline-secondary me-2">
                             <i class="bi bi-arrow-left"></i>
                         </a>
@@ -22,8 +22,13 @@
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
                             @if($admission)
+                        @if($exit)
+                                <li class="breadcrumb-item"><a href="{{ route('exits.index') }}">Exited Students</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('exits.show', $exit->id) }}">{{ $admission->student_name }}</a></li>
+                        @else
                                 <li class="breadcrumb-item"><a href="{{ route('admissions.index') }}">Admissions</a></li>
                                 <li class="breadcrumb-item"><a href="{{ route('admissions.show', $admission->id) }}">{{ $admission->student_name }}</a></li>
+                        @endif
                             @else
                                 <li class="breadcrumb-item"><a href="{{ route('lc.index') }}">Leaving Certificates</a></li>
                             @endif
@@ -165,7 +170,7 @@
                                                 <label class="form-label">Date of Leaving <span class="text-danger">*</span></label>
                                                 <input type="date" name="date_of_leaving"
                                                        class="form-control @error('date_of_leaving') is-invalid @enderror"
-                                                       value="{{ old('date_of_leaving', date('Y-m-d')) }}" required>
+                                                       value="{{ old('date_of_leaving', ($admission && $admission->exit_date ? $admission->exit_date->format('Y-m-d') : date('Y-m-d'))) }}" required>
                                                 @error('date_of_leaving')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                             </div>
                                             <div class="col-md-8">

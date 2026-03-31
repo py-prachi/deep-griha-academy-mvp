@@ -122,7 +122,7 @@
                         </a>
                         <ul class="nav collapse {{ request()->is('lc*')? 'show' : 'hide' }} bg-white" id="exit-submenu">
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('lc.index') }}"><i class="bi bi-file-earmark-minus me-2"></i> Leaving Certificates</a></li>
-                            {{-- Phase 5: Student Exit Form will be added here --}}
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->routeIs('exits.*') ? 'active' : '' }}" href="{{ route('exits.index') }}"><i class="bi bi-box-arrow-right me-2"></i> Student Exits</a></li>
                         </ul>
                     </li>
 

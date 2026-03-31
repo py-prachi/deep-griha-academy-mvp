@@ -41,13 +41,15 @@ class LeavingCertificateController extends Controller
         $admission = null;
         $feeCheck  = ['has_due' => false, 'amount' => 0];
 
+        $exit = null;
         if ($request->filled('admission_id')) {
             $admission = Admission::with(['schoolClass', 'section', 'session'])
-                ->where('status', Admission::STATUS_CONFIRMED)
+                ->whereIn('status', [Admission::STATUS_CONFIRMED, Admission::STATUS_EXITED])
                 ->find($request->admission_id);
 
             if ($admission) {
                 $feeCheck = $this->lcRepo->checkFeesDue($admission->id);
+                $exit     = $admission->exitForm;
             }
         }
 
@@ -59,7 +61,7 @@ class LeavingCertificateController extends Controller
 
         $nextLcNumber = LeavingCertificate::generateLcNumber();
 
-        return view('lc.create', compact('admission', 'admissions', 'feeCheck', 'nextLcNumber'));
+        return view('lc.create', compact('admission', 'admissions', 'feeCheck', 'nextLcNumber', 'exit'));
     }
 
     // ── Store ──────────────────────────────────────────────────────────────────
@@ -114,8 +116,12 @@ class LeavingCertificateController extends Controller
 
     public function show(int $id)
     {
-        $lc = $this->lcRepo->findById($id);
-        return view('lc.show', compact('lc'));
+        $lc   = $this->lcRepo->findById($id);
+        $exit = null;
+        if ($lc->admission) {
+            $exit = $lc->admission->exitForm;
+        }
+        return view('lc.show', compact('lc', 'exit'));
     }
 
     // ── PDF ────────────────────────────────────────────────────────────────────
