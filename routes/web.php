@@ -200,6 +200,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admissions/{id}/document/{doc_id}',   [App\Http\Controllers\AdmissionController::class, 'updateDocument'])->name('admissions.updateDocument');
     Route::get('/admissions-cancelled',                 [App\Http\Controllers\AdmissionController::class, 'cancelled'])->name('admissions.cancelled');
 
+    // ── BULK IMPORT ───────────────────────────────────────────────────────
+    Route::get('/import/students',          [App\Http\Controllers\StudentImportController::class, 'showForm'])->name('import.students');
+    Route::get('/import/students/template', [App\Http\Controllers\StudentImportController::class, 'downloadTemplate'])->name('import.students.template');
+    Route::post('/import/students/preview', [App\Http\Controllers\StudentImportController::class, 'preview'])->name('import.students.preview');
+    Route::post('/import/students/commit',  [App\Http\Controllers\StudentImportController::class, 'commit'])->name('import.students.commit');
+
     // ── FEE STRUCTURE ─────────────────────────────────────────────────────
     Route::get('/fee-structures',                        [App\Http\Controllers\FeeStructureController::class, 'index'])->name('fee-structures.index');
     Route::get('/fee-structures/create',                 [App\Http\Controllers\FeeStructureController::class, 'create'])->name('fee-structures.create');

@@ -12,6 +12,7 @@
         "laravel/framework": "^8.54",
         "laravel/tinker": "^2.5",
         "laravel/ui": "^3.3",
+        "phpoffice/phpspreadsheet": "^1.30",
         "spatie/laravel-permission": "^4.2",
         "stevebauman/purify": "^4.0"
     },
