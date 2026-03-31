@@ -223,10 +223,10 @@ https://github.com/py-prachi/deep-griha-academy-mvp
 
 ## Angela Clarification Items
 1. Misc/ad-hoc payments — DONE ✅ (separate payment_category, misc sales report)
-2. Register No. on LC — CONFIRMED: general_id for class 1+, dga_admission_no for pre-primary — PENDING implementation
+2. Register No. on LC — CONFIRMED: general_id for class 1+, dga_admission_no for pre-primary — DONE ✅
 3. Student IDs — CONFIRMED: general_id from class 1 onwards
 4. Student photos — Deferred, storage decision pending (Cloudinary free tier plan ready)
-5. Student exit flow — CONFIRMED: exit form received, ready to build (Phase 5)
+5. Student exit flow — DONE ✅ (Phase 5 complete)
 6. Challan copies — CONFIRMED: 3 copies on every transaction
 7. RTE confirm flow — not confirmed yet
 8. COC confirm flow — not confirmed yet
@@ -235,22 +235,32 @@ https://github.com/py-prachi/deep-griha-academy-mvp
 11. Defaulters — not confirmed yet (currently: balance > 0)
 12. RTE doc number — CONFIRMED: same as general_id — PENDING implementation
 
-## Phase 5 — In Progress
+## Phase 5 — Student Exit Flow — COMPLETE ✅
 
-### Student Exit Flow — READY TO BUILD ✅
-- Exit form received from Angela
-- Fields: student name, std, DOJ, DOL, reason for leaving, liked most, liked least,
-  suggestions, 1–5 star rating, parent name + signature + contact, DGA staff name +
-  signature, date of form submission
-- admissions table needs: status = exited, exit_date, exit_reason columns
-- On exit: removed from active student list, shown in exited/alumni list
-- Left menu: Exit Formalities collapsible group already in place (LC is in it)
-- Passed-out students = separate academic flow (promotions), not this feature
+### Done ✅
+- Migration: add_exited_status_to_admissions_table (status enum + exit_date)
+- Migration: create_student_exits_table (all exit form fields)
+- StudentExit model, Interface, Repository, ServiceProvider
+- StudentExitController (index, create, store, show, studentInfo AJAX)
+- exits/ views: index, create (live name search), show (with LC prompt banner)
+- Left menu: Exit Formalities group (LC + Exit Form)
+- On exit: admission marked as exited, removed from active student list
+- Exited students shown in exits/index
 
-### LC Register No Fix — PENDING
-- Class 1+ → use general_id as Register No on LC PDF
-- Pre-primary → use dga_admission_no as Register No on LC PDF
-- Angela confirmed (#2)
+### LC Fixes Done ✅
+- Issue LC button removed from admissions/show — LC only issued from exits/show
+- LC create: pre-populates student details for exited admissions
+- LC create: date_of_leaving pre-fills from admission exit_date
+- LC PDF: Register No — general_id for class_id >= 4 (Class 1+), dga_admission_no for pre-primary ✅ (Angela confirmed #2)
+- LC show: phone field added; back button routes to exit record when student is exited
+- LC create: back arrow + breadcrumb route through exits/ when accessed from exit flow
+
+### Other Fixes Done ✅
+- admissions/show: Cancel Admission + Edit hidden for exited status
+- admissions/create: guardian_address autocomplete disabled (was auto-filling on city entry)
+- Fee ledger: fallback to admission class/fee_category when no promotion record exists
+- exits/create: live text search replaces dropdown (filters as you type, works for 200+ students)
+- exits/create student preview: mobile falls back to father_phone → contact_mobile → mother_phone
 
 ### RTE Doc Number Field — PENDING
 - rte_doc_no = same as general_id (Angela confirmed #12)
