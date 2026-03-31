@@ -92,16 +92,21 @@ class FeeReportController extends Controller
             'pending'   => Admission::where('academic_year', $academic_year)->where('status', 'pending')->count(),
             'confirmed' => Admission::where('academic_year', $academic_year)->where('status', 'confirmed')->count(),
             'cancelled' => Admission::withTrashed()->where('academic_year', $academic_year)->where('status', 'cancelled')->count(),
+            'exited'    => Admission::where('academic_year', $academic_year)->where('status', 'exited')->count(),
         ];
-        $admissions = Admission::with('schoolClass')
+        $statusFilter = $request->get('status');
+        $query = Admission::with('schoolClass')
             ->where('academic_year', $academic_year)
-            ->orderBy('status')->orderBy('created_at', 'desc')
-            ->withTrashed()->get();
+            ->withTrashed();
+        if ($statusFilter) {
+            $query->where('status', $statusFilter);
+        }
+        $admissions = $query->orderBy('status')->orderBy('created_at', 'desc')->get();
         if ($request->get('pdf')) {
             $pdf = Pdf::loadView('reports.admissions-pdf', compact('summary', 'admissions', 'academic_year'))->setPaper('a4', 'portrait');
             return $pdf->download('admissions-report.pdf');
         }
-        return view('reports.admissions', compact('summary', 'admissions', 'academic_year'));
+        return view('reports.admissions', compact('summary', 'admissions', 'academic_year', 'statusFilter'));
     }
 
     public function classStrength(Request $request)
