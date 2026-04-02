@@ -120,17 +120,27 @@ class FeeReportController extends Controller
         ];
 
         $statusFilter = $request->get('status');
+        $classFilter  = $request->get('class_id');
         $query = Admission::with('schoolClass')->withTrashed()->whereIn('id', $allIds);
         if ($statusFilter) {
             $query->where('status', $statusFilter);
         }
-        $admissions = $query->orderBy('status')->orderBy('created_at', 'desc')->get();
+        if ($classFilter) {
+            $query->where('class_id', $classFilter);
+        }
+        $admissions = $query->orderBy('status')->orderBy('created_at', 'desc')->paginate(50)->withQueryString();
+
+        $schoolClasses = \App\Models\SchoolClass::where('session_id', $selectedSessionId)->orderBy('id')->get();
 
         if ($request->get('pdf')) {
-            $pdf = Pdf::loadView('reports.admissions-pdf', compact('summary', 'admissions', 'academic_year'))->setPaper('a4', 'portrait');
+            $allForPdf = Admission::with('schoolClass')->withTrashed()->whereIn('id', $allIds)
+                ->when($statusFilter, fn($q) => $q->where('status', $statusFilter))
+                ->when($classFilter,  fn($q) => $q->where('class_id', $classFilter))
+                ->orderBy('status')->orderBy('created_at', 'desc')->get();
+            $pdf = Pdf::loadView('reports.admissions-pdf', ['summary' => $summary, 'admissions' => $allForPdf, 'academic_year' => $academic_year])->setPaper('a4', 'portrait');
             return $pdf->download('admissions-report.pdf');
         }
-        return view('reports.admissions', compact('summary', 'admissions', 'academic_year', 'statusFilter', 'sessions', 'selectedSessionId', 'selectedSession'));
+        return view('reports.admissions', compact('summary', 'admissions', 'academic_year', 'statusFilter', 'classFilter', 'schoolClasses', 'sessions', 'selectedSessionId', 'selectedSession'));
     }
 
     public function classStrength(Request $request)

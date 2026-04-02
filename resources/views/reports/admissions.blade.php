@@ -102,21 +102,46 @@
                             </div>
                         </div>
 
+                        {{-- Class Filter --}}
+                        <form method="GET" action="{{ route('reports.admissions') }}" class="mb-3">
+                            <input type="hidden" name="session_id" value="{{ $selectedSessionId }}">
+                            @if($statusFilter)<input type="hidden" name="status" value="{{ $statusFilter }}">@endif
+                            <div class="row g-2 align-items-center">
+                                <div class="col-auto">
+                                    <label class="form-label mb-0">Filter by Class:</label>
+                                </div>
+                                <div class="col-auto">
+                                    <select name="class_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                                        <option value="">All Classes</option>
+                                        @foreach($schoolClasses as $sc)
+                                            <option value="{{ $sc->id }}" {{ $classFilter == $sc->id ? 'selected' : '' }}>{{ $sc->class_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                @if($classFilter)
+                                <div class="col-auto">
+                                    <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId, 'status' => $statusFilter]) }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+                                </div>
+                                @endif
+                            </div>
+                        </form>
+
                         {{-- Status Filter --}}
+                        @php $baseParams = ['session_id' => $selectedSessionId, 'class_id' => $classFilter]; @endphp
                         <div class="mb-3 d-flex gap-2 flex-wrap align-items-center">
-                            <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId]) }}"
+                            <a href="{{ route('reports.admissions', $baseParams) }}"
                                class="btn btn-sm {{ !$statusFilter ? 'btn-dark' : 'btn-outline-dark' }}">All</a>
-                            <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId, 'status' => 'inquiry']) }}"
+                            <a href="{{ route('reports.admissions', array_merge($baseParams, ['status' => 'inquiry'])) }}"
                                class="btn btn-sm {{ $statusFilter == 'inquiry' ? 'btn-secondary' : 'btn-outline-secondary' }}">Inquiry</a>
-                            <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId, 'status' => 'pending']) }}"
+                            <a href="{{ route('reports.admissions', array_merge($baseParams, ['status' => 'pending'])) }}"
                                class="btn btn-sm {{ $statusFilter == 'pending' ? 'btn-warning' : 'btn-outline-warning' }}">Pending</a>
-                            <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId, 'status' => 'confirmed']) }}"
+                            <a href="{{ route('reports.admissions', array_merge($baseParams, ['status' => 'confirmed'])) }}"
                                class="btn btn-sm {{ $statusFilter == 'confirmed' ? 'btn-success' : 'btn-outline-success' }}">Confirmed</a>
-                            <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId, 'status' => 'cancelled']) }}"
+                            <a href="{{ route('reports.admissions', array_merge($baseParams, ['status' => 'cancelled'])) }}"
                                class="btn btn-sm {{ $statusFilter == 'cancelled' ? 'btn-danger' : 'btn-outline-danger' }}">Cancelled</a>
-                            <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId, 'status' => 'exited']) }}"
+                            <a href="{{ route('reports.admissions', array_merge($baseParams, ['status' => 'exited'])) }}"
                                class="btn btn-sm {{ $statusFilter == 'exited' ? 'btn-dark' : 'btn-outline-dark' }}">Exited</a>
-                            <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId, 'status' => 'graduated']) }}"
+                            <a href="{{ route('reports.admissions', array_merge($baseParams, ['status' => 'graduated'])) }}"
                                class="btn btn-sm {{ $statusFilter == 'graduated' ? 'btn-purple' : 'btn-outline-secondary' }}"
                                style="{{ $statusFilter == 'graduated' ? 'background-color:#6f42c1;color:#fff;border-color:#6f42c1;' : '' }}">Graduated</a>
                         </div>
@@ -178,6 +203,12 @@
                                     </table>
                                 </div>
                             </div>
+                            @if($admissions->hasPages())
+                            <div class="card-footer d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Showing {{ $admissions->firstItem() }}–{{ $admissions->lastItem() }} of {{ $admissions->total() }} records</small>
+                                {{ $admissions->links() }}
+                            </div>
+                            @endif
                         </div>
                     </div>
 

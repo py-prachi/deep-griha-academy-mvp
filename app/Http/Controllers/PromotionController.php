@@ -54,7 +54,7 @@ class PromotionController extends Controller
         $previousSession = $this->schoolSessionRepository->getPreviousSession();
 
         if(count($previousSession) < 1) {
-            return back()->withError('No previous session');
+            return redirect('academics/settings')->with('info', 'Promotions require at least two academic sessions. Create a new session here first, then return to Promotions.');
         }
 
         $previousSessionClasses = $promotionRepository->getClasses($previousSession['id']);

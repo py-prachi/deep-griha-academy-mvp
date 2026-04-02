@@ -108,6 +108,20 @@ class Admission extends Model
         return $this->hasOne(StudentExit::class, 'admission_id');
     }
 
+    // ── ACCESSORS ─────────────────────────────────────────────────────────
+
+    public function getChildFirstNameAttribute()
+    {
+        $parts = explode(' ', trim($this->student_name ?? ''), 2);
+        return $parts[0] ?? '';
+    }
+
+    public function getChildLastNameAttribute()
+    {
+        $parts = explode(' ', trim($this->student_name ?? ''), 2);
+        return isset($parts[1]) ? $parts[1] : '';
+    }
+
     // ── HELPER METHODS ────────────────────────────────────────────────────
 
     public function hasIncompleteDocuments()
