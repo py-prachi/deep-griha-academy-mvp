@@ -172,6 +172,18 @@ class FeePaymentRepository implements FeePaymentInterface
 
     public function getCategoryWiseSummary($session_id)
     {
+        // Derive academic year date range from session_name (e.g. "2025-2026" → Apr 2025 – Mar 2026)
+        $session = \App\Models\SchoolSession::find($session_id);
+        $startDate = null;
+        $endDate   = null;
+        if ($session) {
+            $parts = explode('-', $session->session_name);
+            $startYear = (int) trim($parts[0]);
+            $endYear   = isset($parts[1]) ? (int) trim($parts[1]) : $startYear + 1;
+            $startDate = $startYear . '-04-01';
+            $endDate   = $endYear   . '-03-31';
+        }
+
         return DB::select("
             SELECT
                 u.fee_category,
@@ -188,10 +200,11 @@ class FeePaymentRepository implements FeePaymentInterface
                 SELECT student_user_id, SUM(amount_paid) as amount_paid
                 FROM fee_payments
                 WHERE payment_category = 'fee'
+                AND payment_date >= ? AND payment_date <= ?
                 GROUP BY student_user_id
             ) fp_totals ON fp_totals.student_user_id = u.id
             WHERE u.role = 'student'
             GROUP BY u.fee_category
-        ", [$session_id, $session_id]);
+        ", [$session_id, $session_id, $startDate, $endDate]);
     }
 }

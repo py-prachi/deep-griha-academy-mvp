@@ -63,50 +63,74 @@ class FeeReportController extends Controller
 
     public function defaulters(Request $request)
     {
-        $current_school_session_id = $this->getSchoolCurrentSession();
-        $defaulters = $this->feePaymentRepository->getDefaulters($current_school_session_id);
+        $sessions = $this->schoolSessionRepository->getAll();
+        $selectedSessionId = $request->get('session_id', $this->getSchoolCurrentSession());
+        $selectedSession = $sessions->firstWhere('id', $selectedSessionId);
+        $defaulters = $this->feePaymentRepository->getDefaulters($selectedSessionId);
         if ($request->get('pdf')) {
             $pdf = Pdf::loadView('reports.fees.defaulters-pdf', compact('defaulters'))->setPaper('a4', 'portrait');
             return $pdf->download('defaulters.pdf');
         }
-        return view('reports.fees.defaulters', compact('defaulters'));
+        return view('reports.fees.defaulters', compact('defaulters', 'sessions', 'selectedSessionId', 'selectedSession'));
     }
 
     public function categorySummary(Request $request)
     {
-        $current_school_session_id = $this->getSchoolCurrentSession();
-        $summary = $this->feePaymentRepository->getCategoryWiseSummary($current_school_session_id);
+        $sessions = $this->schoolSessionRepository->getAll();
+        $selectedSessionId = $request->get('session_id', $this->getSchoolCurrentSession());
+        $selectedSession = $sessions->firstWhere('id', $selectedSessionId);
+        $feeStructureCount = \App\Models\FeeStructure::where('session_id', $selectedSessionId)->count();
+        $summary = $this->feePaymentRepository->getCategoryWiseSummary($selectedSessionId);
         if ($request->get('pdf')) {
             $pdf = Pdf::loadView('reports.fees.category-summary-pdf', compact('summary'))->setPaper('a4', 'portrait');
             return $pdf->download('category-summary.pdf');
         }
-        return view('reports.fees.category-summary', compact('summary'));
+        return view('reports.fees.category-summary', compact('summary', 'sessions', 'selectedSessionId', 'selectedSession', 'feeStructureCount'));
     }
 
     public function admissions(Request $request)
     {
-        $session       = $this->schoolSessionRepository->getLatestSession();
-        $academic_year = $session->session_name;
-        $summary = [
-            'inquiry'   => Admission::where('academic_year', $academic_year)->where('status', 'inquiry')->count(),
-            'pending'   => Admission::where('academic_year', $academic_year)->where('status', 'pending')->count(),
-            'confirmed' => Admission::where('academic_year', $academic_year)->where('status', 'confirmed')->count(),
-            'cancelled' => Admission::withTrashed()->where('academic_year', $academic_year)->where('status', 'cancelled')->count(),
-            'exited'    => Admission::where('academic_year', $academic_year)->where('status', 'exited')->count(),
-        ];
-        $statusFilter = $request->get('status');
-        $query = Admission::with('schoolClass')
+        $sessions        = $this->schoolSessionRepository->getAll();
+        $latestSession   = $this->schoolSessionRepository->getLatestSession();
+        $selectedSessionId = $request->get('session_id', $latestSession->id);
+        $selectedSession = $sessions->firstWhere('id', $selectedSessionId);
+        $academic_year   = $selectedSession ? $selectedSession->session_name : $latestSession->session_name;
+
+        // Students active in this session via promotions
+        $promotedStudentIds = Promotion::where('session_id', $selectedSessionId)->pluck('student_id');
+
+        // New admissions created this academic year (inquiry/pending/cancelled)
+        $newAdmissionIds = Admission::withTrashed()
             ->where('academic_year', $academic_year)
-            ->withTrashed();
+            ->pluck('id');
+
+        // Admissions linked to promoted students in this session
+        $promotedAdmissionIds = Admission::whereIn('student_user_id', $promotedStudentIds)->pluck('id');
+
+        // Union: all relevant admission IDs for this session
+        $allIds = $newAdmissionIds->merge($promotedAdmissionIds)->unique();
+
+        $summary = [
+            'inquiry'   => Admission::whereIn('id', $allIds)->where('status', 'inquiry')->count(),
+            'pending'   => Admission::whereIn('id', $allIds)->where('status', 'pending')->count(),
+            'confirmed' => Admission::whereIn('id', $allIds)->where('status', 'confirmed')->count(),
+            'cancelled' => Admission::withTrashed()->whereIn('id', $allIds)->where('status', 'cancelled')->count(),
+            'exited'    => Admission::whereIn('id', $allIds)->where('status', 'exited')->count(),
+            'graduated' => Admission::whereIn('id', $allIds)->where('status', 'graduated')->count(),
+        ];
+
+        $statusFilter = $request->get('status');
+        $query = Admission::with('schoolClass')->withTrashed()->whereIn('id', $allIds);
         if ($statusFilter) {
             $query->where('status', $statusFilter);
         }
         $admissions = $query->orderBy('status')->orderBy('created_at', 'desc')->get();
+
         if ($request->get('pdf')) {
             $pdf = Pdf::loadView('reports.admissions-pdf', compact('summary', 'admissions', 'academic_year'))->setPaper('a4', 'portrait');
             return $pdf->download('admissions-report.pdf');
         }
-        return view('reports.admissions', compact('summary', 'admissions', 'academic_year', 'statusFilter'));
+        return view('reports.admissions', compact('summary', 'admissions', 'academic_year', 'statusFilter', 'sessions', 'selectedSessionId', 'selectedSession'));
     }
 
     public function classStrength(Request $request)
@@ -136,12 +160,14 @@ class FeeReportController extends Controller
 
     public function rte(Request $request)
     {
-        $current_school_session_id = $this->getSchoolCurrentSession();
+        $sessions = $this->schoolSessionRepository->getAll();
+        $selectedSessionId = $request->get('session_id', $this->getSchoolCurrentSession());
+        $selectedSession = $sessions->firstWhere('id', $selectedSessionId);
         $students = User::with(['admission'])
             ->join('promotions', 'promotions.student_id', '=', 'users.id')
             ->join('school_classes', 'school_classes.id', '=', 'promotions.class_id')
             ->join('sections', 'sections.id', '=', 'promotions.section_id')
-            ->where('promotions.session_id', $current_school_session_id)
+            ->where('promotions.session_id', $selectedSessionId)
             ->where('users.fee_category', 'rte')
             ->where('users.role', 'student')
             ->select('users.*', 'school_classes.class_name', 'sections.section_name')
@@ -151,7 +177,7 @@ class FeeReportController extends Controller
             $pdf = Pdf::loadView('reports.rte-pdf', compact('students'))->setPaper('a4', 'portrait');
             return $pdf->download('rte-students.pdf');
         }
-        return view('reports.rte', compact('students'));
+        return view('reports.rte', compact('students', 'sessions', 'selectedSessionId', 'selectedSession'));
     }
 
         public function miscSales(Request $request)

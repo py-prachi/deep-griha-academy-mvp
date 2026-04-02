@@ -142,7 +142,12 @@ class AdmissionController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $this->admissionRepository->update($id, $request->all());
+            $admission = $this->admissionRepository->update($id, $request->all());
+            // Keep promotion id_card_number in sync when general_id is updated
+            if ($request->filled('general_id') && $admission->student_user_id) {
+                \App\Models\Promotion::where('student_id', $admission->student_user_id)
+                    ->update(['id_card_number' => $request->general_id]);
+            }
             return redirect()->route('admissions.show', $id)
                              ->with('status', 'Admission updated successfully!');
         } catch (\Exception $e) {

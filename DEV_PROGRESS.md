@@ -272,6 +272,57 @@ https://github.com/py-prachi/deep-griha-academy-mvp
 - Decision pending Angela: mandatory? at inquiry or after confirmation?
 - Storage plan: Cloudinary free tier
 
+## Phase 6 — Bulk Student Import — COMPLETE ✅
+
+### Done ✅
+- PhpSpreadsheet ^1.30 installed
+- StudentImportController: template download, preview/validate, commit
+- Template: colour-coded required/optional columns, example row, Instructions sheet
+- Preview: per-row validation — required fields, date format, gender, fee_category,
+  class name match, section fallback, duplicate check (blocks re-upload of same file)
+- Commit: creates Admission (confirmed) + User (student) + Promotion + document checklist
+  Pre-primary auto-generates dga_admission_no; Class 1+ uses general_id
+  Per-row DB transactions — one bad row does not block the rest
+- Left menu: Import Students under Admissions
+- generate_test_import.php + TestImport.xlsx: 12 valid + 6 error test rows
+- Admin-only (403 for other roles)
+
+### Notes
+- Fee structures are NOT imported — set up manually via Fee Structures UI (max 44 rows, one-time per year)
+- Fee structure import can be built later if Angela needs bulk fee updates annually
+
+## Phase 7 — Session Promotion — COMPLETE ✅
+
+### Done ✅
+- Migration: add_graduated_to_student_status (ENUM 'active','left','graduated')
+- SessionSetupController: cloneClasses() — POST /school/session/clone-classes
+  - Validates source ≠ target, checks target is empty
+  - DB transaction: clones all SchoolClass rows → all Section rows per class
+- Academic Settings view: Clone Classes & Sections card (source/target dropdowns)
+- PromotionController::store(): Class 8 graduation handling
+  - `graduate[student_id]` checkbox in promote form for Class 8 sections
+  - If checked: sets User.student_status = 'graduated', skips Promotion insert
+  - If unchecked: normal promotion (student repeating year)
+- promote.blade.php: Graduate? column for Class 8, JS toggleGraduate() hides class/section inputs when checked
+
+### Workflow
+1. Create new session (e.g. 2026-2027) via Academic Settings → Create Session
+2. Clone Classes & Sections from 2025-2026 into 2026-2027 (one click)
+3. Go to Promotions → select class/section from 2025-2026 → promote students to 2026-2027
+4. Class 8: check "Graduate" for passed-out students; leave unchecked for repeaters
+
+### Pending Angela Confirmation
+- How many terms/semesters per year? (2 semesters / 3 terms / 1 annual)
+  → Determines course setup and marks structure
+- Courses (subjects) per class needed — must be set up per semester
+- Teacher assignment per course/class/section also needed
+
+### Notes on Semesters
+- Semesters are required for courses, teacher assignments, marks
+- Current setup: Sem 1 (Apr–Oct), Sem 2 (Nov–Mar) for 2025-2026
+- DGA may want to keep 2-semester pattern or simplify to 1 annual term
+- Safe to ignore semesters until marks/courses feature is tackled
+
 ## Deployment Strategy
 
 ### Platform Decision

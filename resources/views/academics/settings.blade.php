@@ -16,6 +16,50 @@
 
                     <div class="mb-4">
                         <div class="row" data-masonry='{"percentPosition": true }'>
+                            {{-- Clone Classes & Sections --}}
+                            <div class="col-md-4 mb-4">
+                                <div class="p-3 border bg-light shadow-sm">
+                                    <h6><i class="bi bi-copy me-1"></i> Clone Classes &amp; Sections</h6>
+                                    <p class="text-muted">
+                                        <small>Copy all classes and sections from one session into another empty session. Use this after creating a new academic year session.</small>
+                                    </p>
+                                    @if(session('status'))
+                                        <div class="alert alert-success alert-sm py-1 px-2 mb-2">
+                                            <small>{{ session('status') }}</small>
+                                        </div>
+                                    @endif
+                                    @if(session('error'))
+                                        <div class="alert alert-danger alert-sm py-1 px-2 mb-2">
+                                            <small>{{ session('error') }}</small>
+                                        </div>
+                                    @endif
+                                    <form action="{{ route('school.session.clone-classes') }}" method="POST">
+                                        @csrf
+                                        <div class="mb-2">
+                                            <label class="form-label form-label-sm mb-1">Copy FROM (source):</label>
+                                            <select class="form-select form-select-sm" name="source_session_id" required>
+                                                @isset($school_sessions)
+                                                    @foreach($school_sessions as $s)
+                                                        <option value="{{ $s->id }}">{{ $s->session_name }}</option>
+                                                    @endforeach
+                                                @endisset
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label form-label-sm mb-1">Copy INTO (target — must be empty):</label>
+                                            <select class="form-select form-select-sm" name="target_session_id" required>
+                                                @isset($school_sessions)
+                                                    @foreach($school_sessions as $s)
+                                                        <option value="{{ $s->id }}">{{ $s->session_name }}</option>
+                                                    @endforeach
+                                                @endisset
+                                            </select>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-success" type="submit"><i class="bi bi-copy me-1"></i> Clone</button>
+                                    </form>
+                                </div>
+                            </div>
+
                             @if ($latest_school_session_id == $current_school_session_id)
                             <div class="col-md-4 mb-4">
                                 <div class="p-3 border bg-light shadow-sm">
@@ -23,12 +67,38 @@
                                     <p class="text-danger">
                                         <small><i class="bi bi-exclamation-diamond-fill me-2"></i> Create one Session per academic year. Last created session will be considered as the latest academic session.</small>
                                     </p>
+                                    @php
+                                        // Build list of upcoming session names not yet created
+                                        $existingNames = $school_sessions->pluck('session_name')->map(function($n) { return trim($n); })->toArray();
+                                        $latestName = $school_sessions->sortByDesc('id')->first() ? trim($school_sessions->sortByDesc('id')->first()->session_name) : '2025-2026';
+                                        // Parse end year from latest session (e.g. "2025-2026" → 2026)
+                                        $parts = explode('-', $latestName);
+                                        $endYear = isset($parts[1]) ? (int) trim($parts[1]) : (int) trim($parts[0]) + 1;
+                                        $upcomingSessions = [];
+                                        for ($y = $endYear; $y <= $endYear + 2; $y++) {
+                                            $name = $y . '-' . ($y + 1);
+                                            if (!in_array($name, $existingNames)) {
+                                                $upcomingSessions[] = $name;
+                                            }
+                                        }
+                                    @endphp
                                     <form action="{{route('school.session.store')}}" method="POST">
                                         @csrf
                                         <div class="mb-3">
-                                            <input type="text" class="form-control form-control-sm" placeholder="2021 - 2022" aria-label="Current Session" name="session_name" required>
+                                            @if(count($upcomingSessions) > 0)
+                                                <select class="form-select form-select-sm" name="session_name" required>
+                                                    <option value="" disabled selected>Select session year</option>
+                                                    @foreach($upcomingSessions as $sName)
+                                                        <option value="{{ $sName }}">{{ $sName }}</option>
+                                                    @endforeach
+                                                </select>
+                                            @else
+                                                <p class="text-muted small mb-0">No upcoming sessions to create.</p>
+                                            @endif
                                         </div>
-                                        <button class="btn btn-sm btn-outline-primary" type="submit"><i class="bi bi-check2"></i> Create</button>
+                                        @if(count($upcomingSessions) > 0)
+                                            <button class="btn btn-sm btn-outline-primary" type="submit"><i class="bi bi-check2"></i> Create</button>
+                                        @endif
                                     </form>
                                 </div>
                             </div>

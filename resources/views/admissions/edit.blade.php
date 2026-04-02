@@ -32,6 +32,18 @@
                                     <label class="form-label">Full Name <span class="text-danger">*</span></label>
                                     <input type="text" name="student_name" class="form-control" value="{{ old('student_name', $admission->student_name) }}" required>
                                 </div>
+                                @if($admission->dga_admission_no)
+                                <div class="col-md-3">
+                                    <label class="form-label">DGA Admission No.</label>
+                                    <input type="text" class="form-control" value="{{ $admission->dga_admission_no }}" disabled>
+                                    <small class="text-muted">Auto-generated, not editable</small>
+                                </div>
+                                @else
+                                <div class="col-md-3">
+                                    <label class="form-label">General ID <span class="text-muted small">(ZP Portal / SARAL)</span></label>
+                                    <input type="text" name="general_id" class="form-control" value="{{ old('general_id', $admission->general_id) }}" placeholder="11-digit ZP ID">
+                                </div>
+                                @endif
                                 <div class="col-md-3">
                                     <label class="form-label">Date of Birth</label>
                                     <input type="date" name="date_of_birth" class="form-control" value="{{ old('date_of_birth', optional($admission->date_of_birth)->format('Y-m-d')) }}">

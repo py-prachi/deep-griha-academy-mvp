@@ -424,7 +424,7 @@ class StudentImportController extends Controller
                     'session_id'     => $admission->session_id,
                     'class_id'       => $admission->class_id,
                     'section_id'     => $admission->section_id,
-                    'id_card_number' => $admission->dga_admission_no ?? $admission->general_id ?? 'DGA-' . $admission->id,
+                    'id_card_number' => $admission->dga_admission_no ?? $admission->general_id ?? null,
                 ], $student->id);
 
                 // Link student to admission

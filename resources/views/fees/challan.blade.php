@@ -83,6 +83,12 @@
                                 <td colspan="2" class="text-end"><strong>Total ₹</strong></td>
                                 <td class="text-end"><strong>{{ number_format($payment->amount_paid, 2) }}</strong></td>
                             </tr>
+                            @if($balance !== null)
+                            <tr class="{{ $balance > 0 ? 'table-warning' : 'table-success' }}">
+                                <td colspan="2" class="text-end"><strong>Balance Remaining ₹</strong></td>
+                                <td class="text-end"><strong>{{ number_format($balance, 2) }}</strong></td>
+                            </tr>
+                            @endif
                         </tfoot>
                     </table>
                     @if($payment->notes)

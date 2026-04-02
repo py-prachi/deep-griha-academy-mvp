@@ -21,6 +21,26 @@
                     </nav>
 
                     <div class="container-fluid px-0">
+                        <form method="GET" action="{{ route('reports.fees.defaulters') }}" class="mb-3">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-auto">
+                                    <label class="form-label mb-0">Academic Year:</label>
+                                </div>
+                                <div class="col-auto">
+                                    <select name="session_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                                        @foreach($sessions as $s)
+                                            <option value="{{ $s->id }}" {{ $s->id == $selectedSessionId ? 'selected' : '' }}>{{ $s->session_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                @if($selectedSession)
+                                <div class="col-auto">
+                                    <span class="text-muted small">Showing: <strong>{{ $selectedSession->session_name }}</strong></span>
+                                </div>
+                                @endif
+                            </div>
+                        </form>
+
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <div class="card text-white bg-danger">

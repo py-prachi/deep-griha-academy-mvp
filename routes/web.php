@@ -25,6 +25,7 @@ use App\Http\Controllers\AcademicSettingController;
 use App\Http\Controllers\AssignedTeacherController;
 use App\Http\Controllers\Auth\UpdatePasswordController;
 use App\Http\Controllers\LeavingCertificateController;
+use App\Http\Controllers\SessionSetupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,6 +50,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('school')->name('school.')->group(function () {
         Route::post('session/create', [SchoolSessionController::class, 'store'])->name('session.store');
         Route::post('session/browse', [SchoolSessionController::class, 'browse'])->name('session.browse');
+        Route::post('session/clone-classes', [SessionSetupController::class, 'cloneClasses'])->name('session.clone-classes');
 
         Route::post('semester/create', [SemesterController::class, 'store'])->name('semester.create');
         Route::post('final-marks-submission-status/update', [AcademicSettingController::class, 'updateFinalMarksSubmissionStatus'])->name('final.marks.submission.status.update');
@@ -215,6 +217,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/fee-structures/{id}',                [App\Http\Controllers\FeeStructureController::class, 'destroy'])->name('fee-structures.destroy');
 
     // ── FEE PAYMENTS ──────────────────────────────────────────────────────
+    Route::get('/fees/collect',                          [App\Http\Controllers\FeePaymentController::class, 'collectFee'])->name('fees.collect');
     Route::get('/fees/student/{student_id}',             [App\Http\Controllers\FeePaymentController::class, 'ledger'])->name('fees.ledger');
     Route::get('/fees/student/{student_id}/pay',         [App\Http\Controllers\FeePaymentController::class, 'create'])->name('fees.create');
     Route::post('/fees/student/{student_id}/pay',        [App\Http\Controllers\FeePaymentController::class, 'store'])->name('fees.store');

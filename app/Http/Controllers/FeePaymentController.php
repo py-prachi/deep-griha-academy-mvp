@@ -48,6 +48,57 @@ class FeePaymentController extends Controller
         return compact('totalPaid', 'totalDue', 'balance');
     }
 
+    // ── COLLECT FEE (search entry point) ─────────────────────────────────
+
+    public function collectFee(Request $request)
+    {
+        $search = $request->query('q');
+        $students = collect();
+
+        if ($search && strlen($search) >= 2) {
+            $current_school_session_id = $this->getSchoolCurrentSession();
+            $session = $this->schoolSessionRepository->getLatestSession();
+
+            $students = User::where('role', 'student')
+                ->where('student_status', 'active')
+                ->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', '%' . $search . '%')
+                      ->orWhere('last_name', 'like', '%' . $search . '%')
+                      ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ['%' . $search . '%']);
+                })
+                ->with('admission')
+                ->get()
+                ->map(function ($student) use ($current_school_session_id, $session) {
+                    $promotion = \App\Models\Promotion::where('student_id', $student->id)
+                        ->where('session_id', $current_school_session_id)
+                        ->with('schoolClass', 'section')
+                        ->first();
+
+                    $admission = $student->admission;
+                    $feeStructure = null;
+                    if ($promotion) {
+                        $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
+                            $promotion->class_id, $session->session_name, $student->fee_category ?? 'general'
+                        );
+                    } elseif ($admission) {
+                        $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
+                            $admission->class_id, $session->session_name, $admission->fee_category ?? 'general'
+                        );
+                    }
+
+                    $calc = $this->calculateBalance($student, $feeStructure, $student->id);
+
+                    $student->_promotion    = $promotion;
+                    $student->_balance      = $calc['balance'];
+                    $student->_totalDue     = $calc['totalDue'];
+                    $student->_totalPaid    = $calc['totalPaid'];
+                    return $student;
+                });
+        }
+
+        return view('fees.collect', compact('students', 'search'));
+    }
+
     // ── LEDGER ────────────────────────────────────────────────────────────
 
     public function ledger($student_id)
@@ -198,15 +249,33 @@ class FeePaymentController extends Controller
         $student = $payment->student;
 
         $current_school_session_id = $this->getSchoolCurrentSession();
+        $session = $this->schoolSessionRepository->getLatestSession();
         $promotion = \App\Models\Promotion::where('student_id', $student->id)
             ->where('session_id', $current_school_session_id)
             ->with('section.schoolClass')
             ->first();
 
+        $balance = null;
+        if ($payment->payment_category === 'fee') {
+            $feeStructure = null;
+            if ($promotion) {
+                $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
+                    $promotion->class_id, $session->session_name, $student->fee_category ?? 'general'
+                );
+            } elseif ($student->admission) {
+                $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
+                    $student->admission->class_id, $session->session_name, $student->admission->fee_category ?? 'general'
+                );
+            }
+            $calc    = $this->calculateBalance($student, $feeStructure, $student->id);
+            $balance = $calc['balance'];
+        }
+
         return view('fees.challan', [
             'payment'   => $payment,
             'student'   => $student,
             'promotion' => $promotion,
+            'balance'   => $balance,
         ]);
     }
 

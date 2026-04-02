@@ -15,7 +15,7 @@ class AdmissionRepository implements AdmissionInterface
     public function getAll($filters = [])
     {
         $query = Admission::with(['schoolClass', 'section', 'session'])
-                          ->whereNotIn('status', ['cancelled', 'exited']);
+                          ->whereNotIn('status', ['cancelled', 'exited', 'graduated']);
 
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -191,7 +191,7 @@ class AdmissionRepository implements AdmissionInterface
                 'session_id'    => $admission->session_id,
                 'class_id'      => $admission->class_id,
                 'section_id'    => $data['section_id'],
-                'id_card_number' => $admission->dga_admission_no ?? $admission->general_id ?? 'DGA-' . $admission->id,
+                'id_card_number' => $admission->dga_admission_no ?? $admission->general_id ?? '',
             ], $student->id);
 
             // Link student back to admission
