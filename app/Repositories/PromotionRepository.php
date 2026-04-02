@@ -87,6 +87,7 @@ class PromotionRepository {
         return Promotion::with('schoolClass')->select('class_id')
                     ->where('session_id', $session_id)
                     ->distinct('class_id')
+                    ->orderBy('class_id')
                     ->get();
     }
 

@@ -21,10 +21,30 @@
                     </nav>
 
                     <div class="container-fluid px-0">
+                        <form method="GET" action="{{ route('reports.rte') }}" class="mb-3">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-auto">
+                                    <label class="form-label mb-0">Academic Year:</label>
+                                </div>
+                                <div class="col-auto">
+                                    <select name="session_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                                        @foreach($sessions as $s)
+                                            <option value="{{ $s->id }}" {{ $s->id == $selectedSessionId ? 'selected' : '' }}>{{ $s->session_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                @if($selectedSession)
+                                <div class="col-auto">
+                                    <span class="text-muted small">Showing: <strong>{{ $selectedSession->session_name }}</strong></span>
+                                </div>
+                                @endif
+                            </div>
+                        </form>
+
                         <div class="card mb-3">
                             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-star me-2 text-warning"></i>RTE Students Report</h5>
-                                <a href="?pdf=1" class="btn btn-sm btn-light"><i class="fas fa-download me-1"></i> Download PDF</a>
+                                <a href="?pdf=1&session_id={{ $selectedSessionId }}" class="btn btn-sm btn-light"><i class="fas fa-download me-1"></i> Download PDF</a>
                             </div>
                         </div>
 

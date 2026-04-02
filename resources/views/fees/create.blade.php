@@ -30,6 +30,44 @@
                 </div>
             </div>
 
+            {{-- Fee Structure Breakdown --}}
+            @if($feeStructure)
+            <div class="card mb-3 border-0 bg-light">
+                <div class="card-body py-2">
+                    <div class="row text-center">
+                        <div class="col border-end">
+                            <div class="text-muted small">Admission</div>
+                            <div class="fw-bold">₹{{ number_format($feeStructure->admission_fee, 0) }}</div>
+                        </div>
+                        <div class="col border-end">
+                            <div class="text-muted small">Tuition</div>
+                            <div class="fw-bold">₹{{ number_format($feeStructure->tuition_fee, 0) }}</div>
+                        </div>
+                        <div class="col border-end">
+                            <div class="text-muted small">Transport</div>
+                            <div class="fw-bold">₹{{ number_format($feeStructure->transport_fee, 0) }}</div>
+                        </div>
+                        <div class="col border-end">
+                            <div class="text-muted small">Other</div>
+                            <div class="fw-bold">₹{{ number_format($feeStructure->other_fee, 0) }}</div>
+                        </div>
+                        <div class="col">
+                            <div class="text-muted small">Total Due</div>
+                            <div class="fw-bold text-primary">₹{{ number_format($feeStructure->total_fee, 0) }}</div>
+                        </div>
+                        <div class="col">
+                            <div class="text-muted small">Paid</div>
+                            <div class="fw-bold text-success">₹{{ number_format($totalPaid, 0) }}</div>
+                        </div>
+                        <div class="col">
+                            <div class="text-muted small">Balance</div>
+                            <div class="fw-bold {{ $balance > 0 ? 'text-danger' : 'text-success' }}">₹{{ number_format($balance, 0) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Record Payment</h5>

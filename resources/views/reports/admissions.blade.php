@@ -21,10 +21,25 @@
                     </nav>
 
                     <div class="container-fluid px-0">
+                        <form method="GET" action="{{ route('reports.admissions') }}" class="mb-3">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-auto">
+                                    <label class="form-label mb-0">Academic Year:</label>
+                                </div>
+                                <div class="col-auto">
+                                    <select name="session_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                                        @foreach($sessions as $s)
+                                            <option value="{{ $s->id }}" {{ $s->id == $selectedSessionId ? 'selected' : '' }}>{{ $s->session_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+
                         <div class="card mb-3">
                             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-user-graduate me-2"></i>Admissions Report — {{ $academic_year }}</h5>
-                                <a href="?pdf=1" class="btn btn-sm btn-light"><i class="fas fa-download me-1"></i> Download PDF</a>
+                                <a href="?pdf=1&session_id={{ $selectedSessionId }}" class="btn btn-sm btn-light"><i class="fas fa-download me-1"></i> Download PDF</a>
                             </div>
                         </div>
 
@@ -70,6 +85,14 @@
                                 </div>
                             </div>
                             <div class="col-md-2">
+                                <div class="card text-white" style="background-color:#6f42c1;">
+                                    <div class="card-body text-center py-2">
+                                        <h6 class="card-title mb-1">Graduated</h6>
+                                        <h3 class="mb-0">{{ $summary['graduated'] }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
                                 <div class="card bg-light">
                                     <div class="card-body text-center py-2">
                                         <h6 class="card-title mb-1">Total</h6>
@@ -81,18 +104,21 @@
 
                         {{-- Status Filter --}}
                         <div class="mb-3 d-flex gap-2 flex-wrap align-items-center">
-                            <a href="{{ route('reports.admissions') }}"
+                            <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId]) }}"
                                class="btn btn-sm {{ !$statusFilter ? 'btn-dark' : 'btn-outline-dark' }}">All</a>
-                            <a href="{{ route('reports.admissions', ['status' => 'inquiry']) }}"
+                            <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId, 'status' => 'inquiry']) }}"
                                class="btn btn-sm {{ $statusFilter == 'inquiry' ? 'btn-secondary' : 'btn-outline-secondary' }}">Inquiry</a>
-                            <a href="{{ route('reports.admissions', ['status' => 'pending']) }}"
+                            <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId, 'status' => 'pending']) }}"
                                class="btn btn-sm {{ $statusFilter == 'pending' ? 'btn-warning' : 'btn-outline-warning' }}">Pending</a>
-                            <a href="{{ route('reports.admissions', ['status' => 'confirmed']) }}"
+                            <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId, 'status' => 'confirmed']) }}"
                                class="btn btn-sm {{ $statusFilter == 'confirmed' ? 'btn-success' : 'btn-outline-success' }}">Confirmed</a>
-                            <a href="{{ route('reports.admissions', ['status' => 'cancelled']) }}"
+                            <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId, 'status' => 'cancelled']) }}"
                                class="btn btn-sm {{ $statusFilter == 'cancelled' ? 'btn-danger' : 'btn-outline-danger' }}">Cancelled</a>
-                            <a href="{{ route('reports.admissions', ['status' => 'exited']) }}"
+                            <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId, 'status' => 'exited']) }}"
                                class="btn btn-sm {{ $statusFilter == 'exited' ? 'btn-dark' : 'btn-outline-dark' }}">Exited</a>
+                            <a href="{{ route('reports.admissions', ['session_id' => $selectedSessionId, 'status' => 'graduated']) }}"
+                               class="btn btn-sm {{ $statusFilter == 'graduated' ? 'btn-purple' : 'btn-outline-secondary' }}"
+                               style="{{ $statusFilter == 'graduated' ? 'background-color:#6f42c1;color:#fff;border-color:#6f42c1;' : '' }}">Graduated</a>
                         </div>
 
                         <div class="card">
@@ -125,13 +151,18 @@
                                                         elseif ($admission->status == 'pending') $badgeColour = 'warning text-dark';
                                                         elseif ($admission->status == 'cancelled') $badgeColour = 'danger';
                                                         elseif ($admission->status == 'exited') $badgeColour = 'dark';
+                                                        elseif ($admission->status == 'graduated') $badgeColour = 'purple';
                                                     @endphp
-                                                    <span class="badge bg-{{ $badgeColour }}">
-                                                        {{ ucfirst($admission->status) }}
-                                                    </span>
+                                                    @if($admission->status == 'graduated')
+                                                        <span class="badge" style="background-color:#6f42c1;">Graduated</span>
+                                                    @else
+                                                        <span class="badge bg-{{ $badgeColour }}">{{ ucfirst($admission->status) }}</span>
+                                                    @endif
                                                 </td>
                                                 <td class="text-center">
-                                                    @if($admission->status == 'exited')
+                                                    @if($admission->status == 'graduated')
+                                                        <a href="{{ route('admissions.show', $admission->id) }}" class="btn btn-sm btn-outline-secondary" style="border-color:#6f42c1;color:#6f42c1;">View</a>
+                                                    @elseif($admission->status == 'exited')
                                                         <a href="{{ route('exits.show', $admission->exitForm->id) }}" class="btn btn-sm btn-outline-dark">View</a>
                                                     @elseif($admission->status == 'cancelled')
                                                         <a href="{{ route('admissions.cancelled') }}" class="btn btn-sm btn-outline-danger">View</a>

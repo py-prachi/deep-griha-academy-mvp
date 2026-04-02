@@ -69,11 +69,12 @@ class Admission extends Model
     ];
 
     // ── STATUS CONSTANTS ──────────────────────────────────────────────────
-    const STATUS_INQUIRY   = 'inquiry';
-    const STATUS_PENDING   = 'pending';
-    const STATUS_CONFIRMED = 'confirmed';
-    const STATUS_CANCELLED = 'cancelled';
-    const STATUS_EXITED    = 'exited';
+    const STATUS_INQUIRY    = 'inquiry';
+    const STATUS_PENDING    = 'pending';
+    const STATUS_CONFIRMED  = 'confirmed';
+    const STATUS_CANCELLED  = 'cancelled';
+    const STATUS_EXITED     = 'exited';
+    const STATUS_GRADUATED  = 'graduated';
 
     // ── RELATIONSHIPS ─────────────────────────────────────────────────────
 

@@ -291,18 +291,25 @@ https://github.com/py-prachi/deep-griha-academy-mvp
 - Fee structures are NOT imported — set up manually via Fee Structures UI (max 44 rows, one-time per year)
 - Fee structure import can be built later if Angela needs bulk fee updates annually
 
-## Phase 7 — Session Promotion — PLANNED (branch: feature/phase7-session-promotion)
+## Phase 7 — Session Promotion — COMPLETE ✅
 
-### Context
-- Only 1 session exists (2025-2026) — new session 2026-2027 needed for April year-end
-- Promotion controller + views already exist in codebase (from UnifiedTransform base)
-- Promotion requires a previous session — currently errors with "No previous session"
-- Creating a new session leaves it empty — all 11 classes + 13 sections must be recreated manually
+### Done ✅
+- Migration: add_graduated_to_student_status (ENUM 'active','left','graduated')
+- SessionSetupController: cloneClasses() — POST /school/session/clone-classes
+  - Validates source ≠ target, checks target is empty
+  - DB transaction: clones all SchoolClass rows → all Section rows per class
+- Academic Settings view: Clone Classes & Sections card (source/target dropdowns)
+- PromotionController::store(): Class 8 graduation handling
+  - `graduate[student_id]` checkbox in promote form for Class 8 sections
+  - If checked: sets User.student_status = 'graduated', skips Promotion insert
+  - If unchecked: normal promotion (student repeating year)
+- promote.blade.php: Graduate? column for Class 8, JS toggleGraduate() hides class/section inputs when checked
 
-### Planned Features
-- **Clone Session** — one-click copy of all classes + sections from previous session into new one
-- **Class 8 passed-out handling** — graduate Class 8 students cleanly (not promoted to next class)
-- Promotion flow itself already works once session + classes exist
+### Workflow
+1. Create new session (e.g. 2026-2027) via Academic Settings → Create Session
+2. Clone Classes & Sections from 2025-2026 into 2026-2027 (one click)
+3. Go to Promotions → select class/section from 2025-2026 → promote students to 2026-2027
+4. Class 8: check "Graduate" for passed-out students; leave unchecked for repeaters
 
 ### Pending Angela Confirmation
 - How many terms/semesters per year? (2 semesters / 3 terms / 1 annual)

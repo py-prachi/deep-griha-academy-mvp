@@ -128,14 +128,36 @@
                     </li>
 
                     {{-- Fees --}}
+                    @php
+                        $latestSessionForMenu = \App\Models\SchoolSession::orderBy('id','desc')->first();
+                        $feeStructureCount = $latestSessionForMenu
+                            ? \App\Models\FeeStructure::where('session_id', $latestSessionForMenu->id)->count()
+                            : 0;
+                        $feeStructureMissing = ($feeStructureCount === 0);
+                    @endphp
                     <li class="nav-item">
                         <a type="button" href="#fees-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('fees*') || request()->is('fee-structures*') ? 'active' : '' }}">
                             <i class="bi bi-cash-stack"></i>
                             <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Fees</span>
+                            @if($feeStructureMissing)
+                                <span class="badge bg-warning text-dark ms-1 d-inline d-sm-none d-md-none d-xl-inline" title="Fee structure not set up for {{ $latestSessionForMenu->session_name }}">!</span>
+                            @endif
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
                         <ul class="nav collapse {{ request()->is('fees*') || request()->is('fee-structures*') ? 'show' : 'hide' }} bg-white" id="fees-submenu">
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('fee-structures.index') }}"><i class="bi bi-table me-2"></i> Fee Structures</a></li>
+                            <li class="nav-item w-100">
+                                <a class="nav-link {{ request()->routeIs('fees.collect') ? 'active' : '' }}" href="{{ route('fees.collect') }}">
+                                    <i class="bi bi-cash-coin me-2"></i> Collect Fee
+                                </a>
+                            </li>
+                            <li class="nav-item w-100">
+                                <a class="nav-link {{ $feeStructureMissing ? 'text-warning fw-bold' : '' }}" href="{{ route('fee-structures.index') }}">
+                                    <i class="bi bi-table me-2"></i> Fee Structures
+                                    @if($feeStructureMissing)
+                                        <span class="badge bg-warning text-dark ms-1">Setup needed</span>
+                                    @endif
+                                </a>
+                            </li>
                         </ul>
                     </li>
 
@@ -165,8 +187,26 @@
 
                     {{-- Promotion --}}
                     @if (!session()->has('browse_session_id'))
+                    @php
+                        // Check if any students from previous session are not yet promoted to latest session
+                        $prevSession = \App\Models\SchoolSession::orderBy('id','desc')->skip(1)->first();
+                        $promotionPending = false;
+                        if ($prevSession && $latestSessionForMenu && $prevSession->id !== $latestSessionForMenu->id) {
+                            $prevCount = \App\Models\Promotion::where('session_id', $prevSession->id)->count();
+                            $newCount  = \App\Models\Promotion::where('session_id', $latestSessionForMenu->id)->count();
+                            // Count graduated students — they are intentionally not promoted
+                            $graduatedCount = \App\Models\User::where('student_status', 'graduated')->count();
+                            $promotionPending = ($prevCount > 0 && $newCount < ($prevCount - $graduatedCount));
+                        }
+                    @endphp
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('promotions*')? 'active' : '' }}" href="{{url('promotions/index')}}"><i class="bi bi-sort-numeric-up-alt"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Promotion</span></a>
+                        <a class="nav-link {{ request()->is('promotions*')? 'active' : '' }}" href="{{url('promotions/index')}}">
+                            <i class="bi bi-sort-numeric-up-alt"></i>
+                            <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Promotion</span>
+                            @if($promotionPending)
+                                <span class="badge bg-warning text-dark ms-1 d-inline d-sm-none d-md-none d-xl-inline" title="Some students not yet promoted">!</span>
+                            @endif
+                        </a>
                     </li>
                     @endif
 
