@@ -99,6 +99,19 @@
                     {{-- ── ADMIN ONLY ── --}}
                     @if (Auth::user()->role == "admin")
 
+                    {{-- Teachers --}}
+                    <li class="nav-item">
+                        <a type="button" href="#admin-teacher-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('teachers*') ? 'active' : '' }}">
+                            <i class="bi bi-person-video2"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Teachers</span>
+                            <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
+                        </a>
+                        <ul class="nav collapse {{ request()->is('teachers*') ? 'show' : 'hide' }} bg-white" id="admin-teacher-submenu">
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('teacher.list.show') }}"><i class="bi bi-list-ul me-2"></i> All Teachers</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('teacher.create.show') }}"><i class="bi bi-person-plus me-2"></i> Add Teacher</a></li>
+                        </ul>
+                    </li>
+
                     {{-- Admissions --}}
                     <li class="nav-item">
                         <a type="button" href="#admission-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('admissions*')? 'active' : '' }}">
