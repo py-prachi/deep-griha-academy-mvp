@@ -19,6 +19,12 @@
 
                     @include('session-messages')
 
+                    <div class="alert alert-info py-2 mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Promoting <strong>{{ $schoolClass->class_name }}, Section {{ $section->section_name }}</strong>
+                        from <strong>{{ $previousSessionName }}</strong> &rarr; <strong>{{ $latestSessionName }}</strong>
+                    </div>
+
                     @php $isClass8 = ($schoolClass->class_name === 'Class 8'); @endphp
 
                     @if($isClass8)
@@ -111,7 +117,7 @@
                                                     <select onchange="getSections(this, {{ $index }});"
                                                         class="form-select form-select-sm row-class-select"
                                                         id="inputAssignToClass{{ $index }}"
-                                                        name="class_id[{{ $index }}]"
+                                                        name="class_id[{{ $student->student->id }}]"
                                                         data-index="{{ $index }}">
                                                         <option value="" disabled selected>Select class</option>
                                                         @foreach ($school_classes as $school_class)
@@ -122,7 +128,7 @@
                                                 <td id="section-cell-{{ $index }}">
                                                     <select class="form-select form-select-sm row-section-select"
                                                         id="inputAssignToSection{{ $index }}"
-                                                        name="section_id[{{ $index }}]"
+                                                        name="section_id[{{ $student->student->id }}]"
                                                         data-index="{{ $index }}">
                                                         <option value="" disabled selected>Select section</option>
                                                     </select>

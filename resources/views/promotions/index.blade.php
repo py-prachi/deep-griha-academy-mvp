@@ -11,6 +11,12 @@
 
                     @include('session-messages')
 
+                    <div class="alert alert-info py-2 mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Promoting students from <strong>{{ $previousSessionName }}</strong>
+                        &rarr; <strong>{{ $latestSessionName }}</strong>
+                    </div>
+
                     {{-- All-classes overview --}}
                     <div class="card mb-4">
                         <div class="card-header bg-dark text-white">
@@ -21,24 +27,35 @@
                                 <thead class="table-secondary">
                                     <tr>
                                         <th>Class</th>
-                                        <th>Sections</th>
+                                        <th class="text-center">Students</th>
+                                        <th class="text-center">Sections</th>
                                         <th>Status</th>
                                         <th class="text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @isset($previousSessionClasses)
+                                        @php $grandTotal = 0; $grandDone = 0; @endphp
                                         @foreach($previousSessionClasses as $school_class)
                                         @php
-                                            $cid   = $school_class->schoolClass->id;
-                                            $total = $classSummary[$cid]['total'] ?? 0;
-                                            $done  = $classSummary[$cid]['done']  ?? 0;
-                                            $allDone = ($total > 0 && $done == $total);
+                                            $cid           = $school_class->schoolClass->id;
+                                            $total         = $classSummary[$cid]['total']         ?? 0;
+                                            $done          = $classSummary[$cid]['done']          ?? 0;
+                                            $totalStudents = $classSummary[$cid]['totalStudents']  ?? 0;
+                                            $doneStudents  = $classSummary[$cid]['doneStudents']   ?? 0;
+                                            $allDone  = ($total > 0 && $done == $total);
                                             $noneDone = ($done == 0);
+                                            $grandTotal += $totalStudents;
+                                            $grandDone  += $doneStudents;
                                         @endphp
                                         <tr class="{{ $allDone ? 'table-success' : '' }}">
                                             <td><strong>{{ $school_class->schoolClass->class_name }}</strong></td>
-                                            <td>{{ $done }} / {{ $total }} sections promoted</td>
+                                            <td class="text-center">
+                                                <span class="{{ $doneStudents == $totalStudents && $totalStudents > 0 ? 'text-success fw-bold' : '' }}">
+                                                    {{ $doneStudents }} / {{ $totalStudents }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">{{ $done }} / {{ $total }}</td>
                                             <td>
                                                 @if($allDone)
                                                     <span class="badge bg-success">Done</span>
@@ -56,6 +73,11 @@
                                             </td>
                                         </tr>
                                         @endforeach
+                                        <tr class="table-dark fw-bold">
+                                            <td>Total</td>
+                                            <td class="text-center">{{ $grandDone }} / {{ $grandTotal }}</td>
+                                            <td colspan="3"></td>
+                                        </tr>
                                     @endisset
                                 </tbody>
                             </table>
