@@ -26,6 +26,7 @@ use App\Http\Controllers\AssignedTeacherController;
 use App\Http\Controllers\Auth\UpdatePasswordController;
 use App\Http\Controllers\LeavingCertificateController;
 use App\Http\Controllers\SessionSetupController;
+use App\Http\Controllers\SubjectController;
 
 /*
 |--------------------------------------------------------------------------
@@ -148,6 +149,20 @@ Route::middleware(['auth'])->group(function () {
 
     // Academic settings
     Route::get('/academics/settings', [AcademicSettingController::class, 'index']);
+
+    // Subjects
+    Route::get('/academics/subjects', [SubjectController::class, 'index'])->name('subjects.index');
+    Route::post('/academics/subjects', [SubjectController::class, 'store'])->name('subjects.store');
+    Route::put('/academics/subjects/{subject}', [SubjectController::class, 'update'])->name('subjects.update');
+    Route::delete('/academics/subjects/{subject}', [SubjectController::class, 'destroy'])->name('subjects.destroy');
+    Route::post('/academics/subjects/class-assignments', [SubjectController::class, 'saveClassSubjects'])->name('subjects.saveClassSubjects');
+
+    // Teacher assignments (new clean flow)
+    Route::get('/academics/teacher-assignments', [SubjectController::class, 'teacherAssignments'])->name('academics.teacher-assignments');
+    Route::post('/academics/class-teacher', [SubjectController::class, 'saveClassTeacher'])->name('academics.saveClassTeacher');
+    Route::delete('/academics/class-teacher/{classTeacher}', [SubjectController::class, 'removeClassTeacher'])->name('academics.removeClassTeacher');
+    Route::post('/academics/subject-teacher', [SubjectController::class, 'saveSubjectTeacher'])->name('academics.saveSubjectTeacher');
+    Route::delete('/academics/subject-teacher/{subjectTeacher}', [SubjectController::class, 'removeSubjectTeacher'])->name('academics.removeSubjectTeacher');
 
     // Calendar events
     Route::get('calendar-event', [EventController::class, 'index'])->name('events.show');

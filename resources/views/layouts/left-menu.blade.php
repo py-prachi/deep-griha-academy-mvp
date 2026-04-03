@@ -182,7 +182,16 @@
 
                     {{-- Academic Settings --}}
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('academics*')? 'active' : '' }}" href="{{url('academics/settings')}}"><i class="bi bi-tools"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Academic</span></a>
+                        <a type="button" href="#academic-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('academics*') ? 'active' : '' }}">
+                            <i class="bi bi-tools"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Academic</span>
+                            <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
+                        </a>
+                        <ul class="nav collapse {{ request()->is('academics*') ? 'show' : 'hide' }} bg-white" id="academic-submenu">
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ url('academics/settings') }}"><i class="bi bi-gear me-2"></i> Settings</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('subjects.index') }}"><i class="bi bi-book me-2"></i> Subjects</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('academics.teacher-assignments') }}"><i class="bi bi-person-badge me-2"></i> Teacher Assignments</a></li>
+                        </ul>
                     </li>
 
                     {{-- Promotion --}}
