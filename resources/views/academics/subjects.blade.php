@@ -100,30 +100,31 @@
                                 <div class="card-body">
                                     <p class="text-muted small mb-3">For each subject, select which classes it is taught in. Changes are saved per subject.</p>
                                     @forelse($subjects->where('is_active', true) as $subject)
-                                    <form method="POST" action="{{ route('subjects.saveClassSubjects') }}" class="mb-3">
+                                    <form method="POST" action="{{ route('subjects.saveClassSubjects') }}" class="mb-3 border-bottom pb-3">
                                         @csrf
                                         <input type="hidden" name="subject_id" value="{{ $subject->id }}">
                                         <input type="hidden" name="session_id" value="{{ $sessionId }}">
-                                        <div class="d-flex align-items-start gap-2">
-                                            <div style="min-width:110px">
-                                                <span class="badge bg-primary py-2 px-2">{{ $subject->name }}</span>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="badge bg-primary" style="min-width:130px;font-size:0.8rem;">{{ $subject->name }}</span>
+                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1"
+                                                style="font-size:0.7rem;"
+                                                onclick="toggleAll({{ $subject->id }}, this)">Select All</button>
+                                            <button class="btn btn-sm btn-outline-primary ms-auto py-0">Save</button>
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-x-3 gap-1 ps-1">
+                                            @foreach($schoolClasses as $class)
+                                            @php $assigned = in_array($class->id, $classSubjectMap[$subject->id] ?? []); @endphp
+                                            <div class="form-check form-check-inline me-2">
+                                                <input class="form-check-input subj-{{ $subject->id }}" type="checkbox"
+                                                    name="class_ids[]"
+                                                    value="{{ $class->id }}"
+                                                    id="cs_{{ $subject->id }}_{{ $class->id }}"
+                                                    {{ $assigned ? 'checked' : '' }}>
+                                                <label class="form-check-label small" for="cs_{{ $subject->id }}_{{ $class->id }}">
+                                                    {{ $class->class_name }}
+                                                </label>
                                             </div>
-                                            <div class="d-flex flex-wrap gap-2 flex-grow-1">
-                                                @foreach($schoolClasses as $class)
-                                                @php $assigned = in_array($class->id, $classSubjectMap[$subject->id] ?? []); @endphp
-                                                <div class="form-check form-check-inline">
-                                                    <input class="form-check-input" type="checkbox"
-                                                        name="class_ids[]"
-                                                        value="{{ $class->id }}"
-                                                        id="cs_{{ $subject->id }}_{{ $class->id }}"
-                                                        {{ $assigned ? 'checked' : '' }}>
-                                                    <label class="form-check-label small" for="cs_{{ $subject->id }}_{{ $class->id }}">
-                                                        {{ $class->class_name }}
-                                                    </label>
-                                                </div>
-                                                @endforeach
-                                            </div>
-                                            <button class="btn btn-sm btn-outline-primary flex-shrink-0">Save</button>
+                                            @endforeach
                                         </div>
                                     </form>
                                     @empty
@@ -172,6 +173,25 @@
     </div>
 </div>
 <script>
+function toggleAll(subjectId, btn) {
+    var boxes = document.querySelectorAll('.subj-' + subjectId);
+    var allChecked = Array.from(boxes).every(function(b) { return b.checked; });
+    boxes.forEach(function(b) { b.checked = !allChecked; });
+    btn.textContent = allChecked ? 'Select All' : 'Deselect All';
+}
+
+// Keep button label in sync when checkboxes are changed manually
+document.addEventListener('change', function(e) {
+    if (!e.target.classList.toString().match(/subj-(\d+)/)) return;
+    var match = e.target.className.match(/subj-(\d+)/);
+    if (!match) return;
+    var subjectId = match[1];
+    var boxes = document.querySelectorAll('.subj-' + subjectId);
+    var allChecked = Array.from(boxes).every(function(b) { return b.checked; });
+    var btn = document.querySelector('[onclick="toggleAll(' + subjectId + ', this)"]');
+    if (btn) btn.textContent = allChecked ? 'Deselect All' : 'Select All';
+});
+
 function openEdit(id, name, code, active) {
     document.getElementById('editSubjectForm').action = '/academics/subjects/' + id;
     document.getElementById('editName').value = name;
