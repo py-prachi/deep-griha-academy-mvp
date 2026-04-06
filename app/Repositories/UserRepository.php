@@ -25,22 +25,38 @@ class UserRepository implements UserInterface {
     public function createTeacher($request)
     {
     try {
-        DB::transaction(function () use ($request) {
+        $generatedEmail    = null;
+        $generatedPassword = null;
+
+        DB::transaction(function () use ($request, &$generatedEmail, &$generatedPassword) {
+
+            // Auto-generate email: firstname.lastname@dga.teacher (make unique)
+            $base  = strtolower(preg_replace('/\s+/', '', $request['first_name']))
+                   . '.' . strtolower(preg_replace('/\s+/', '', $request['last_name']))
+                   . '@dga.teacher';
+            $email = $base;
+            $n = 1;
+            while (User::where('email', $email)->exists()) {
+                $email = str_replace('@', $n . '@', $base);
+                $n++;
+            }
+            $generatedEmail    = $email;
+            $generatedPassword = 'dga@teacher2026';
 
             $user = User::create([
                 'first_name'  => $request['first_name'],
                 'last_name'   => $request['last_name'],
-                'email'       => $request['email'],
+                'email'       => $generatedEmail,
                 'gender'      => $request['gender'],
-                'nationality' => $request['nationality'],
+                'nationality' => $request['nationality'] ?? 'Indian',
                 'phone'       => $request['phone'],
-                'address'     => $request['address'],
-                'address2'    => $request['address2'],
-                'city'        => $request['city'],
-                'zip'         => $request['zip'],
+                'address'     => $request['address'] ?? '',
+                'address2'    => $request['address2'] ?? '',
+                'city'        => $request['city'] ?? '',
+                'zip'         => $request['zip'] ?? '',
                 'photo'       => (!empty($request['photo'])) ? $this->convert($request['photo']) : null,
                 'role'        => 'teacher',
-                'password'    => Hash::make($request['password']),
+                'password'    => Hash::make($generatedPassword),
             ]);
 
             // MVP-safe permission assignment
@@ -72,6 +88,9 @@ class UserRepository implements UserInterface {
                 $user->givePermissionTo($existingPermissions);
             }
         });
+
+        return ['email' => $generatedEmail, 'password' => $generatedPassword];
+
     } catch (\Exception $e) {
         throw new \Exception('Failed to create Teacher. ' . $e->getMessage());
     }

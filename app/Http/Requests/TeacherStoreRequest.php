@@ -26,16 +26,14 @@ class TeacherStoreRequest extends FormRequest
         return [
             'first_name'    => 'required|string',
             'last_name'     => 'required|string',
-            'email'         => 'required|string|email|max:255|unique:users',
             'gender'        => 'required|string',
-            'nationality'   => 'required|string',
+            'nationality'   => 'nullable|string',
             'phone'         => 'required|string',
-            'address'       => 'required|string',
-            'address2'      => 'string',
-            'city'          => 'required|string',
-            'zip'           => 'required|string',
+            'address'       => 'nullable|string',
+            'address2'      => 'nullable|string',
+            'city'          => 'nullable|string',
+            'zip'           => 'nullable|string',
             'photo'         => 'nullable|string',
-            'password'      => 'required|string|min:8',
         ];
     }
 }

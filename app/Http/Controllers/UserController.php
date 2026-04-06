@@ -48,9 +48,11 @@ class UserController extends Controller
     public function storeTeacher(TeacherStoreRequest $request)
     {
         try {
-            $this->userRepository->createTeacher($request->validated());
+            $credentials = $this->userRepository->createTeacher($request->validated());
 
-            return back()->with('status', 'Teacher creation was successful!');
+            return back()->with('status',
+                'Teacher added successfully! Login credentials — Email: ' . $credentials['email'] . ' / Password: ' . $credentials['password']
+            );
         } catch (\Exception $e) {
             return back()->withError($e->getMessage());
         }
