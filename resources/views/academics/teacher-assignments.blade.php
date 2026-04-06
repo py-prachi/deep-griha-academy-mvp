@@ -42,7 +42,8 @@
                                                 </select>
                                             </div>
                                             <div class="col-6">
-                                                <select name="class_id" class="form-select form-select-sm ct-class-select" onchange="loadSections(this, 'ct-section')" required>
+                                                <select name="class_id" id="ct-class" class="form-select form-select-sm"
+                                                    onchange="loadSections(this, 'ct-section'); loadClassSubjects(this.value);" required>
                                                     <option value="" disabled selected>Class</option>
                                                     @foreach($schoolClasses as $c)
                                                         <option value="{{ $c->id }}">{{ $c->class_name }}</option>
@@ -54,6 +55,26 @@
                                                     <option value="" disabled selected>Section</option>
                                                 </select>
                                             </div>
+
+                                            {{-- Subjects for this class --}}
+                                            <div class="col-12" id="ct-subjects-wrap" style="display:none;">
+                                                <div class="border rounded p-2 bg-light">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <small class="fw-bold text-muted">Subjects this teacher will teach:</small>
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1"
+                                                            style="font-size:0.7rem;" onclick="toggleCtSubjects()">Select All</button>
+                                                    </div>
+                                                    <div id="ct-subjects-list" class="d-flex flex-wrap gap-2"></div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12" id="ct-subjects-warning" style="display:none;">
+                                                <div class="alert alert-warning py-1 px-2 mb-0 small">
+                                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                                    No subjects assigned to this class yet.
+                                                    <a href="{{ route('subjects.index') }}" class="alert-link">Set up subjects →</a>
+                                                </div>
+                                            </div>
+
                                             <div class="col-12">
                                                 <button class="btn btn-sm btn-success w-100">
                                                     <i class="bi bi-plus me-1"></i> Assign Class Teacher
@@ -192,7 +213,10 @@
     </div>
 </div>
 <script>
-var sectionsUrl = "{{ route('get.sections.courses.by.classId') }}";
+var sectionsUrl    = "{{ route('get.sections.courses.by.classId') }}";
+var classSubjUrl   = "{{ route('academics.classSubjectsJson') }}";
+var currentSession = {{ $sessionId }};
+
 function loadSections(select, targetId) {
     var classId = select.value;
     var target = document.getElementById(targetId);
@@ -208,5 +232,53 @@ function loadSections(select, targetId) {
             });
         });
 }
+
+function loadClassSubjects(classId) {
+    var wrap    = document.getElementById('ct-subjects-wrap');
+    var warning = document.getElementById('ct-subjects-warning');
+    var list    = document.getElementById('ct-subjects-list');
+    if (!classId) { wrap.style.display = 'none'; warning.style.display = 'none'; return; }
+
+    fetch(classSubjUrl + '?class_id=' + classId + '&session_id=' + currentSession)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            list.innerHTML = '';
+            if (!data.subjects || data.subjects.length === 0) {
+                wrap.style.display = 'none';
+                warning.style.display = 'block';
+                return;
+            }
+            warning.style.display = 'none';
+            data.subjects.forEach(function(s) {
+                var id = 'ct_subj_' + s.id;
+                var div = document.createElement('div');
+                div.className = 'form-check form-check-inline';
+                div.innerHTML = '<input class="form-check-input ct-subj-check" type="checkbox" name="subject_ids[]" value="' + s.id + '" id="' + id + '" checked>'
+                    + '<label class="form-check-label small" for="' + id + '">' + s.name + '</label>';
+                list.appendChild(div);
+            });
+            wrap.style.display = 'block';
+            updateCtToggleLabel();
+        });
+}
+
+function toggleCtSubjects() {
+    var boxes = document.querySelectorAll('.ct-subj-check');
+    var allChecked = Array.from(boxes).every(function(b) { return b.checked; });
+    boxes.forEach(function(b) { b.checked = !allChecked; });
+    updateCtToggleLabel();
+}
+
+function updateCtToggleLabel() {
+    var btn = document.querySelector('[onclick="toggleCtSubjects()"]');
+    if (!btn) return;
+    var boxes = document.querySelectorAll('.ct-subj-check');
+    var allChecked = Array.from(boxes).every(function(b) { return b.checked; });
+    btn.textContent = allChecked ? 'Deselect All' : 'Select All';
+}
+
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('ct-subj-check')) updateCtToggleLabel();
+});
 </script>
 @endsection

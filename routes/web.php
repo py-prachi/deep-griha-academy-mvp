@@ -159,6 +159,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Teacher assignments (new clean flow)
     Route::get('/academics/teacher-assignments', [SubjectController::class, 'teacherAssignments'])->name('academics.teacher-assignments');
+    Route::get('/academics/class-subjects-json', [SubjectController::class, 'classSubjectsJson'])->name('academics.classSubjectsJson');
     Route::post('/academics/class-teacher', [SubjectController::class, 'saveClassTeacher'])->name('academics.saveClassTeacher');
     Route::delete('/academics/class-teacher/{classTeacher}', [SubjectController::class, 'removeClassTeacher'])->name('academics.removeClassTeacher');
     Route::post('/academics/subject-teacher', [SubjectController::class, 'saveSubjectTeacher'])->name('academics.saveSubjectTeacher');

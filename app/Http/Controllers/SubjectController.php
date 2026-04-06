@@ -117,6 +117,20 @@ class SubjectController extends Controller
         return redirect()->route('subjects.index')->with('status', 'Class assignments saved.');
     }
 
+    // ── JSON HELPERS ─────────────────────────────────────────────────────
+
+    public function classSubjectsJson(Request $request)
+    {
+        $classId   = $request->get('class_id');
+        $sessionId = $request->get('session_id');
+        $subjects  = ClassSubject::with('subject')
+            ->where('class_id', $classId)
+            ->where('session_id', $sessionId)
+            ->get()
+            ->map(fn($cs) => ['id' => $cs->subject->id, 'name' => $cs->subject->name]);
+        return response()->json(['subjects' => $subjects]);
+    }
+
     // ── TEACHER ASSIGNMENTS ───────────────────────────────────────────────
 
     public function teacherAssignments()
@@ -144,24 +158,52 @@ class SubjectController extends Controller
     public function saveClassTeacher(Request $request)
     {
         $request->validate([
-            'teacher_id' => 'required|exists:users,id',
-            'class_id'   => 'required|exists:school_classes,id',
-            'section_id' => 'required|exists:sections,id',
-            'session_id' => 'required|exists:school_sessions,id',
+            'teacher_id'  => 'required|exists:users,id',
+            'class_id'    => 'required|exists:school_classes,id',
+            'section_id'  => 'required|exists:sections,id',
+            'session_id'  => 'required|exists:school_sessions,id',
+            'subject_ids' => 'nullable|array',
+            'subject_ids.*' => 'exists:subjects,id',
         ]);
 
-        ClassTeacher::updateOrCreate(
-            [
-                'class_id'   => $request->class_id,
-                'section_id' => $request->section_id,
-                'session_id' => $request->session_id,
-            ],
-            ['teacher_id' => $request->teacher_id]
-        );
+        DB::transaction(function () use ($request) {
+            ClassTeacher::updateOrCreate(
+                [
+                    'class_id'   => $request->class_id,
+                    'section_id' => $request->section_id,
+                    'session_id' => $request->session_id,
+                ],
+                ['teacher_id' => $request->teacher_id]
+            );
+
+            // Remove any existing subject_teacher rows for this teacher+class+section+session
+            // then re-create with the checked subjects
+            if ($request->has('subject_ids')) {
+                SubjectTeacher::where('teacher_id', $request->teacher_id)
+                    ->where('class_id',   $request->class_id)
+                    ->where('section_id', $request->section_id)
+                    ->where('session_id', $request->session_id)
+                    ->delete();
+
+                foreach ($request->subject_ids as $subjectId) {
+                    SubjectTeacher::firstOrCreate([
+                        'teacher_id' => $request->teacher_id,
+                        'subject_id' => $subjectId,
+                        'class_id'   => $request->class_id,
+                        'section_id' => $request->section_id,
+                        'session_id' => $request->session_id,
+                    ]);
+                }
+            }
+        });
 
         $teacher = User::find($request->teacher_id);
-        return redirect()->route('academics.teacher-assignments')
-            ->with('status', $teacher->first_name . ' assigned as class teacher.');
+        $subjectCount = count($request->subject_ids ?? []);
+        $msg = $teacher->first_name . ' assigned as class teacher';
+        if ($subjectCount > 0) {
+            $msg .= ' for ' . $subjectCount . ' subject(s)';
+        }
+        return redirect()->route('academics.teacher-assignments')->with('status', $msg . '.');
     }
 
     public function removeClassTeacher(ClassTeacher $classTeacher)
