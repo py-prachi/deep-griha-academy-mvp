@@ -43,12 +43,6 @@
                                     <input type="password" class="form-control" id="inputPassword4" name="password" required>
                                 </div>
                                 <div class="col-md-3">
-                                    <label for="formFile" class="form-label">Photo</label>
-                                    <input class="form-control" type="file" id="formFile" onchange="previewFile()">
-                                    <div id="previewPhoto"></div>
-                                    <input type="hidden" id="photoHiddenInput" name="photo" value="">
-                                </div>
-                                <div class="col-md-3">
                                     <label for="inputBirthday" class="form-label">Birthday<sup><i class="bi bi-asterisk text-primary"></i></sup></label>
                                     <input type="date" class="form-control" id="inputBirthday" name="birthday" placeholder="Birthday" required value="{{old('birthday')}}">
                                 </div>
@@ -194,5 +188,4 @@
         });
     }
 </script>
-@include('components.photos.photo-input')
 @endsection

@@ -79,5 +79,4 @@
     </div>
 </div>
 
-@include('components.photos.photo-input')
 @endsection

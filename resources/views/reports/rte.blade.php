@@ -89,7 +89,11 @@
                                                 <td>{{ $student->birthday ? \Carbon\Carbon::parse($student->birthday)->format('d M Y') : '—' }}</td>
                                                 <td>{{ $student->admission ? $student->admission->father_name : '—' }}</td>
                                                 <td class="text-center">
+                                                    @if($student->admission_id)
                                                     <a href="{{ route('admissions.show', $student->admission_id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                                                    @else
+                                                    <span class="text-muted">—</span>
+                                                    @endif
                                                 </td>
                                             </tr>
                                             @endforeach

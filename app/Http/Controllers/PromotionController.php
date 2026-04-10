@@ -323,4 +323,28 @@ class PromotionController extends Controller
     {
         //
     }
+
+    public function reassignRollNumbers()
+    {
+        $session_id = $this->getSchoolCurrentSession();
+
+        $groups = Promotion::with('student')
+            ->where('session_id', $session_id)
+            ->get()
+            ->groupBy(function ($p) {
+                return $p->class_id . '-' . $p->section_id;
+            });
+
+        foreach ($groups as $promotions) {
+            $sorted = $promotions->sortBy(function ($p) {
+                return strtolower($p->student->first_name ?? 'zzz');
+            })->values();
+            foreach ($sorted as $i => $p) {
+                $p->roll_number = $i + 1;
+                $p->save();
+            }
+        }
+
+        return back()->with('status', 'Roll numbers reassigned successfully (sorted by first name).');
+    }
 }

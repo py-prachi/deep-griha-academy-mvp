@@ -11,6 +11,14 @@
 
                     @include('session-messages')
 
+                    <form method="POST" action="{{ route('promotions.reassignRollNumbers') }}" class="mb-3">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-secondary"
+                            onclick="return confirm('Reassign roll numbers for all classes (sorted by first name)?')">
+                            <i class="bi bi-sort-alpha-down me-1"></i> Reassign Roll Numbers
+                        </button>
+                    </form>
+
                     <div class="alert alert-info py-2 mb-3">
                         <i class="bi bi-info-circle me-1"></i>
                         Promoting students from <strong>{{ $previousSessionName }}</strong>

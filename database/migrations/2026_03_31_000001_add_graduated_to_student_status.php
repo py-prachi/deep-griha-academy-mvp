@@ -9,12 +9,17 @@ class AddGraduatedToStudentStatus extends Migration
 {
     public function up()
     {
-        DB::statement("ALTER TABLE users MODIFY student_status ENUM('active','left','graduated') NOT NULL DEFAULT 'active'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY student_status ENUM('active','left','graduated') NOT NULL DEFAULT 'active'");
+        }
+        // SQLite: column is already a string, 'graduated' value works without schema change
     }
 
     public function down()
     {
-        DB::statement("UPDATE users SET student_status = 'left' WHERE student_status = 'graduated'");
-        DB::statement("ALTER TABLE users MODIFY student_status ENUM('active','left') NOT NULL DEFAULT 'active'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("UPDATE users SET student_status = 'left' WHERE student_status = 'graduated'");
+            DB::statement("ALTER TABLE users MODIFY student_status ENUM('active','left') NOT NULL DEFAULT 'active'");
+        }
     }
 }

@@ -101,6 +101,7 @@ class AttendanceRepository implements AttendanceInterface {
             return Attendance::with(['section','course'])
                             ->where('student_id', $student_id)
                             ->where('session_id', $session_id)
+                            ->orderBy('created_at', 'desc')
                             ->get();
         } catch (\Exception $e) {
             throw new \Exception('Failed to get attendances. '.$e->getMessage());

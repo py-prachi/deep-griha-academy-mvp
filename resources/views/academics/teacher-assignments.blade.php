@@ -174,14 +174,22 @@
                                     @if($subjectTeachers->isEmpty())
                                         <p class="text-muted small text-center">No subject teachers assigned yet.</p>
                                     @else
-                                    <div style="max-height:350px;overflow-y:auto;">
-                                    <table class="table table-sm table-bordered mb-0">
+                                    <div class="mb-2">
+                                        <select id="st-filter-class" class="form-select form-select-sm" onchange="filterSubjectTeachers()">
+                                            <option value="">All Classes</option>
+                                            @foreach($schoolClasses as $c)
+                                                <option value="{{ $c->id }}">{{ $c->class_name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div style="max-height:320px;overflow-y:auto;">
+                                    <table class="table table-sm table-bordered mb-0" id="st-table">
                                         <thead class="table-secondary">
                                             <tr><th>Subject</th><th>Class</th><th>Sec</th><th>Teacher</th><th></th></tr>
                                         </thead>
                                         <tbody>
                                             @foreach($subjectTeachers->sortBy(fn($st) => $st->class_id) as $st)
-                                            <tr>
+                                            <tr data-class-id="{{ $st->class_id }}">
                                                 <td><small>{{ $st->subject->name ?? '—' }}</small></td>
                                                 <td><small>{{ $st->schoolClass->class_name ?? '—' }}</small></td>
                                                 <td><small>{{ $st->section->section_name ?? '—' }}</small></td>
@@ -280,5 +288,13 @@ function updateCtToggleLabel() {
 document.addEventListener('change', function(e) {
     if (e.target.classList.contains('ct-subj-check')) updateCtToggleLabel();
 });
+
+function filterSubjectTeachers() {
+    var classId = document.getElementById('st-filter-class').value;
+    var rows = document.querySelectorAll('#st-table tbody tr');
+    rows.forEach(function(row) {
+        row.style.display = (!classId || row.dataset.classId === classId) ? '' : 'none';
+    });
+}
 </script>
 @endsection

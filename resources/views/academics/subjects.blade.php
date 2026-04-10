@@ -30,6 +30,7 @@
                                             <tr>
                                                 <th>Subject</th>
                                                 <th>Code</th>
+                                                <th class="text-center">Type</th>
                                                 <th class="text-center">Active</th>
                                                 <th></th>
                                             </tr>
@@ -39,11 +40,18 @@
                                             <tr>
                                                 <td>
                                                     <button class="btn btn-link btn-sm p-0 text-start text-decoration-none"
-                                                        onclick="openEdit({{ $subject->id }}, '{{ addslashes($subject->name) }}', '{{ $subject->code }}', {{ $subject->is_active ? 1 : 0 }})">
+                                                        onclick="openEdit({{ $subject->id }}, '{{ addslashes($subject->name) }}', '{{ $subject->code }}', {{ $subject->is_active ? 1 : 0 }}, '{{ $subject->mark_type ?? 'marks' }}')">
                                                         {{ $subject->name }}
                                                     </button>
                                                 </td>
                                                 <td><small class="text-muted">{{ $subject->code ?? '—' }}</small></td>
+                                                <td class="text-center">
+                                                    @if($subject->mark_type === 'grade_only')
+                                                        <span class="badge bg-info" title="Grade entered directly — no mark breakdown">Grade</span>
+                                                    @else
+                                                        <span class="badge bg-light text-dark border">Marks</span>
+                                                    @endif
+                                                </td>
                                                 <td class="text-center">
                                                     @if($subject->is_active)
                                                         <i class="bi bi-check-circle-fill text-success"></i>
@@ -98,7 +106,17 @@
                                     <strong>Assign Subjects to Classes — {{ $session->session_name }}</strong>
                                 </div>
                                 <div class="card-body">
-                                    <p class="text-muted small mb-3">For each subject, select which classes it is taught in. Changes are saved per subject.</p>
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <p class="text-muted small mb-0">For each subject, select which classes it is taught in. Changes are saved per subject.</p>
+                                        <form method="POST" action="{{ route('subjects.bulkAssign1to8') }}" class="ms-3">
+                                            @csrf
+                                            <input type="hidden" name="session_id" value="{{ $sessionId }}">
+                                            <button type="submit" class="btn btn-sm btn-success"
+                                                onclick="return confirm('Auto-assign all subjects to Class 1–8? Nursery/LKG/UKG will be skipped.')">
+                                                <i class="bi bi-lightning-fill me-1"></i> Auto-assign Class 1–8
+                                            </button>
+                                        </form>
+                                    </div>
                                     @forelse($subjects->where('is_active', true) as $subject)
                                     <form method="POST" action="{{ route('subjects.saveClassSubjects') }}" class="mb-3 border-bottom pb-3">
                                         @csrf
@@ -160,6 +178,13 @@
                         <label class="form-label form-label-sm">Code</label>
                         <input type="text" name="code" id="editCode" class="form-control form-control-sm" maxlength="10">
                     </div>
+                    <div class="mb-2">
+                        <label class="form-label form-label-sm">Mark Type <small class="text-muted">(admin only)</small></label>
+                        <select name="mark_type" id="editMarkType" class="form-select form-select-sm">
+                            <option value="marks">Marks (Oral/Activity/Test/HW/Writing)</option>
+                            <option value="grade_only">Grade Only (PE, Tabla, Dance etc.)</option>
+                        </select>
+                    </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="is_active" id="editActive" value="1">
                         <label class="form-check-label small" for="editActive">Active</label>
@@ -192,11 +217,12 @@ document.addEventListener('change', function(e) {
     if (btn) btn.textContent = allChecked ? 'Deselect All' : 'Select All';
 });
 
-function openEdit(id, name, code, active) {
+function openEdit(id, name, code, active, markType) {
     document.getElementById('editSubjectForm').action = '/academics/subjects/' + id;
     document.getElementById('editName').value = name;
     document.getElementById('editCode').value = code || '';
     document.getElementById('editActive').checked = active == 1;
+    document.getElementById('editMarkType').value = markType || 'marks';
     new bootstrap.Modal(document.getElementById('editSubjectModal')).show();
 }
 </script>

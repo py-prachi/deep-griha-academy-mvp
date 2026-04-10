@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\ClassTeacher;
 use Illuminate\Http\Request;
 use App\Interfaces\UserInterface;
 use App\Interfaces\SchoolClassInterface;
@@ -46,12 +47,60 @@ class AttendanceController extends Controller
     }
     /**
      * Display a listing of the resource.
+     * Admin: shows all classes/sections.
+     * CT (teacher): auto-redirects to their assigned section's Take Attendance page.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        return back();
+        $current_school_session_id = $this->getSchoolCurrentSession();
+        $user = auth()->user();
+
+        // Class teacher: redirect straight to their section
+        if ($user->role === 'teacher') {
+            $ct = ClassTeacher::where('teacher_id', $user->id)
+                ->where('session_id', $current_school_session_id)
+                ->first();
+
+            if ($ct) {
+                return redirect()->route('attendance.create.show', [
+                    'class_id'   => $ct->class_id,
+                    'section_id' => $ct->section_id,
+                ]);
+            }
+
+            // Teacher exists but not assigned as CT — show message
+            return view('attendances.index', [
+                'classes_and_sections' => ['school_classes' => collect(), 'school_sections' => collect()],
+                'academic_setting'     => $this->academicSettingRepository->getAcademicSetting(),
+                'courses'              => collect(),
+                'is_ct'                => false,
+                'not_assigned'         => true,
+            ]);
+        }
+
+        // Admin: show all classes and sections
+        $school_classes  = $this->schoolClassRepository->getAllBySession($current_school_session_id);
+        $school_sections = $this->sectionRepository->getAllBySession($current_school_session_id);
+        $academic_setting = $this->academicSettingRepository->getAcademicSetting();
+
+        $courses = collect();
+        if (($academic_setting->attendance_type ?? 'section') === 'course') {
+            $courseRepository = new CourseRepository();
+            $courses = $courseRepository->getAll($current_school_session_id);
+        }
+
+        return view('attendances.index', [
+            'classes_and_sections' => [
+                'school_classes'  => $school_classes,
+                'school_sections' => $school_sections,
+            ],
+            'academic_setting' => $academic_setting,
+            'courses'          => $courses,
+            'is_ct'            => false,
+            'not_assigned'     => false,
+        ]);
     }
 
     /**
@@ -286,6 +335,9 @@ public function showStudentAttendance(Request $request, $id)
     $course_id     = 0; // not stored on promotion; only needed for course-based mark form
     $has_promotion = $promotion !== null;
 
+    $school_class   = $class_id   ? $this->schoolClassRepository->findById($class_id)   : null;
+    $school_section = $section_id ? $this->sectionRepository->findById($section_id)     : null;
+
     return view('attendances.attendance', [
         'attendances'               => $attendances,
         'student'                   => $student,
@@ -297,6 +349,8 @@ public function showStudentAttendance(Request $request, $id)
         'section_id'                => $section_id,
         'course_id'                 => $course_id,
         'has_promotion'             => $has_promotion,
+        'school_class'              => $school_class,
+        'school_section'            => $school_section,
     ]);
 }
 

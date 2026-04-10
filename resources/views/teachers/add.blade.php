@@ -61,16 +61,22 @@
                                     <input type="text" class="form-control form-control-sm" name="address" value="{{ old('address') }}" autocomplete="off">
                                 </div>
                                 <div class="col-md-4">
+                                    <label class="form-label">Address 2</label>
+                                    <input type="text" class="form-control form-control-sm" name="address2" value="{{ old('address2') }}" autocomplete="off">
+                                </div>
+                                <div class="col-md-4">
                                     <label class="form-label">City</label>
                                     <input type="text" class="form-control form-control-sm" name="city" value="{{ old('city') }}" autocomplete="off">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Zip</label>
+                                    <input type="text" class="form-control form-control-sm" name="zip" value="{{ old('zip') }}" autocomplete="off">
                                 </div>
 
                                 {{-- Photo --}}
                                 <div class="col-md-6">
                                     <label class="form-label">Photo</label>
-                                    <input class="form-control form-control-sm" type="file" onchange="previewFile()">
-                                    <div id="previewPhoto"></div>
-                                    <input type="hidden" id="photoHiddenInput" name="photo" value="">
+                                    <p class="text-muted small mb-0"><i class="bi bi-image me-1"></i> Photo upload coming soon.</p>
                                 </div>
 
                                 <div class="col-12">

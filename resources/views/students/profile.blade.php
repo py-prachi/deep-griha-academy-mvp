@@ -151,8 +151,13 @@
                                                 <tr>
                                                     <th scope="row">Section:</th>
                                                     <td>{{ $promotion_info->section->section_name ?? '—' }}</td>
-                                                    <th>Fee Category:</th>
+                                                    <th>Roll No.:</th>
+                                                    <td>{{ $promotion_info->roll_number ?? '—' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">Fee Category:</th>
                                                     <td>{{ ucfirst($student->fee_category ?? '—') }}</td>
+                                                    <th></th><td></td>
                                                 </tr>
                                             </tbody>
                                         </table>

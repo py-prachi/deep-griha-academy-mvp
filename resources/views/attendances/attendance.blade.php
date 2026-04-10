@@ -13,7 +13,14 @@
                         <i class="bi bi-calendar2-week"></i> View Attendance
                     </h1>
 
-                    <h5><i class="bi bi-person"></i> Student Name: {{$student->first_name}} {{$student->last_name}}</h5>
+                    <h5><i class="bi bi-person"></i> {{ $student->first_name }} {{ $student->last_name }}
+                        @if($school_class)
+                            <span class="text-muted fw-normal fs-6 ms-2">
+                                {{ $school_class->class_name }}
+                                @if($school_section) — {{ $school_section->section_name }} @endif
+                            </span>
+                        @endif
+                    </h5>
                     <div class="row mt-3">
                         <div class="col bg-white p-3 border shadow-sm">
                             <div id="attendanceCalendar"></div>
@@ -116,48 +123,33 @@
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
-                                        <th scope="col">Status</th>
                                         <th scope="col">Date</th>
-                                        <th scope="col">Context</th>
+                                        <th scope="col">Status</th>
+                                        @if(in_array(auth()->user()->role, ['admin', 'teacher']))
+                                        <th scope="col">Action</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($attendances as $attendance)
                                         <tr>
+                                            <td>{{ \Carbon\Carbon::parse($attendance->created_at)->format('d M Y') }}</td>
                                             <td>
-                                                @if(in_array(auth()->user()->role, ['admin', 'teacher']))
-
-    <form method="POST" action="{{ route('attendance.update', $attendance->id) }}">
-        @csrf
-
-        <label class="me-2">
-            <input type="checkbox" name="present" {{ $attendance->status == "on" ? 'checked' : '' }}>
-            Present
-        </label>
-
-        <button type="submit" class="btn btn-sm btn-primary">Update</button>
-    </form>
-@else
-    @if ($attendance->status == "on")
-        <span class="badge bg-success">PRESENT</span>
-    @else
-        <span class="badge bg-danger">ABSENT</span>
-    @endif
-@endif
-
-                                                
-                                            </td>
-                                            <td>{{$attendance->created_at}}</td>
-                                            <td>
-                                                @if($attendance->section)
-                                                    <span class="badge bg-secondary">{{ $attendance->section->section_name }}</span>
-                                                @elseif($attendance->course)
-                                                    <span class="badge bg-info text-dark">{{ $attendance->course->course_name }}</span>
+                                                @if ($attendance->status == "on")
+                                                    <span class="badge bg-success">Present</span>
                                                 @else
-                                                    <span class="text-muted">—</span>
+                                                    <span class="badge bg-danger">Absent</span>
                                                 @endif
                                             </td>
-                                            {{-- <td>{{($attendance->section == null)?$attendance->course->course_name:$attendance->section->section_name}}</td> --}}
+                                            @if(in_array(auth()->user()->role, ['admin', 'teacher']))
+                                            <td>
+                                                <form method="POST" action="{{ route('attendance.update', $attendance->id) }}" class="d-inline">
+                                                    @csrf
+                                                    <input type="checkbox" name="present" {{ $attendance->status == "on" ? 'checked' : '' }} class="form-check-input me-1">
+                                                    <button type="submit" class="btn btn-sm btn-outline-primary py-0 px-2">Update</button>
+                                                </form>
+                                            </td>
+                                            @endif
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -174,10 +166,11 @@
 $events = array();
 if(count($attendances) > 0){
     foreach ($attendances as $attendance){
+        $dateStr = \Carbon\Carbon::parse($attendance->created_at)->toDateString();
         if($attendance->status == "on"){
-            $events[] = ['title'=> "Present", 'start' => $attendance->created_at, 'color'=>'green'];
+            $events[] = ['title'=> "Present", 'start' => $dateStr, 'color'=>'green'];
         } else {
-            $events[] = ['title'=> "Absent", 'start' => $attendance->created_at, 'color'=>'red'];
+            $events[] = ['title'=> "Absent", 'start' => $dateStr, 'color'=>'red'];
         }
     }
 }

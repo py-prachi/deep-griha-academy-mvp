@@ -14,8 +14,10 @@ class AddExitedStatusToAdmissionsTable extends Migration
             $table->date('exit_date')->nullable()->after('confirmed_date');
         });
 
-        // Alter the status enum to include 'exited'
-        DB::statement("ALTER TABLE admissions MODIFY COLUMN status ENUM('inquiry','pending','confirmed','cancelled','exited') NOT NULL DEFAULT 'inquiry'");
+        // Alter the status enum to include 'exited' — MySQL only
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE admissions MODIFY COLUMN status ENUM('inquiry','pending','confirmed','cancelled','exited') NOT NULL DEFAULT 'inquiry'");
+        }
     }
 
     public function down()
@@ -24,6 +26,8 @@ class AddExitedStatusToAdmissionsTable extends Migration
             $table->dropColumn('exit_date');
         });
 
-        DB::statement("ALTER TABLE admissions MODIFY COLUMN status ENUM('inquiry','pending','confirmed','cancelled') NOT NULL DEFAULT 'inquiry'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE admissions MODIFY COLUMN status ENUM('inquiry','pending','confirmed','cancelled') NOT NULL DEFAULT 'inquiry'");
+        }
     }
 }

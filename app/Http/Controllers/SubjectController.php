@@ -77,6 +77,7 @@ class SubjectController extends Controller
             'name'      => $request->name,
             'code'      => $request->code ?? null,
             'is_active' => $request->has('is_active'),
+            'mark_type' => in_array($request->mark_type, ['marks', 'grade_only']) ? $request->mark_type : 'marks',
         ]);
 
         return redirect()->route('subjects.index')->with('status', 'Subject updated.');
@@ -89,6 +90,45 @@ class SubjectController extends Controller
     }
 
     // ── CLASS-SUBJECT ASSIGNMENT ──────────────────────────────────────────
+
+    /**
+     * Bulk-assign all active subjects to every Class 1–8 in the given session.
+     * Nursery / LKG / UKG are intentionally skipped (different assessment format).
+     */
+    public function bulkAssignClasses1to8(Request $request)
+    {
+        $request->validate(['session_id' => 'required|exists:school_sessions,id']);
+        $sessionId = $request->session_id;
+
+        $subjectIds = Subject::where('is_active', true)->pluck('id');
+        $classIds   = SchoolClass::where('session_id', $sessionId)
+            ->whereIn('class_name', ['Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8'])
+            ->pluck('id');
+
+        $inserted = 0;
+        foreach ($subjectIds as $subjectId) {
+            foreach ($classIds as $classId) {
+                $exists = ClassSubject::where('subject_id', $subjectId)
+                    ->where('class_id', $classId)
+                    ->where('session_id', $sessionId)
+                    ->exists();
+                if (!$exists) {
+                    ClassSubject::create([
+                        'subject_id' => $subjectId,
+                        'class_id'   => $classId,
+                        'session_id' => $sessionId,
+                    ]);
+                    $inserted++;
+                }
+            }
+        }
+
+        $msg = $inserted > 0
+            ? "Assigned all subjects to Class 1–8 ({$inserted} new assignments added)."
+            : 'All subjects were already assigned to Class 1–8.';
+
+        return redirect()->route('subjects.index')->with('status', $msg);
+    }
 
     public function saveClassSubjects(Request $request)
     {

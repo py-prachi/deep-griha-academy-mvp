@@ -30,10 +30,10 @@ class UserRepository implements UserInterface {
 
         DB::transaction(function () use ($request, &$generatedEmail, &$generatedPassword) {
 
-            // Auto-generate email: firstname.lastname@dga.teacher (make unique)
+            // Auto-generate email: firstname.lastname@deepgriha.com (make unique)
             $base  = strtolower(preg_replace('/\s+/', '', $request['first_name']))
                    . '.' . strtolower(preg_replace('/\s+/', '', $request['last_name']))
-                   . '@dga.teacher';
+                   . '@deepgriha.com';
             $email = $base;
             $n = 1;
             while (User::where('email', $email)->exists()) {
