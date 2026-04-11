@@ -15,6 +15,8 @@ use App\Interfaces\SchoolSessionInterface;
 use App\Repositories\StudentParentInfoRepository;
 use App\Models\ClassTeacher;
 use App\Models\SubjectTeacher;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -276,5 +278,14 @@ class UserController extends Controller
         ];
 
         return view('teachers.list', $data);
+    }
+
+    public function resetPassword(Request $request, $user_id)
+    {
+        $user = User::findOrFail($user_id);
+        $default = $user->role === 'student' ? 'dga@student2026' : 'dga@teacher2026';
+        $user->password = Hash::make($default);
+        $user->save();
+        return back()->with('success', 'Password reset to default for ' . $user->first_name . ' ' . $user->last_name . '.');
     }
 }

@@ -111,6 +111,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/students/view/list', [UserController::class, 'getStudentList'])->name('student.list.show');
     Route::get('/students/view/profile/{id}', [UserController::class, 'showStudentProfile'])->name('student.profile.show');
     Route::get('/students/view/attendance/{id}', [AttendanceController::class, 'showStudentAttendance'])->name('student.attendance.show');
+    Route::post('/admin/reset-password/{user_id}', [UserController::class, 'resetPassword'])->name('admin.resetPassword');
 
     // Marks
     Route::get('/marks/create', [MarkController::class, 'create'])->name('course.mark.create');

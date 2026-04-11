@@ -48,8 +48,14 @@
                                             @can('edit users')
                                             <a href="{{route('teacher.edit.show', ['id' => $teacher->id])}}" role="button" class="btn btn-sm btn-outline-primary"><i class="bi bi-pen"></i> Edit</a>
                                             @endcan
-                                            {{-- <button type="button" class="btn btn-sm btn-primary"><i class="bi bi-trash2"></i> Delete</button> --}}
                                         </div>
+                                        @can('edit users')
+                                        <form method="POST" action="{{ route('admin.resetPassword', $teacher->id) }}" class="d-inline"
+                                            onsubmit="return confirm('Reset password to default for {{ $teacher->first_name }}?')">
+                                            @csrf
+                                            <button class="btn btn-sm btn-outline-warning py-0 px-2 ms-1"><i class="bi bi-key"></i> Reset PW</button>
+                                        </form>
+                                        @endcan
                                     </td>
                                 </tr>
                                 @endforeach

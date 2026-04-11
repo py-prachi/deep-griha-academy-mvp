@@ -145,7 +145,7 @@
                                     };
                                 @endphp
                                 <tr class="mark-row" data-student="{{ $student->id }}">
-                                    <td>{{ $student->first_name }} {{ $student->last_name }}</td>
+                                    <td>@if($promo->roll_number)<span class="text-muted me-1">{{ $promo->roll_number }}.</span>@endif{{ $student->first_name }} {{ $student->last_name }}</td>
 
                                     @if($subject->mark_type === 'marks')
                                     @php

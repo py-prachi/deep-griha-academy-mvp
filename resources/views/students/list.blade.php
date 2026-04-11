@@ -67,6 +67,7 @@
                                         <th>Name</th>
                                         <th>Phone</th>
                                         @if(auth()->user()->role === 'admin')
+                                        <th>Email</th>
                                         <th>ID Card</th>
                                         @endif
                                         <th>Actions</th>
@@ -79,11 +80,19 @@
                                         <td>{{ $student->student->first_name }} {{ $student->student->last_name }}</td>
                                         <td>{{ $student->student->phone }}</td>
                                         @if(auth()->user()->role === 'admin')
+                                        <td class="text-muted small" style="font-size:0.82rem;">{{ $student->student->email }}</td>
                                         <td class="text-muted small">{{ $student->id_card_number }}</td>
                                         @endif
                                         <td>
                                             <a href="{{route('student.attendance.show', ['id' => $student->student->id])}}" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-calendar2-week"></i> Attendance</a>
                                             <a href="{{url('students/view/profile/'.$student->student->id)}}" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-person"></i> Profile</a>
+                                            @if(auth()->user()->role === 'admin')
+                                            <form method="POST" action="{{ route('admin.resetPassword', $student->student->id) }}" class="d-inline"
+                                                onsubmit="return confirm('Reset password to default for {{ $student->student->first_name }}?')">
+                                                @csrf
+                                                <button class="btn btn-sm btn-outline-warning py-0 px-2"><i class="bi bi-key"></i> Reset PW</button>
+                                            </form>
+                                            @endif
                                         </td>
                                     </tr>
                                     @endforeach

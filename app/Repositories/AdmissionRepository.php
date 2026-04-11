@@ -269,19 +269,20 @@ class AdmissionRepository implements AdmissionInterface
         }
     }
 
-    // Generate a unique email for student
+    // Generate a unique email for student: firstname.lastname@deepgriha.com
+    // If taken, append 2, 3, … before @
     private function generateStudentEmail($name, $id)
     {
         $slug = strtolower(str_replace(' ', '.', trim($name)));
         $slug = preg_replace('/[^a-z0-9.]/', '', $slug);
-        $base  = $slug . '.' . $id . '@deepgriha.com';
+        $base = $slug . '@deepgriha.com';
         if (!\App\Models\User::where('email', $base)->exists()) {
             return $base;
         }
         $counter = 2;
-        while (\App\Models\User::where('email', $slug . '.' . $id . '.' . $counter . '@deepgriha.com')->exists()) {
+        while (\App\Models\User::where('email', $slug . $counter . '@deepgriha.com')->exists()) {
             $counter++;
         }
-        return $slug . '.' . $id . '.' . $counter . '@deepgriha.com';
+        return $slug . $counter . '@deepgriha.com';
     }
 }
