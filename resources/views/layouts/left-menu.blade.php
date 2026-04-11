@@ -45,7 +45,20 @@
                         </a>
                     </li>
 
-                    {{-- Marks --}}
+                    {{-- Marks — shown based on CT class type --}}
+                    @php
+                        $menuSession = session('browse_session_id') ?: optional(\App\Models\SchoolSession::orderBy('id','desc')->first())->id;
+                        $menuCT = \App\Models\ClassTeacher::with('schoolClass')
+                            ->where('teacher_id', Auth::user()->id)
+                            ->where('session_id', $menuSession)
+                            ->first();
+                        $menuIsPP = $menuCT
+                            ? \App\Http\Controllers\PrePrimaryController::getPrePrimaryType(optional($menuCT->schoolClass)->class_name ?? '')
+                            : null;
+                        $menuIs18 = $menuCT && !$menuIsPP;
+                        // Also check if subject teacher (non-CT) — show Class 1-8 marks
+                        $menuIsSubjectTeacher = !$menuCT && \App\Models\SubjectTeacher::where('teacher_id', Auth::user()->id)->where('session_id', $menuSession)->exists();
+                    @endphp
                     <li class="nav-item">
                         <a type="button" href="#teacher-marks-submenu" data-bs-toggle="collapse"
                             class="d-flex nav-link {{ request()->is('marks2*') || request()->is('preprimary*') ? 'active' : '' }}">
@@ -54,32 +67,38 @@
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
                         <ul class="nav collapse {{ request()->is('marks2*') || request()->is('preprimary*') ? 'show' : 'hide' }} bg-white" id="teacher-marks-submenu">
+                            @if($menuIsPP)
+                            {{-- Pre-primary CT: only pre-primary entry --}}
                             <li class="nav-item w-100">
-                                <a class="nav-link {{ request()->is('marks2') ? 'active' : '' }}" href="{{ route('marks.index') }}">
-                                    <i class="bi bi-pencil me-2"></i> Enter Marks (Cl. 1–8)
+                                <a class="nav-link {{ request()->is('preprimary/entry*') ? 'active' : '' }}"
+                                    href="{{ route('preprimary.entry', ['class_id' => $menuCT->class_id, 'section_id' => $menuCT->section_id]) }}">
+                                    <i class="bi bi-check2-square me-2"></i> Skill Entry
                                 </a>
                             </li>
+                            <li class="nav-item w-100">
+                                <a class="nav-link {{ request()->is('preprimary/narratives*') ? 'active' : '' }}"
+                                    href="{{ route('preprimary.narratives', ['class_id' => $menuCT->class_id, 'section_id' => $menuCT->section_id]) }}">
+                                    <i class="bi bi-chat-left-text me-2"></i> Remarks
+                                </a>
+                            </li>
+                            @else
+                            {{-- Class 1-8 CT or subject teacher: marks entry only --}}
+                            <li class="nav-item w-100">
+                                <a class="nav-link {{ request()->is('marks2') ? 'active' : '' }}" href="{{ route('marks.index') }}">
+                                    <i class="bi bi-pencil me-2"></i> Enter Marks
+                                </a>
+                            </li>
+                            @if($menuIs18)
                             <li class="nav-item w-100">
                                 <a class="nav-link {{ request()->is('marks2/review*') ? 'active' : '' }}" href="{{ route('marks.review') }}">
                                     <i class="bi bi-grid-3x3-gap me-2"></i> Marks Review
                                 </a>
                             </li>
-                            <li class="nav-item w-100">
-                                <a class="nav-link {{ request()->is('preprimary*') ? 'active' : '' }}" href="{{ route('preprimary.entry') }}">
-                                    <i class="bi bi-check2-square me-2"></i> Pre-Primary Entry
-                                </a>
-                            </li>
+                            @endif
+                            @endif
                         </ul>
                     </li>
 
-                    {{-- Profile --}}
-                    <li class="nav-item border-bottom">
-                        <a class="nav-link {{ request()->is('teachers/view/profile*') ? 'active' : '' }}"
-                            href="{{ route('teacher.profile.show', Auth::user()->id) }}">
-                            <i class="bi bi-person-circle"></i>
-                            <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">My Profile</span>
-                        </a>
-                    </li>
 
                     @endif
 

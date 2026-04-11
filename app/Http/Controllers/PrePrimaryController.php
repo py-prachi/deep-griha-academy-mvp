@@ -272,8 +272,16 @@ class PrePrimaryController extends Controller
         }
 
         $promotionRepository = new PromotionRepository();
-        $promotions = $promotionRepository->getAll($session_id, $class_id, $section_id)
-            ->sortBy('roll_number');
+        $allPromotions = $promotionRepository->getAll($session_id, $class_id, $section_id)
+            ->sortBy('roll_number')
+            ->values();
+
+        // Paginate students — 10 per page
+        $perPage    = 10;
+        $page       = max(1, (int) $request->query('page', 1));
+        $totalPages = max(1, (int) ceil($allPromotions->count() / $perPage));
+        $page       = min($page, $totalPages);
+        $promotions = $allPromotions->forPage($page, $perPage);
 
         // Load existing grades keyed by "student_id.skill_code"
         $rawGrades = PrePrimarySkillGrade::where('session_id', $session_id)
@@ -306,11 +314,15 @@ class PrePrimaryController extends Controller
             'section_id'     => $section_id,
             'term'           => $term,
             'ppType'         => $ppType,
+            'allPromotions'  => $allPromotions,
             'promotions'     => $promotions,
             'existingGrades' => $existingGrades,
             'skills'         => $skills,
             'session_id'     => $session_id,
             'ctName'         => $ctName,
+            'page'           => $page,
+            'totalPages'     => $totalPages,
+            'perPage'        => $perPage,
         ]);
     }
 

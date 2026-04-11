@@ -238,67 +238,14 @@
                                         <i class="bi bi-printer me-1"></i> Print Report Cards
                                     </a>
                                     @endif
-                                    <a href="{{ route('teacher.profile.show', auth()->user()->id) }}"
-                                        class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-person-circle me-1"></i> My Profile
-                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Row 2: Student list + Notices --}}
+                {{-- Row 2: Notices --}}
                 <div class="row g-3 mb-4">
-                    {{-- Student list --}}
-                    <div class="col-lg-6">
-                        <div class="card">
-                            <div class="card-header py-2 small fw-semibold d-flex justify-content-between">
-                                <span><i class="bi bi-people me-1"></i> My Class — {{ $totalStudents }} students</span>
-                            </div>
-                            <div class="card-body p-0">
-                                @if($students->isEmpty())
-                                <p class="text-muted small p-3 mb-0">No students enrolled in your class this session.</p>
-                                @else
-                                <div style="max-height:320px;overflow-y:auto;">
-                                <table class="table table-sm table-hover mb-0" style="font-size:0.82rem;">
-                                    <thead class="table-light sticky-top">
-                                        <tr>
-                                            <th class="ps-3">#</th>
-                                            <th>Name</th>
-                                            <th class="text-center">Today</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($students as $p)
-                                        @php
-                                            $att = $attendanceToday->get($p->student_id);
-                                            $attStatus = $att ? $att->status : null;
-                                        @endphp
-                                        <tr>
-                                            <td class="ps-3 text-muted">{{ $p->roll_number ?? '—' }}</td>
-                                            <td>{{ $p->student->first_name ?? '' }} {{ $p->student->last_name ?? '' }}</td>
-                                            <td class="text-center">
-                                                @if($attStatus === 'on')
-                                                    <span class="badge bg-success" style="font-size:0.65rem;">P</span>
-                                                @elseif($attStatus === 'off')
-                                                    <span class="badge bg-danger" style="font-size:0.65rem;">A</span>
-                                                @elseif($attStatus === 'late')
-                                                    <span class="badge bg-warning text-dark" style="font-size:0.65rem;">L</span>
-                                                @else
-                                                    <span class="text-muted">—</span>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                                </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-
                     {{-- Notices --}}
                     <div class="col-lg-6">
                         <div class="card">
@@ -387,51 +334,78 @@
 
                 @else
                 {{-- ── ADMIN DASHBOARD ── --}}
-                <h5 class="mb-1">Dashboard</h5>
-                <p class="text-muted small mb-3">{{ \Carbon\Carbon::today()->format('l, d M Y') }}</p>
-
-                <div class="row g-3 mb-4">
-                    <div class="col-md-4">
-                        <div class="card text-center py-3">
-                            <div class="fs-2 fw-bold">{{ $studentCount }}</div>
-                            <div class="small text-muted">Students enrolled</div>
+                <div class="row dashboard">
+                    <div class="col">
+                        <div class="card rounded-pill">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto"><div class="fw-bold"><i class="bi bi-person-lines-fill me-3"></i> Total Students</div></div>
+                                    <span class="badge bg-dark rounded-pill">{{$studentCount}}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card text-center py-3">
-                            <div class="fs-2 fw-bold">{{ $teacherCount }}</div>
-                            <div class="small text-muted">Teachers</div>
+                    <div class="col">
+                        <div class="card rounded-pill">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto"><div class="fw-bold"><i class="bi bi-person-lines-fill me-3"></i> Total Teachers</div></div>
+                                    <span class="badge bg-dark rounded-pill">{{$teacherCount}}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card text-center py-3">
-                            <div class="fs-2 fw-bold">{{ $classCount }}</div>
-                            <div class="small text-muted">Classes this session</div>
+                    <div class="col">
+                        <div class="card rounded-pill">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto"><div class="fw-bold"><i class="bi bi-diagram-3 me-3"></i> Total Classes</div></div>
+                                    <span class="badge bg-dark rounded-pill">{{ $classCount }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 @if($studentCount > 0)
-                @php
-                    $maleStudentPercentage   = $studentCount > 0 ? round($maleStudentsBySession / $studentCount * 100) : 0;
-                    $femaleStudentPercentage = 100 - $maleStudentPercentage;
-                @endphp
-                <div class="d-flex align-items-center gap-3 mb-4">
-                    <span class="small text-muted text-nowrap">Gender split:</span>
-                    <div class="progress flex-grow-1" style="height:10px;">
-                        <div class="progress-bar bg-primary" style="width:{{ $maleStudentPercentage }}%"
-                            title="Male {{ $maleStudentPercentage }}%"></div>
-                        <div class="progress-bar" style="width:{{ $femaleStudentPercentage }}%;background:#49a4fe;"
-                            title="Female {{ $femaleStudentPercentage }}%"></div>
+                <div class="mt-3 d-flex align-items-center">
+                    <div class="col-3">
+                        <span class="ps-2 me-2">Students %</span>
+                        <span class="badge rounded-pill border" style="background-color: #0678c8;">Male</span>
+                        <span class="badge rounded-pill border" style="background-color: #49a4fe;">Female</span>
                     </div>
-                    <span class="small text-muted">{{ $maleStudentPercentage }}% M / {{ $femaleStudentPercentage }}% F</span>
+                    @php
+                    $maleStudentPercentage = round(($maleStudentsBySession/$studentCount), 2) * 100;
+                    $maleStudentPercentageStyle = "style='background-color: #0678c8; width: $maleStudentPercentage%'";
+                    $femaleStudentPercentage = round((($studentCount - $maleStudentsBySession)/$studentCount), 2) * 100;
+                    $femaleStudentPercentageStyle = "style='background-color: #49a4fe; width: $femaleStudentPercentage%'";
+                    @endphp
+                    <div class="col-9 progress">
+                        <div class="progress-bar progress-bar-striped" role="progressbar" {!!$maleStudentPercentageStyle!!} aria-valuenow="{{$maleStudentPercentage}}" aria-valuemin="0" aria-valuemax="100">{{$maleStudentPercentage}}%</div>
+                        <div class="progress-bar progress-bar-striped" role="progressbar" {!!$femaleStudentPercentageStyle!!} aria-valuenow="{{$femaleStudentPercentage}}" aria-valuemin="0" aria-valuemax="100">{{$femaleStudentPercentage}}%</div>
+                    </div>
                 </div>
                 @endif
 
-                <div class="row g-3">
+                <div class="row align-items-md-stretch mt-4">
+                    <div class="col">
+                        <div class="p-3 text-white bg-dark rounded-3">
+                            <h3>Welcome to Deep Griha Academy!</h3>
+                            <p><i class="bi bi-emoji-heart-eyes"></i> Thanks for your love and support.</p>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="p-3 bg-white border rounded-3" style="height: 100%;">
+                            <h3>School Management System</h3>
+                            <p class="text-end">for <i class="bi bi-lightning"></i> <a href="https://deepgriha.org/programmes/cbse-english-academy-pune/" target="_blank" style="text-decoration: none;">Deep Griha Academy</a> <i class="bi bi-lightning"></i>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
                     <div class="col-lg-6">
                         <div class="card mb-3">
-                            <div class="card-header py-2 small fw-semibold"><i class="bi bi-calendar-event me-1"></i> Events</div>
+                            <div class="card-header bg-transparent"><i class="bi bi-calendar-event me-2"></i> Events</div>
                             <div class="card-body text-dark">
                                 @include('components.events.event-calendar', ['editable' => 'false', 'selectable' => 'false'])
                             </div>
@@ -439,27 +413,25 @@
                     </div>
                     <div class="col-lg-6">
                         <div class="card mb-3">
-                            <div class="card-header py-2 small fw-semibold d-flex justify-content-between">
-                                <span><i class="bi bi-megaphone me-1"></i> Notices</span>
-                                {{ $notices->links() }}
+                            <div class="card-header bg-transparent d-flex justify-content-between">
+                                <span><i class="bi bi-megaphone me-2"></i> Notices</span> {{ $notices->links() }}
                             </div>
                             <div class="card-body p-0 text-dark">
                                 <div class="accordion accordion-flush" id="noticeAccordion">
-                                    @foreach($notices as $notice)
+                                    @foreach ($notices as $notice)
                                     <div class="accordion-item">
-                                        <h2 class="accordion-header">
-                                            <button class="accordion-button collapsed py-2 small" type="button"
-                                                data-bs-toggle="collapse" data-bs-target="#flush-collapse{{$notice->id}}">
-                                                {{ \Carbon\Carbon::parse($notice->created_at)->format('d M Y') }}
+                                        <h2 class="accordion-header" id="flush-heading{{$notice->id}}">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse{{$notice->id}}" aria-expanded="{{$loop->first ? 'true' : 'false'}}" aria-controls="flush-collapse{{$notice->id}}">
+                                                Published at: {{$notice->created_at}}
                                             </button>
                                         </h2>
-                                        <div id="flush-collapse{{$notice->id}}" class="accordion-collapse collapse {{$loop->first ? 'show' : ''}}">
-                                            <div class="accordion-body small overflow-auto">{!!Purify::clean($notice->notice)!!}</div>
+                                        <div id="flush-collapse{{$notice->id}}" class="accordion-collapse collapse {{$loop->first ? 'show' : ''}}" aria-labelledby="flush-heading{{$notice->id}}" data-bs-parent="#noticeAccordion">
+                                            <div class="accordion-body overflow-auto">{!!Purify::clean($notice->notice)!!}</div>
                                         </div>
                                     </div>
                                     @endforeach
-                                    @if($notices->isEmpty())
-                                        <div class="p-3 text-muted small">No notices.</div>
+                                    @if(count($notices) < 1)
+                                        <div class="p-3">No notices</div>
                                     @endif
                                 </div>
                             </div>
