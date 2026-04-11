@@ -26,6 +26,9 @@ use App\Http\Controllers\AssignedTeacherController;
 use App\Http\Controllers\Auth\UpdatePasswordController;
 use App\Http\Controllers\LeavingCertificateController;
 use App\Http\Controllers\SessionSetupController;
+use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\MarksController;
+use App\Http\Controllers\PrePrimaryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -121,7 +124,30 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/marks/final/submit', [MarkController::class, 'storeFinalMark'])->name('course.final.mark.submit.store');
 
     // Exams
-    Route::get('/exams/view', [ExamController::class, 'index'])->name('exam.list.show');
+    // New marks system routes
+    Route::get('/marks2', [MarksController::class, 'index'])->name('marks.index');
+    Route::get('/marks2/entry', [MarksController::class, 'entry'])->name('marks.entry');
+    Route::post('/marks2/store', [MarksController::class, 'store'])->name('marks.store');
+    Route::get('/marks2/review', [MarksController::class, 'review'])->name('marks.review');
+    Route::post('/marks2/publish', [MarksController::class, 'publishTerm'])->name('marks.publishTerm');
+    Route::get('/marks2/observations', [MarksController::class, 'observationsForm'])->name('marks.observations');
+    Route::post('/marks2/observations', [MarksController::class, 'saveObservation'])->name('marks.saveObservation');
+    Route::get('/marks2/print/{student_id}', [MarksController::class, 'printReportCard'])->name('marks.printReportCard');
+    Route::get('/marks2/print-class', [MarksController::class, 'printClass'])->name('marks.printClass');
+    Route::get('/my-marks', [MarksController::class, 'reportCard'])->name('marks.reportCard');
+
+    // Pre-Primary (Nursery/LKG/UKG) skill assessment
+    Route::get('/preprimary/entry', [PrePrimaryController::class, 'entry'])->name('preprimary.entry');
+    Route::post('/preprimary/entry', [PrePrimaryController::class, 'store'])->name('preprimary.store');
+    Route::get('/preprimary/narratives', [PrePrimaryController::class, 'narratives'])->name('preprimary.narratives');
+    Route::post('/preprimary/narratives', [PrePrimaryController::class, 'saveNarratives'])->name('preprimary.saveNarratives');
+    Route::get('/preprimary/print/{student_id}', [PrePrimaryController::class, 'printReportCard'])->name('preprimary.printReportCard');
+    Route::get('/preprimary/print-class', [PrePrimaryController::class, 'printClass'])->name('preprimary.printClass');
+
+    // Old exam route — redirect to avoid 500 crash until rebuilt
+    Route::get('/exams/view', function() {
+        return redirect('/marks2')->with('info', 'The exam system has been rebuilt. Please use the new Marks section.');
+    })->name('exam.list.show');
     // Route::get('/exams/view/history', function () {
     //     return view('exams.history');
     // });
@@ -148,6 +174,23 @@ Route::middleware(['auth'])->group(function () {
 
     // Academic settings
     Route::get('/academics/settings', [AcademicSettingController::class, 'index']);
+
+    // Subjects
+    Route::get('/academics/subjects', [SubjectController::class, 'index'])->name('subjects.index');
+    Route::post('/academics/subjects', [SubjectController::class, 'store'])->name('subjects.store');
+    Route::put('/academics/subjects/{subject}', [SubjectController::class, 'update'])->name('subjects.update');
+    Route::delete('/academics/subjects/{subject}', [SubjectController::class, 'destroy'])->name('subjects.destroy');
+    Route::post('/academics/subjects/class-assignments', [SubjectController::class, 'saveClassSubjects'])->name('subjects.saveClassSubjects');
+    Route::post('/academics/subjects/bulk-assign-1to8', [SubjectController::class, 'bulkAssignClasses1to8'])->name('subjects.bulkAssign1to8');
+    Route::post('/promotions/reassign-roll-numbers', [App\Http\Controllers\PromotionController::class, 'reassignRollNumbers'])->name('promotions.reassignRollNumbers');
+
+    // Teacher assignments (new clean flow)
+    Route::get('/academics/teacher-assignments', [SubjectController::class, 'teacherAssignments'])->name('academics.teacher-assignments');
+    Route::get('/academics/class-subjects-json', [SubjectController::class, 'classSubjectsJson'])->name('academics.classSubjectsJson');
+    Route::post('/academics/class-teacher', [SubjectController::class, 'saveClassTeacher'])->name('academics.saveClassTeacher');
+    Route::delete('/academics/class-teacher/{classTeacher}', [SubjectController::class, 'removeClassTeacher'])->name('academics.removeClassTeacher');
+    Route::post('/academics/subject-teacher', [SubjectController::class, 'saveSubjectTeacher'])->name('academics.saveSubjectTeacher');
+    Route::delete('/academics/subject-teacher/{subjectTeacher}', [SubjectController::class, 'removeSubjectTeacher'])->name('academics.removeSubjectTeacher');
 
     // Calendar events
     Route::get('calendar-event', [EventController::class, 'index'])->name('events.show');

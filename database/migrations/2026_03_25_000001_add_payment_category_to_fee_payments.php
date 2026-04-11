@@ -14,23 +14,25 @@ class AddPaymentCategoryToFeePayments extends Migration
         });
 
         // Step 2: Rebuild fee_line_items description enum with new values
-        // MySQL requires a full column redefinition to change enum values
-        DB::statement("
-            ALTER TABLE fee_line_items
-            MODIFY COLUMN description ENUM(
-                'admission_fee',
-                'tuition_fee',
-                'transport_charges',
-                'transfer_certificate',
-                'bonafide_certificate',
-                'other_fee',
-                'uniform',
-                'notebooks',
-                'stationery',
-                'sports',
-                'other_misc'
-            ) NOT NULL
-        ");
+        // MySQL only — SQLite does not support MODIFY COLUMN / ENUM
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("
+                ALTER TABLE fee_line_items
+                MODIFY COLUMN description ENUM(
+                    'admission_fee',
+                    'tuition_fee',
+                    'transport_charges',
+                    'transfer_certificate',
+                    'bonafide_certificate',
+                    'other_fee',
+                    'uniform',
+                    'notebooks',
+                    'stationery',
+                    'sports',
+                    'other_misc'
+                ) NOT NULL
+            ");
+        }
     }
 
     public function down()
@@ -39,21 +41,22 @@ class AddPaymentCategoryToFeePayments extends Migration
             $table->dropColumn('payment_category');
         });
 
-        // Revert enum to original values
-        DB::statement("
-            ALTER TABLE fee_line_items
-            MODIFY COLUMN description ENUM(
-                'admission_fee',
-                'tuition_fee',
-                'other_fee',
-                'transfer_certificate',
-                'bonafide_certificate',
-                'transport_charges',
-                'stationery',
-                'uniform',
-                'sports',
-                'notebooks'
-            ) NOT NULL
-        ");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("
+                ALTER TABLE fee_line_items
+                MODIFY COLUMN description ENUM(
+                    'admission_fee',
+                    'tuition_fee',
+                    'other_fee',
+                    'transfer_certificate',
+                    'bonafide_certificate',
+                    'transport_charges',
+                    'stationery',
+                    'uniform',
+                    'sports',
+                    'notebooks'
+                ) NOT NULL
+            ");
+        }
     }
 }

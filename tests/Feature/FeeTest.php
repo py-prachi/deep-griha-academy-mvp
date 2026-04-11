@@ -113,9 +113,10 @@ class FeeTest extends TestCase
     private function recordPayment(array $overrides = []): array
     {
         return array_merge([
-            'payment_date' => now()->toDateString(),
-            'amount_paid'  => 5000,
-            'payment_mode' => 'cash',
+            'payment_date'     => now()->toDateString(),
+            'amount_paid'      => 5000,
+            'payment_mode'     => 'cash',
+            'payment_category' => 'fee',
         ], $overrides);
     }
 

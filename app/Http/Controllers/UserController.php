@@ -13,6 +13,8 @@ use App\Http\Requests\StudentStoreRequest;
 use App\Http\Requests\TeacherStoreRequest;
 use App\Interfaces\SchoolSessionInterface;
 use App\Repositories\StudentParentInfoRepository;
+use App\Models\ClassTeacher;
+use App\Models\SubjectTeacher;
 
 class UserController extends Controller
 {
@@ -48,9 +50,11 @@ class UserController extends Controller
     public function storeTeacher(TeacherStoreRequest $request)
     {
         try {
-            $this->userRepository->createTeacher($request->validated());
+            $credentials = $this->userRepository->createTeacher($request->validated());
 
-            return back()->with('status', 'Teacher creation was successful!');
+            return back()->with('status',
+                'Teacher added successfully! Login credentials — Email: ' . $credentials['email'] . ' / Password: ' . $credentials['password']
+            );
         } catch (\Exception $e) {
             return back()->withError($e->getMessage());
         }
@@ -58,12 +62,77 @@ class UserController extends Controller
 
     public function getStudentList(Request $request) {
         $current_school_session_id = $this->getSchoolCurrentSession();
+        $user = auth()->user();
 
-        $class_id = $request->query('class_id', 0);
+        $class_id   = $request->query('class_id', 0);
         $section_id = $request->query('section_id', 0);
 
-        try{
+        try {
+            $promotionRepository = new PromotionRepository();
 
+            if ($user->role === 'teacher') {
+                // 1. CT assignment
+                $ctAssignment = ClassTeacher::where('teacher_id', $user->id)
+                    ->where('session_id', $current_school_session_id)
+                    ->first();
+
+                // 2. Subject teacher classes
+                $subjectClassIds = SubjectTeacher::where('teacher_id', $user->id)
+                    ->where('session_id', $current_school_session_id)
+                    ->pluck('class_id')
+                    ->unique()
+                    ->toArray();
+
+                $allowedClassIds = $subjectClassIds;
+                if ($ctAssignment) {
+                    $allowedClassIds[] = $ctAssignment->class_id;
+                }
+                $allowedClassIds = array_unique($allowedClassIds);
+
+                if (empty($allowedClassIds)) {
+                    return view('students.list', [
+                        'studentList'    => collect(),
+                        'school_classes' => collect(),
+                        'teacher_scoped' => true,
+                    ]);
+                }
+
+                // Classes dropdown: only allowed classes
+                $school_classes = $this->schoolClassRepository->getAllBySession($current_school_session_id)
+                    ->filter(function ($c) use ($allowedClassIds) {
+                        return in_array($c->id, $allowedClassIds);
+                    })->values();
+
+                // Student list: always Promotion objects (so view's ->student and ->section work)
+                if ($class_id != 0 && in_array($class_id, $allowedClassIds)) {
+                    if ($section_id != 0) {
+                        $studentList = $promotionRepository->getAll($current_school_session_id, $class_id, $section_id);
+                    } else {
+                        $studentList = \App\Models\Promotion::with(['student', 'section', 'schoolClass'])
+                            ->where('session_id', $current_school_session_id)
+                            ->where('class_id', $class_id)
+                            ->get();
+                    }
+                } elseif ($ctAssignment) {
+                    // CT with no filter selected: default to their own class+section
+                    $studentList = \App\Models\Promotion::with(['student', 'section', 'schoolClass'])
+                        ->where('session_id', $current_school_session_id)
+                        ->where('class_id', $ctAssignment->class_id)
+                        ->where('section_id', $ctAssignment->section_id)
+                        ->get();
+                } else {
+                    // Subject teacher with no filter: show nothing, prompt to select
+                    $studentList = collect();
+                }
+
+                return view('students.list', [
+                    'studentList'    => $studentList,
+                    'school_classes' => $school_classes,
+                    'teacher_scoped' => true,
+                ]);
+            }
+
+            // Admin: full access
             $school_classes = $this->schoolClassRepository->getAllBySession($current_school_session_id);
 
             if ($class_id == 0 || $section_id == 0) {
@@ -72,12 +141,12 @@ class UserController extends Controller
                 $studentList = $this->userRepository->getAllStudents($current_school_session_id, $class_id, $section_id);
             }
 
-            $data = [
-                'studentList'       => $studentList,
-                'school_classes'    => $school_classes,
-            ];
+            return view('students.list', [
+                'studentList'    => $studentList,
+                'school_classes' => $school_classes,
+                'teacher_scoped' => false,
+            ]);
 
-            return view('students.list', $data);
         } catch (\Exception $e) {
             return back()->withError($e->getMessage());
         }

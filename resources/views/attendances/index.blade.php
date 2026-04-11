@@ -8,6 +8,17 @@
             <div class="row pt-2">
                 <div class="col ps-4">
                     <h1 class="display-6 mb-3"><i class="bi bi-calendar2-week"></i> Attendance</h1>
+
+                    @include('session-messages')
+
+                    @if(!empty($not_assigned) && $not_assigned)
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        You are not assigned as a Class Teacher for the current session.
+                        Please contact the admin to get assigned.
+                    </div>
+                    @endif
+
                     <div class="row">
                         <div class="col">
                             <div class="row">
