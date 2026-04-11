@@ -21,9 +21,20 @@
                     @php
                         $marksSubjects = $subjects->where('mark_type', 'marks');
                         $gradeSubjects = $subjects->where('mark_type', 'grade_only');
+                        $anyPublished = !empty($publishedTerms);
                     @endphp
 
+                    @if(!$anyPublished)
+                        <div class="alert alert-info" style="max-width:600px;">
+                            <i class="bi bi-clock me-1"></i>
+                            Your report cards will appear here once published by your school.
+                        </div>
+                    @else
+
                     @foreach([1, 2] as $term)
+                    @if(!in_array($term, $publishedTerms))
+                        {{-- Not yet published — skip silently --}}
+                    @else
                     <div class="card mb-4" style="max-width:760px;">
                         <div class="card-header py-2 fw-semibold">Term {{ $term }}</div>
                         <div class="card-body p-0">
@@ -95,10 +106,22 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        {{-- Remarks --}}
+                        @php $obs = $observations->get($term); @endphp
+                        @if($obs && $obs->remarks)
+                        <div class="card-footer bg-light py-2 px-3">
+                            <p class="small fw-semibold mb-1">Teacher's Remarks</p>
+                            <p class="small mb-0" style="white-space:pre-wrap;">{{ $obs->remarks }}</p>
+                        </div>
+                        @endif
                     </div>
+                    @endif
                     @endforeach
 
-                    @endif
+                    @endif {{-- anyPublished --}}
+
+                    @endif {{-- error --}}
                 </div>
             </div>
             @include('layouts.footer')

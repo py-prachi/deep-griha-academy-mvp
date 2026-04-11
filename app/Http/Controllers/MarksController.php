@@ -10,6 +10,8 @@ use App\Models\ClassTeacher;
 use App\Models\SubjectTeacher;
 use App\Models\StudentTermMark;
 use App\Models\MarkExamDate;
+use App\Models\ReportCardPublished;
+use App\Models\StudentObservation;
 use App\Repositories\PromotionRepository;
 use App\Interfaces\SchoolSessionInterface;
 use App\Interfaces\SchoolClassInterface;
@@ -534,16 +536,26 @@ class MarksController extends Controller
             }
         }
 
+        // Which terms are published for this class/section/session?
+        $publishedTerms = ReportCardPublished::where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('session_id', $session_id)
+            ->pluck('term')
+            ->toArray();
+
         return view('marks.review', [
-            'schoolClass'  => $schoolClass,
-            'section'      => $section,
-            'subjects'     => $subjects,
-            'statusGrid'   => $statusGrid,
-            'session_id'   => $session_id,
-            'class_id'     => $class_id,
-            'section_id'   => $section_id,
-            'studentCount' => $studentCount,
-            'classes'      => $user->role === 'admin'
+            'schoolClass'    => $schoolClass,
+            'section'        => $section,
+            'subjects'       => $subjects,
+            'statusGrid'     => $statusGrid,
+            'session_id'     => $session_id,
+            'class_id'       => $class_id,
+            'section_id'     => $section_id,
+            'studentCount'   => $studentCount,
+            'promotions'     => $promotions,
+            'publishedTerms' => $publishedTerms,
+            'userRole'       => $user->role,
+            'classes'        => $user->role === 'admin'
                 ? $this->schoolClassRepository->getAllBySession($session_id)
                 : collect(),
         ]);
@@ -591,13 +603,352 @@ class MarksController extends Controller
             ->get()
             ->groupBy('subject_id');
 
+        // Which terms are published?
+        $publishedTerms = ReportCardPublished::where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('session_id', $session_id)
+            ->pluck('term')
+            ->toArray();
+
+        // Observations for this student
+        $observations = StudentObservation::where('student_id', $user->id)
+            ->where('session_id', $session_id)
+            ->get()
+            ->keyBy('term');
+
         return view('marks.report-card', [
-            'student'    => $user,
-            'promotion'  => $promotion,
-            'schoolClass'=> $schoolClass,
-            'subjects'   => $subjects,
-            'marks'      => $marks,
-            'config'     => $config,
+            'student'        => $user,
+            'promotion'      => $promotion,
+            'schoolClass'    => $schoolClass,
+            'subjects'       => $subjects,
+            'marks'          => $marks,
+            'config'         => $config,
+            'publishedTerms' => $publishedTerms,
+            'observations'   => $observations,
+        ]);
+    }
+
+    /**
+     * Admin: toggle publish for a term.
+     */
+    public function publishTerm(Request $request)
+    {
+        if (auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $class_id   = $request->input('class_id');
+        $section_id = $request->input('section_id');
+        $term       = $request->input('term');
+        $session_id = $this->getSchoolCurrentSession();
+
+        $existing = ReportCardPublished::where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('session_id', $session_id)
+            ->where('term', $term)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            $msg = "Term $term report cards unpublished.";
+        } else {
+            ReportCardPublished::create([
+                'class_id'     => $class_id,
+                'section_id'   => $section_id,
+                'session_id'   => $session_id,
+                'term'         => $term,
+                'published_at' => \Carbon\Carbon::now(),
+                'published_by' => auth()->id(),
+            ]);
+            $msg = "Term $term report cards published! Students can now view their marks.";
+        }
+
+        return redirect()->route('marks.review', [
+            'class_id'   => $class_id,
+            'section_id' => $section_id,
+        ])->with('status', $msg);
+    }
+
+    /**
+     * CT only: observations entry form (all students for a term).
+     */
+    public function observationsForm(Request $request)
+    {
+        $session_id = $this->getSchoolCurrentSession();
+        $user       = auth()->user();
+        $term       = $request->query('term', 1);
+
+        // Only class teachers may enter remarks, not admin
+        if ($user->role !== 'teacher') {
+            abort(403, 'Only the Class Teacher can enter remarks.');
+        }
+
+        $ct = ClassTeacher::where('teacher_id', $user->id)
+            ->where('session_id', $session_id)
+            ->first();
+        if (!$ct) {
+            abort(403, 'You are not assigned as a Class Teacher.');
+        }
+        $class_id   = $ct->class_id;
+        $section_id = $ct->section_id;
+
+        $schoolClass = $this->schoolClassRepository->findById($class_id);
+        $section     = $this->sectionRepository->findById($section_id);
+
+        $promotionRepo = new PromotionRepository();
+        $promotions    = $promotionRepo->getAll($session_id, $class_id, $section_id);
+
+        $existing = StudentObservation::where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('session_id', $session_id)
+            ->where('term', $term)
+            ->get()
+            ->keyBy('student_id');
+
+        return view('marks.observations', [
+            'schoolClass' => $schoolClass,
+            'section'     => $section,
+            'promotions'  => $promotions,
+            'existing'    => $existing,
+            'term'        => $term,
+            'class_id'    => $class_id,
+            'section_id'  => $section_id,
+            'session_id'  => $session_id,
+        ]);
+    }
+
+    /**
+     * CT/Admin: save observations for all students.
+     */
+    public function saveObservation(Request $request)
+    {
+        $session_id = $this->getSchoolCurrentSession();
+        $user       = auth()->user();
+
+        if ($user->role !== 'teacher') {
+            abort(403, 'Only the Class Teacher can save remarks.');
+        }
+
+        $class_id   = $request->input('class_id');
+        $section_id = $request->input('section_id');
+        $term       = $request->input('term');
+        $remarks    = $request->input('remarks', []);
+
+        foreach ($remarks as $student_id => $remark) {
+            if (trim($remark) === '') {
+                continue;
+            }
+            StudentObservation::updateOrCreate(
+                [
+                    'student_id' => $student_id,
+                    'session_id' => $session_id,
+                    'term'       => $term,
+                ],
+                [
+                    'class_id'   => $class_id,
+                    'section_id' => $section_id,
+                    'remarks'    => trim($remark),
+                    'created_by' => $user->id,
+                ]
+            );
+        }
+
+        return redirect()->route('marks.observations', [
+            'class_id'   => $class_id,
+            'section_id' => $section_id,
+            'term'       => $term,
+        ])->with('status', 'Observations saved!');
+    }
+
+    /**
+     * Admin/CT: printable report card for one student.
+     */
+    public function printReportCard(Request $request, $student_id)
+    {
+        $session_id = $this->getSchoolCurrentSession();
+        $user       = auth()->user();
+
+        $promotionRepo = new PromotionRepository();
+        $promotion     = $promotionRepo->getPromotionInfoById($session_id, $student_id);
+
+        if (!$promotion) {
+            abort(404, 'Student not found in current session.');
+        }
+
+        $class_id   = $promotion->class_id;
+        $section_id = $promotion->section_id;
+
+        // CT: must be assigned to this class/section
+        if ($user->role === 'teacher') {
+            $isCT = ClassTeacher::where('teacher_id', $user->id)
+                ->where('class_id', $class_id)
+                ->where('section_id', $section_id)
+                ->where('session_id', $session_id)
+                ->exists();
+            if (!$isCT) {
+                abort(403);
+            }
+        }
+
+        $student     = \App\Models\User::findOrFail($student_id);
+        $schoolClass = $this->schoolClassRepository->findById($class_id);
+        $section     = $this->sectionRepository->findById($section_id);
+        $classGroup  = self::getClassGroup($schoolClass->class_name);
+        $config      = self::CLASS_GROUP_CONFIG[$classGroup];
+
+        $subjects = ClassSubject::with('subject')
+            ->where('class_id', $class_id)
+            ->where('session_id', $session_id)
+            ->get()
+            ->pluck('subject')
+            ->filter()
+            ->sortBy('sort_order')
+            ->values();
+
+        $marks = StudentTermMark::where('student_id', $student_id)
+            ->where('session_id', $session_id)
+            ->get()
+            ->groupBy('subject_id');
+
+        $observations = StudentObservation::where('student_id', $student_id)
+            ->where('session_id', $session_id)
+            ->get()
+            ->keyBy('term');
+
+        // Attendance counts
+        $attendanceRepo = new \App\Repositories\AttendanceRepository();
+        $attendances    = $attendanceRepo->getStudentAttendance($session_id, $student_id);
+        $presentCount   = $attendances->where('status', 'on')->count();
+        $totalWorkingDays = 220;
+
+        // CT name
+        $ctAssignment = ClassTeacher::with('teacher')
+            ->where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('session_id', $session_id)
+            ->first();
+        $ctName = $ctAssignment && $ctAssignment->teacher
+            ? $ctAssignment->teacher->first_name . ' ' . $ctAssignment->teacher->last_name
+            : '';
+
+        $publishedTerms = ReportCardPublished::where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('session_id', $session_id)
+            ->pluck('term')
+            ->toArray();
+
+        return view('marks.print', [
+            'student'          => $student,
+            'promotion'        => $promotion,
+            'schoolClass'      => $schoolClass,
+            'section'          => $section,
+            'subjects'         => $subjects,
+            'marks'            => $marks,
+            'config'           => $config,
+            'observations'     => $observations,
+            'presentCount'     => $presentCount,
+            'totalWorkingDays' => $totalWorkingDays,
+            'ctName'           => $ctName,
+            'session_id'       => $session_id,
+            'publishedTerms'   => $publishedTerms,
+        ]);
+    }
+
+    /**
+     * Admin/CT: print report cards for all students in a class/section.
+     */
+    public function printClass(Request $request)
+    {
+        $session_id = $this->getSchoolCurrentSession();
+        $user       = auth()->user();
+
+        $class_id   = $request->query('class_id');
+        $section_id = $request->query('section_id');
+
+        if (!$class_id || !$section_id) {
+            abort(400, 'class_id and section_id required.');
+        }
+
+        // CT: must be assigned to this class/section
+        if ($user->role === 'teacher') {
+            $isCT = ClassTeacher::where('teacher_id', $user->id)
+                ->where('class_id', $class_id)
+                ->where('section_id', $section_id)
+                ->where('session_id', $session_id)
+                ->exists();
+            if (!$isCT) {
+                abort(403);
+            }
+        }
+
+        $schoolClass = $this->schoolClassRepository->findById($class_id);
+        $section     = $this->sectionRepository->findById($section_id);
+        $classGroup  = self::getClassGroup($schoolClass->class_name);
+        $config      = self::CLASS_GROUP_CONFIG[$classGroup];
+
+        $subjects = ClassSubject::with('subject')
+            ->where('class_id', $class_id)
+            ->where('session_id', $session_id)
+            ->get()
+            ->pluck('subject')
+            ->filter()
+            ->sortBy('sort_order')
+            ->values();
+
+        $promotionRepo = new PromotionRepository();
+        $promotions    = $promotionRepo->getAll($session_id, $class_id, $section_id);
+
+        $publishedTerms = ReportCardPublished::where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('session_id', $session_id)
+            ->pluck('term')
+            ->toArray();
+
+        $ctAssignment = ClassTeacher::with('teacher')
+            ->where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('session_id', $session_id)
+            ->first();
+        $ctName = $ctAssignment && $ctAssignment->teacher
+            ? $ctAssignment->teacher->first_name . ' ' . $ctAssignment->teacher->last_name
+            : '';
+
+        $attendanceRepo  = new \App\Repositories\AttendanceRepository();
+        $totalWorkingDays = 220;
+
+        // Build per-student data
+        $studentCards = [];
+        foreach ($promotions->sortBy('roll_number') as $p) {
+            $studentId = $p->student_id;
+            $student   = $p->student;
+
+            $marks = StudentTermMark::where('student_id', $studentId)
+                ->where('session_id', $session_id)
+                ->get()
+                ->groupBy('subject_id');
+
+            $observations = StudentObservation::where('student_id', $studentId)
+                ->where('session_id', $session_id)
+                ->get()
+                ->keyBy('term');
+
+            $attendances  = $attendanceRepo->getStudentAttendance($session_id, $studentId);
+            $presentCount = $attendances->where('status', 'on')->count();
+
+            $studentCards[] = compact('student', 'p', 'marks', 'observations', 'presentCount');
+        }
+
+        return view('marks.print-class', [
+            'studentCards'     => $studentCards,
+            'schoolClass'      => $schoolClass,
+            'section'          => $section,
+            'subjects'         => $subjects,
+            'config'           => $config,
+            'publishedTerms'   => $publishedTerms,
+            'ctName'           => $ctName,
+            'totalWorkingDays' => $totalWorkingDays,
+            'class_id'         => $class_id,
+            'section_id'       => $section_id,
         ]);
     }
 }

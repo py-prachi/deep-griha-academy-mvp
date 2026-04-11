@@ -128,6 +128,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/marks2/entry', [MarksController::class, 'entry'])->name('marks.entry');
     Route::post('/marks2/store', [MarksController::class, 'store'])->name('marks.store');
     Route::get('/marks2/review', [MarksController::class, 'review'])->name('marks.review');
+    Route::post('/marks2/publish', [MarksController::class, 'publishTerm'])->name('marks.publishTerm');
+    Route::get('/marks2/observations', [MarksController::class, 'observationsForm'])->name('marks.observations');
+    Route::post('/marks2/observations', [MarksController::class, 'saveObservation'])->name('marks.saveObservation');
+    Route::get('/marks2/print/{student_id}', [MarksController::class, 'printReportCard'])->name('marks.printReportCard');
+    Route::get('/marks2/print-class', [MarksController::class, 'printClass'])->name('marks.printClass');
     Route::get('/my-marks', [MarksController::class, 'reportCard'])->name('marks.reportCard');
 
     // Old exam route — redirect to avoid 500 crash until rebuilt

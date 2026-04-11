@@ -47,6 +47,76 @@
                             @endif
                         </p>
 
+                        {{-- Term publish status + actions --}}
+                        <div class="row g-2 mb-3" style="max-width:560px;">
+                            @foreach([1,2] as $term)
+                            @php $isPublished = in_array($term, $publishedTerms); @endphp
+                            <div class="col-6">
+                                <div class="card border-{{ $isPublished ? 'success' : 'secondary' }}">
+                                    <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <span class="fw-semibold small">Term {{ $term }}</span>
+                                            <br>
+                                            @if($isPublished)
+                                                <span class="badge bg-success">Published</span>
+                                            @else
+                                                <span class="badge bg-secondary">Not published</span>
+                                            @endif
+                                        </div>
+                                        <div class="d-flex flex-column gap-1 ms-2">
+                                            {{-- Publish toggle: admin only --}}
+                                            @if(Auth::user()->role === 'admin')
+                                            <form method="POST" action="{{ route('marks.publishTerm') }}" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="class_id" value="{{ $class_id }}">
+                                                <input type="hidden" name="section_id" value="{{ $section_id }}">
+                                                <input type="hidden" name="term" value="{{ $term }}">
+                                                <button type="submit"
+                                                    class="btn btn-sm {{ $isPublished ? 'btn-outline-danger' : 'btn-success' }}"
+                                                    onclick="return confirm('{{ $isPublished ? 'Unpublish Term '.$term.' report cards?' : 'Publish Term '.$term.' report cards? Students will be able to see their marks.' }}')">
+                                                    {{ $isPublished ? 'Unpublish' : 'Publish' }}
+                                                </button>
+                                            </form>
+                                            @endif
+                                            {{-- Remarks: CT only --}}
+                                            @if(Auth::user()->role === 'teacher')
+                                            <a href="{{ route('marks.observations', ['class_id'=>$class_id,'section_id'=>$section_id,'term'=>$term]) }}"
+                                                class="btn btn-sm btn-outline-primary">
+                                                Remarks
+                                            </a>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+
+                        {{-- Print report cards --}}
+                        @if(!empty($publishedTerms) && isset($promotions) && $promotions->isNotEmpty())
+                        <div class="mb-3 d-flex align-items-center gap-2" style="max-width:560px;">
+                            <a href="{{ route('marks.printClass', ['class_id'=>$class_id,'section_id'=>$section_id]) }}"
+                                target="_blank" class="btn btn-sm btn-dark">
+                                <i class="bi bi-printer me-1"></i>Print All Report Cards
+                            </a>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    Print Individual
+                                </button>
+                                <ul class="dropdown-menu">
+                                    @foreach($promotions->sortBy('roll_number') as $p)
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('marks.printReportCard', $p->student_id) }}" target="_blank">
+                                            @if($p->roll_number){{ $p->roll_number }}. @endif
+                                            {{ $p->student->first_name ?? '' }} {{ $p->student->last_name ?? '' }}
+                                        </a>
+                                    </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                        @endif
+
                         <div class="d-flex gap-3 mb-3 small">
                             <span><i class="bi bi-circle-fill text-success"></i> Started</span>
                             <span><i class="bi bi-circle text-danger"></i> Not started</span>

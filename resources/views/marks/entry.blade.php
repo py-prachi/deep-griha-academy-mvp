@@ -7,7 +7,8 @@
             <div class="row pt-2">
                 <div class="col ps-4">
                     <div class="d-flex align-items-center mb-2">
-                        <a href="{{ route('marks.index') }}" class="btn btn-sm btn-outline-secondary me-2">
+                        <a href="{{ route('marks.review', ['class_id'=>$schoolClass->id,'section_id'=>$section->id]) }}"
+                            class="btn btn-sm btn-outline-secondary me-2">
                             <i class="bi bi-arrow-left"></i>
                         </a>
                         <h5 class="mb-0">
@@ -24,14 +25,16 @@
 
                     @if($subject->mark_type === 'marks')
                     <div class="alert alert-light py-2 small border mb-3" style="max-width:960px;">
-                        <strong>Internal:</strong>
-                        Oral ({{ $config['oral_internal'] }}) + Activity ({{ $config['activity_internal'] }}) + Test ({{ $config['test'] }}) + HW ({{ $config['hw'] }}) = {{ $config['internal_max'] }}
-                        &nbsp;|&nbsp;
-                        <strong>Written:</strong>
-                        Oral ({{ $config['oral_written'] }}) + Activity ({{ $config['activity_written'] }}) + Writing ({{ $config['writing'] }}) = {{ $config['written_max'] }}
-                        &nbsp;|&nbsp;
-                        <strong>Total: {{ $config['grand_max'] }}</strong>
-                        <span class="ms-3 text-muted">— Tick <strong>AB</strong> below any mark if student was absent for that exam</span>
+                        <div class="mb-1">
+                            <strong>Enter marks in each column. Int, Writ, Total and Grade are calculated automatically.</strong>
+                        </div>
+                        <div class="d-flex gap-3 flex-wrap">
+                            <span><strong>Internal /{{ $config['internal_max'] }}:</strong>
+                                Oral /{{ $config['oral_internal'] }} + Activity /{{ $config['activity_internal'] }} + Test /{{ $config['test'] }} + HW /{{ $config['hw'] }}</span>
+                            <span><strong>Written /{{ $config['written_max'] }}:</strong>
+                                Oral /{{ $config['oral_written'] }} + Activity /{{ $config['activity_written'] }} + Writing /{{ $config['writing'] }}</span>
+                            <span class="text-muted">Tick <strong>AB</strong> below any mark if student was absent for that component.</span>
+                        </div>
                     </div>
                     @endif
 
@@ -106,11 +109,11 @@
                                     <th rowspan="2" style="min-width:140px;vertical-align:middle;">Student</th>
                                     @if($subject->mark_type === 'marks')
                                     <th colspan="4" class="text-center border-end">Internal Assessment</th>
-                                    <th rowspan="2" class="text-center table-warning" style="vertical-align:middle;">Int<br><small>/{{ $config['internal_max'] }}</small></th>
+                                    <th rowspan="2" class="text-center" style="vertical-align:middle;background:#dbeafe;color:#1e40af;">Int<br><small>/{{ $config['internal_max'] }}</small><br><small style="font-size:0.6rem;font-weight:normal;opacity:0.7;">&#8721; auto</small></th>
                                     <th colspan="3" class="text-center border-end">Written Exam</th>
-                                    <th rowspan="2" class="text-center table-warning" style="vertical-align:middle;">Writ<br><small>/{{ $config['written_max'] }}</small></th>
-                                    <th rowspan="2" class="text-center table-success" style="vertical-align:middle;">Total<br><small>/100</small></th>
-                                    <th rowspan="2" class="text-center table-success" style="vertical-align:middle;">Grade</th>
+                                    <th rowspan="2" class="text-center" style="vertical-align:middle;background:#dbeafe;color:#1e40af;">Writ<br><small>/{{ $config['written_max'] }}</small><br><small style="font-size:0.6rem;font-weight:normal;opacity:0.7;">&#8721; auto</small></th>
+                                    <th rowspan="2" class="text-center" style="vertical-align:middle;background:#d1fae5;color:#065f46;">Total<br><small>/100</small><br><small style="font-size:0.6rem;font-weight:normal;opacity:0.7;">&#8721; auto</small></th>
+                                    <th rowspan="2" class="text-center" style="vertical-align:middle;background:#d1fae5;color:#065f46;">Grade<br><small style="font-size:0.6rem;font-weight:normal;opacity:0.7;">auto</small></th>
                                     @else
                                     <th rowspan="2" class="text-center" style="vertical-align:middle;">Grade</th>
                                     <th rowspan="2" class="text-center text-danger" style="vertical-align:middle;">Absent</th>
@@ -158,13 +161,19 @@
                                         $borders = ['hw' => true, 'writing' => true]; // visual separators
                                     @endphp
 
-                                    @foreach($components as $comp => $cfg)
                                     @php
+                                        $internalComps = ['oral_internal','activity_internal','test','hw'];
+                                        $writtenComps  = ['oral_written','activity_written','writing'];
+                                    @endphp
+
+                                    {{-- ── 4 Internal inputs ── --}}
+                                    @foreach($internalComps as $comp)
+                                    @php
+                                        $cfg        = $components[$comp];
                                         $compAbsent = $abComp($comp);
-                                        // Highlight if row exists but this component is blank and not absent
                                         $incomplete = $existing && !$compAbsent && $cfg['val'] === null;
                                     @endphp
-                                    <td class="p-1 {{ isset($borders[$comp]) ? 'border-end' : '' }}" style="min-width:58px;">
+                                    <td class="p-1{{ $comp === 'hw' ? ' border-end' : '' }}" style="min-width:52px;">
                                         <input type="number" step="0.5" min="0" max="{{ $cfg['max'] }}"
                                             class="form-control form-control-sm mark-input p-1 text-center mb-1{{ $incomplete ? ' border-warning' : '' }}"
                                             name="marks[{{ $student->id }}][{{ $comp }}]"
@@ -181,28 +190,60 @@
                                             <input type="checkbox"
                                                 class="form-check-input comp-absent-check"
                                                 name="marks[{{ $student->id }}][absent][{{ $comp }}]"
-                                                value="1"
-                                                title="Absent for this exam"
+                                                value="1" title="Absent"
                                                 {{ $compAbsent ? 'checked' : '' }}
-                                                data-comp="{{ $comp }}"
-                                                data-student="{{ $student->id }}">
+                                                data-comp="{{ $comp }}" data-student="{{ $student->id }}">
                                             <label class="text-danger" style="font-size:0.65rem;cursor:pointer;">AB</label>
                                         </div>
                                     </td>
                                     @endforeach
 
-                                    {{-- Totals (auto-calculated) --}}
-                                    <td class="table-warning text-center fw-bold int-total">
-                                        {{ $existing ? $existing->internal_total : '' }}
+                                    {{-- ── Int total (auto) — must be here, between internal and written ── --}}
+                                    <td class="text-center fw-bold int-total" style="background:#dbeafe;color:#1e40af;cursor:default;min-width:48px;" title="Auto sum of internal marks">
+                                        {{ $existing ? $existing->internal_total : '—' }}
                                     </td>
-                                    <td class="table-warning text-center fw-bold writ-total">
-                                        {{ $existing ? $existing->written_total : '' }}
+
+                                    {{-- ── 3 Written inputs ── --}}
+                                    @foreach($writtenComps as $comp)
+                                    @php
+                                        $cfg        = $components[$comp];
+                                        $compAbsent = $abComp($comp);
+                                        $incomplete = $existing && !$compAbsent && $cfg['val'] === null;
+                                    @endphp
+                                    <td class="p-1{{ $comp === 'writing' ? ' border-end' : '' }}" style="min-width:52px;">
+                                        <input type="number" step="0.5" min="0" max="{{ $cfg['max'] }}"
+                                            class="form-control form-control-sm mark-input p-1 text-center mb-1{{ $incomplete ? ' border-warning' : '' }}"
+                                            name="marks[{{ $student->id }}][{{ $comp }}]"
+                                            value="{{ (!$compAbsent && $cfg['val'] !== null) ? $cfg['val'] : '' }}"
+                                            {{ $compAbsent ? 'disabled' : '' }}
+                                            data-max="{{ $cfg['max'] }}"
+                                            data-comp="{{ $comp }}"
+                                            data-had-existing="{{ $existing ? '1' : '0' }}"
+                                            style="{{ $compAbsent ? 'display:none;' : ($incomplete ? 'background:#fff8e1;' : '') }}">
+                                        @if($compAbsent)
+                                            <div class="text-center"><span class="badge bg-warning text-dark" style="font-size:0.7rem;">AB</span></div>
+                                        @endif
+                                        <div class="text-center mt-1">
+                                            <input type="checkbox"
+                                                class="form-check-input comp-absent-check"
+                                                name="marks[{{ $student->id }}][absent][{{ $comp }}]"
+                                                value="1" title="Absent"
+                                                {{ $compAbsent ? 'checked' : '' }}
+                                                data-comp="{{ $comp }}" data-student="{{ $student->id }}">
+                                            <label class="text-danger" style="font-size:0.65rem;cursor:pointer;">AB</label>
+                                        </div>
                                     </td>
-                                    <td class="table-success text-center fw-bold grand-total">
-                                        {{ $existing ? $existing->grand_total : '' }}
+                                    @endforeach
+
+                                    {{-- ── Writ / Total / Grade (auto) ── --}}
+                                    <td class="text-center fw-bold writ-total"  style="background:#dbeafe;color:#1e40af;cursor:default;min-width:48px;" title="Auto sum of written marks">
+                                        {{ $existing ? $existing->written_total : '—' }}
                                     </td>
-                                    <td class="table-success text-center fw-bold grade-display">
-                                        {{ $existing ? $existing->grade : '' }}
+                                    <td class="text-center fw-bold grand-total" style="background:#d1fae5;color:#065f46;cursor:default;min-width:48px;" title="Int + Writ">
+                                        {{ $existing ? $existing->grand_total : '—' }}
+                                    </td>
+                                    <td class="text-center fw-bold grade-display" style="background:#d1fae5;color:#065f46;cursor:default;min-width:48px;" title="Grade">
+                                        {{ $existing ? $existing->grade : '—' }}
                                     </td>
 
                                     @else
@@ -243,7 +284,8 @@
                             <button type="submit" class="btn btn-success">
                                 <i class="bi bi-save me-1"></i> Save Marks
                             </button>
-                            <a href="{{ route('marks.index') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                            <a href="{{ route('marks.review', ['class_id'=>$schoolClass->id,'section_id'=>$section->id]) }}"
+                                class="btn btn-outline-secondary ms-2">Cancel</a>
                         </div>
                     </form>
                 </div>
@@ -254,10 +296,7 @@
 </div>
 
 <script>
-var internalComponents = ['oral_internal','activity_internal','test','hw'];
-var writtenComponents   = ['oral_written','activity_written','writing'];
-var grandMax = {{ $config['grand_max'] ?? 100 }};
-
+var grandMax   = {{ $config['grand_max'] ?? 100 }};
 var gradeScale = [
     {min:91,max:100,grade:'A1'},{min:81,max:90,grade:'A2'},
     {min:71,max:80,grade:'B1'},{min:61,max:70,grade:'B2'},
@@ -272,92 +311,100 @@ function calcGrade(pct) {
     return 'E';
 }
 
-function recalcRow(row) {
+function fmt(n) { return (n % 1 === 0) ? String(n) : n.toFixed(1); }
+
+function recalcRow(tr) {
+    // Collect all mark-input number fields in this row, keyed by data-comp
+    var inputs = {};
+    tr.querySelectorAll('input.mark-input[data-comp]').forEach(function(inp) {
+        inputs[inp.dataset.comp] = inp;
+    });
+
+    var intComps  = ['oral_internal','activity_internal','test','hw'];
+    var writComps = ['oral_written','activity_written','writing'];
     var intTotal = 0, writTotal = 0;
-    internalComponents.forEach(function(c) {
-        var inp = row.querySelector('[data-comp="' + c + '"][type=number]');
+
+    intComps.forEach(function(c) {
+        var inp = inputs[c];
         if (inp && !inp.disabled) intTotal += parseFloat(inp.value) || 0;
     });
-    writtenComponents.forEach(function(c) {
-        var inp = row.querySelector('[data-comp="' + c + '"][type=number]');
+    writComps.forEach(function(c) {
+        var inp = inputs[c];
         if (inp && !inp.disabled) writTotal += parseFloat(inp.value) || 0;
     });
+
     var grand = intTotal + writTotal;
     var pct   = grandMax > 0 ? (grand / grandMax * 100) : 0;
 
-    var it = row.querySelector('.int-total');
-    var wt = row.querySelector('.writ-total');
-    var gt = row.querySelector('.grand-total');
-    var gd = row.querySelector('.grade-display');
-    if (it) it.textContent = intTotal.toFixed(1);
-    if (wt) wt.textContent = writTotal.toFixed(1);
-    if (gt) gt.textContent = grand.toFixed(1);
-    if (gd) gd.textContent = calcGrade(pct);
+    var intCell   = tr.querySelector('td.int-total');
+    var writCell  = tr.querySelector('td.writ-total');
+    var totCell   = tr.querySelector('td.grand-total');
+    var gradeCell = tr.querySelector('td.grade-display');
+
+    if (intCell)   intCell.textContent   = fmt(intTotal);
+    if (writCell)  writCell.textContent  = fmt(writTotal);
+    if (totCell)   totCell.textContent   = fmt(grand);
+    if (gradeCell) gradeCell.textContent = grand > 0 ? calcGrade(pct) : '—';
 }
 
-// Max validation + auto-recalc + clear incomplete highlight when value entered
-document.querySelectorAll('.mark-input').forEach(function(inp) {
-    inp.addEventListener('input', function() {
-        var max = parseFloat(this.dataset.max);
-        if (parseFloat(this.value) > max) {
-            this.value = max;
-            this.classList.add('is-invalid');
-        } else {
-            this.classList.remove('is-invalid');
-        }
-        // Clear the amber "incomplete" highlight once something is typed
-        if (this.value !== '') {
-            this.classList.remove('border-warning');
-            this.style.background = '';
-        } else {
-            // Re-apply if cleared back to empty (only if there was an existing row)
-            if (this.dataset.hadExisting === '1') {
+// ── Run recalc on page load for every mark-row that has existing data ──
+document.querySelectorAll('tr.mark-row').forEach(function(tr) {
+    var hasInput = tr.querySelector('input.mark-input');
+    if (hasInput) recalcRow(tr);
+});
+
+// ── Live recalc on every input/change event ──
+document.querySelectorAll('input.mark-input').forEach(function(inp) {
+    ['input','change'].forEach(function(evt) {
+        inp.addEventListener(evt, function() {
+            var max = parseFloat(this.dataset.max);
+            if (!isNaN(max) && parseFloat(this.value) > max) {
+                this.value = max;
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+            if (this.value !== '') {
+                this.classList.remove('border-warning');
+                this.style.background = '';
+            } else if (this.dataset.hadExisting === '1') {
                 this.classList.add('border-warning');
                 this.style.background = '#fff8e1';
             }
-        }
-        recalcRow(this.closest('tr'));
+            recalcRow(this.closest('tr'));
+        });
     });
 });
 
-// Per-component AB checkbox
+// ── Per-component AB checkbox ──
 document.querySelectorAll('.comp-absent-check').forEach(function(chk) {
     chk.addEventListener('change', function() {
-        var comp   = this.dataset.comp;
-        var cell   = this.closest('td');
-        var inp    = cell.querySelector('input[type=number]');
-        var badge  = cell.querySelector('.badge');
-        var row    = this.closest('tr');
+        var cell = this.closest('td');
+        var inp  = cell.querySelector('input.mark-input');
+        var row  = this.closest('tr');
 
         if (this.checked) {
-            // Hide input, show AB badge, treat as 0
             if (inp) { inp.value = ''; inp.disabled = true; inp.style.display = 'none'; }
-            if (!badge) {
+            if (!cell.querySelector('.absent-badge')) {
                 var b = document.createElement('div');
                 b.className = 'text-center absent-badge';
                 b.innerHTML = '<span class="badge bg-warning text-dark" style="font-size:0.7rem;">AB</span>';
                 cell.insertBefore(b, cell.querySelector('.text-center.mt-1'));
             }
         } else {
-            // Show input, remove AB badge
             if (inp) { inp.disabled = false; inp.style.display = ''; }
-            var existingBadge = cell.querySelector('.absent-badge');
-            if (existingBadge) existingBadge.remove();
+            var badge = cell.querySelector('.absent-badge');
+            if (badge) badge.remove();
         }
         recalcRow(row);
     });
 });
 
-// Grade-only absent checkbox
+// ── Grade-only absent checkbox ──
 document.querySelectorAll('.grade-absent-check').forEach(function(chk) {
     chk.addEventListener('change', function() {
-        var row    = this.closest('tr');
-        var select = row.querySelector('select');
-        if (this.checked) {
-            if (select) { select.disabled = true; }
-        } else {
-            if (select) { select.disabled = false; }
-        }
+        var select = this.closest('tr').querySelector('select');
+        if (select) select.disabled = this.checked;
     });
 });
 </script>
