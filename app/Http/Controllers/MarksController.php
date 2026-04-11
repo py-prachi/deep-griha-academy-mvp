@@ -13,6 +13,7 @@ use App\Models\MarkExamDate;
 use App\Models\ReportCardPublished;
 use App\Models\StudentObservation;
 use App\Repositories\PromotionRepository;
+use App\Http\Controllers\PrePrimaryController;
 use App\Interfaces\SchoolSessionInterface;
 use App\Interfaces\SchoolClassInterface;
 use App\Interfaces\SectionInterface;
@@ -203,7 +204,11 @@ class MarksController extends Controller
             $otherSubjects    = collect();
         }
 
-        $classes = $this->schoolClassRepository->getAllBySession($session_id);
+        $allClasses = $this->schoolClassRepository->getAllBySession($session_id);
+        // Exclude pre-primary classes from the marks entry selector (they have their own flow)
+        $classes = $allClasses->filter(function ($c) {
+            return PrePrimaryController::getPrePrimaryType($c->class_name) === null;
+        })->values();
 
         return view('marks.index', [
             'subjects'           => $assignedSubjects,
@@ -231,6 +236,16 @@ class MarksController extends Controller
 
         if (!$subject_id || !$class_id || !$section_id) {
             return redirect()->route('marks.index');
+        }
+
+        // Redirect pre-primary classes to their own entry page
+        $entryClass = $this->schoolClassRepository->findById($class_id);
+        if ($entryClass && PrePrimaryController::getPrePrimaryType($entryClass->class_name)) {
+            return redirect()->route('preprimary.entry', [
+                'class_id'   => $class_id,
+                'section_id' => $section_id,
+                'term'       => $request->query('term', 1),
+            ]);
         }
 
         // Authorization: teacher must be CT for this class/section OR assigned as subject teacher
@@ -437,7 +452,10 @@ class MarksController extends Controller
             $class_id   = $request->query('class_id');
             $section_id = $request->query('section_id');
             if (!$class_id || !$section_id) {
-                $classes = $this->schoolClassRepository->getAllBySession($session_id);
+                $allClassesForReview = $this->schoolClassRepository->getAllBySession($session_id);
+                $classes = $allClassesForReview->filter(function ($c) {
+                    return PrePrimaryController::getPrePrimaryType($c->class_name) === null;
+                })->values();
                 return view('marks.review', [
                     'classes'    => $classes,
                     'session_id' => $session_id,
@@ -448,6 +466,14 @@ class MarksController extends Controller
 
         $schoolClass = $this->schoolClassRepository->findById($class_id);
         $section     = $this->sectionRepository->findById($section_id);
+
+        // Redirect pre-primary classes to their own review/entry page
+        if ($schoolClass && PrePrimaryController::getPrePrimaryType($schoolClass->class_name)) {
+            return redirect()->route('preprimary.entry', [
+                'class_id'   => $class_id,
+                'section_id' => $section_id,
+            ]);
+        }
 
         // All subjects assigned to this class
         $subjects = ClassSubject::with('subject')

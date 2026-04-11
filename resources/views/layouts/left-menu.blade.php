@@ -48,20 +48,25 @@
                     {{-- Marks --}}
                     <li class="nav-item">
                         <a type="button" href="#teacher-marks-submenu" data-bs-toggle="collapse"
-                            class="d-flex nav-link {{ request()->is('marks2*') ? 'active' : '' }}">
+                            class="d-flex nav-link {{ request()->is('marks2*') || request()->is('preprimary*') ? 'active' : '' }}">
                             <i class="bi bi-pencil-square"></i>
                             <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Marks</span>
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
-                        <ul class="nav collapse {{ request()->is('marks2*') ? 'show' : 'hide' }} bg-white" id="teacher-marks-submenu">
+                        <ul class="nav collapse {{ request()->is('marks2*') || request()->is('preprimary*') ? 'show' : 'hide' }} bg-white" id="teacher-marks-submenu">
                             <li class="nav-item w-100">
                                 <a class="nav-link {{ request()->is('marks2') ? 'active' : '' }}" href="{{ route('marks.index') }}">
-                                    <i class="bi bi-pencil me-2"></i> Enter Marks
+                                    <i class="bi bi-pencil me-2"></i> Enter Marks (Cl. 1–8)
                                 </a>
                             </li>
                             <li class="nav-item w-100">
                                 <a class="nav-link {{ request()->is('marks2/review*') ? 'active' : '' }}" href="{{ route('marks.review') }}">
                                     <i class="bi bi-grid-3x3-gap me-2"></i> Marks Review
+                                </a>
+                            </li>
+                            <li class="nav-item w-100">
+                                <a class="nav-link {{ request()->is('preprimary*') ? 'active' : '' }}" href="{{ route('preprimary.entry') }}">
+                                    <i class="bi bi-check2-square me-2"></i> Pre-Primary Entry
                                 </a>
                             </li>
                         </ul>
@@ -205,8 +210,9 @@
                             <li class="nav-item w-100"><a class="nav-link" href="{{ url('academics/settings') }}"><i class="bi bi-gear me-2"></i> Settings</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('subjects.index') }}"><i class="bi bi-book me-2"></i> Subjects</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('academics.teacher-assignments') }}"><i class="bi bi-person-badge me-2"></i> Teacher Assignments</a></li>
-                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('marks2*') ? 'active' : '' }}" href="{{ route('marks.index') }}"><i class="bi bi-pencil-square me-2"></i> Enter Marks</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('marks2') ? 'active' : '' }}" href="{{ route('marks.index') }}"><i class="bi bi-pencil-square me-2"></i> Enter Marks (Cl. 1–8)</a></li>
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('marks2/review*') ? 'active' : '' }}" href="{{ route('marks.review') }}"><i class="bi bi-grid-3x3-gap me-2"></i> Marks Review</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('preprimary*') ? 'active' : '' }}" href="{{ route('preprimary.entry') }}"><i class="bi bi-check2-square me-2"></i> Pre-Primary Entry</a></li>
                         </ul>
                     </li>
 

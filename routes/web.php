@@ -28,6 +28,7 @@ use App\Http\Controllers\LeavingCertificateController;
 use App\Http\Controllers\SessionSetupController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\MarksController;
+use App\Http\Controllers\PrePrimaryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -134,6 +135,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/marks2/print/{student_id}', [MarksController::class, 'printReportCard'])->name('marks.printReportCard');
     Route::get('/marks2/print-class', [MarksController::class, 'printClass'])->name('marks.printClass');
     Route::get('/my-marks', [MarksController::class, 'reportCard'])->name('marks.reportCard');
+
+    // Pre-Primary (Nursery/LKG/UKG) skill assessment
+    Route::get('/preprimary/entry', [PrePrimaryController::class, 'entry'])->name('preprimary.entry');
+    Route::post('/preprimary/entry', [PrePrimaryController::class, 'store'])->name('preprimary.store');
+    Route::get('/preprimary/narratives', [PrePrimaryController::class, 'narratives'])->name('preprimary.narratives');
+    Route::post('/preprimary/narratives', [PrePrimaryController::class, 'saveNarratives'])->name('preprimary.saveNarratives');
+    Route::get('/preprimary/print/{student_id}', [PrePrimaryController::class, 'printReportCard'])->name('preprimary.printReportCard');
+    Route::get('/preprimary/print-class', [PrePrimaryController::class, 'printClass'])->name('preprimary.printClass');
 
     // Old exam route — redirect to avoid 500 crash until rebuilt
     Route::get('/exams/view', function() {

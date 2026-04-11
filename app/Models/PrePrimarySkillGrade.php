@@ -4,19 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class StudentObservation extends Model
+class PrePrimarySkillGrade extends Model
 {
-    protected $table = 'student_observations';
+    protected $table = 'preprimary_skill_grades';
 
     protected $fillable = [
         'student_id',
+        'session_id',
         'class_id',
         'section_id',
-        'session_id',
         'term',
-        'remarks',
-        'does_well_in',
-        'needs_improvement',
+        'skill_code',
+        'grade',
         'created_by',
     ];
 }
