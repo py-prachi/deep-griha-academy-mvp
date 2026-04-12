@@ -7,24 +7,14 @@
                         <a class="nav-link {{ request()->is('home')? 'active' : '' }}" href="{{url('home')}}"><i class="ms-auto bi bi-grid"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">{{ __('Dashboard') }}</span></a>
                     </li>
 
-                    {{-- ── CLASSES (admin + teacher via permission) ── --}}
-                    @can('view classes')
-                    <li class="nav-item">
-                        @php
-                            if (session()->has('browse_session_id')){
-                                $classCount = \App\Models\SchoolClass::where('session_id', session('browse_session_id'))->count();
-                            } else {
-                                $latest_session = \App\Models\SchoolSession::latest()->first();
-                                if($latest_session) {
-                                    $classCount = \App\Models\SchoolClass::where('session_id', $latest_session->id)->count();
-                                } else {
-                                    $classCount = 0;
-                                }
-                            }
-                        @endphp
-                        <a class="nav-link d-flex {{ request()->is('classes')? 'active' : '' }}" href="{{url('classes')}}"><i class="bi bi-diagram-3"></i> <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Classes</span> <span class="ms-auto d-inline d-sm-none d-md-none d-xl-inline">{{ $classCount }}</span></a>
-                    </li>
-                    @endcan
+                    @php
+                        if (session()->has('browse_session_id')) {
+                            $classCount = \App\Models\SchoolClass::where('session_id', session('browse_session_id'))->count();
+                        } else {
+                            $latest_session = \App\Models\SchoolSession::latest()->first();
+                            $classCount = $latest_session ? \App\Models\SchoolClass::where('session_id', $latest_session->id)->count() : 0;
+                        }
+                    @endphp
 
                     {{-- ── TEACHER ONLY ── --}}
                     @if(Auth::user()->role == "teacher")
@@ -124,6 +114,28 @@
                     {{-- ── ADMIN ONLY ── --}}
                     @if (Auth::user()->role == "admin")
 
+                    @php
+                        $latestSessionForMenu = \App\Models\SchoolSession::orderBy('id','desc')->first();
+                        $feeStructureCount = $latestSessionForMenu
+                            ? \App\Models\FeeStructure::where('session_id', $latestSessionForMenu->id)->count()
+                            : 0;
+                        $feeStructureMissing = ($feeStructureCount === 0);
+                        $prevSession = \App\Models\SchoolSession::orderBy('id','desc')->skip(1)->first();
+                        $promotionPending = false;
+                        if ($prevSession && $latestSessionForMenu && $prevSession->id !== $latestSessionForMenu->id) {
+                            $prevCount = \App\Models\Promotion::where('session_id', $prevSession->id)->count();
+                            $newCount  = \App\Models\Promotion::where('session_id', $latestSessionForMenu->id)->count();
+                            $graduatedCount = \App\Models\User::where('student_status', 'graduated')->count();
+                            $promotionPending = ($prevCount > 0 && $newCount < ($prevCount - $graduatedCount));
+                        }
+                    @endphp
+
+                    {{-- ── SECTION: PEOPLE ── --}}
+                    <li class="nav-item px-2 pt-2 pb-1 d-none d-xl-block">
+                        <span style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;color:#adb5bd;text-transform:uppercase;">People</span>
+                    </li>
+                    <li class="nav-item d-xl-none"><hr class="my-1 mx-2"></li>
+
                     {{-- Teachers --}}
                     <li class="nav-item">
                         <a type="button" href="#admin-teacher-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('teachers*') ? 'active' : '' }}">
@@ -139,7 +151,7 @@
 
                     {{-- Admissions --}}
                     <li class="nav-item">
-                        <a type="button" href="#admission-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('admissions*')? 'active' : '' }}">
+                        <a type="button" href="#admission-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('admissions*') || request()->is('import*') ? 'active' : '' }}">
                             <i class="bi bi-person-plus-fill"></i>
                             <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Admissions</span>
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
@@ -152,48 +164,49 @@
                         </ul>
                     </li>
 
+                    {{-- Students --}}
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('students*') ? 'active' : '' }}" href="{{ route('student.list.show') }}">
+                            <i class="bi bi-people"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Students</span>
+                        </a>
+                    </li>
+
                     {{-- Exit Formalities --}}
                     <li class="nav-item">
-                        <a type="button" href="#exit-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('lc*')? 'active' : '' }}">
+                        <a type="button" href="#exit-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('lc*') || request()->routeIs('exits.*') ? 'active' : '' }}">
                             <i class="bi bi-box-arrow-right"></i>
                             <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Exit Formalities</span>
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
-                        <ul class="nav collapse {{ request()->is('lc*')? 'show' : 'hide' }} bg-white" id="exit-submenu">
+                        <ul class="nav collapse {{ request()->is('lc*') || request()->routeIs('exits.*') ? 'show' : 'hide' }} bg-white" id="exit-submenu">
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('lc.index') }}"><i class="bi bi-file-earmark-minus me-2"></i> Leaving Certificates</a></li>
-                            <li class="nav-item w-100"><a class="nav-link {{ request()->routeIs('exits.*') ? 'active' : '' }}" href="{{ route('exits.index') }}"><i class="bi bi-box-arrow-right me-2"></i> Student Exits</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->routeIs('exits.*') ? 'active' : '' }}" href="{{ route('exits.index') }}"><i class="bi bi-door-open me-2"></i> Student Exits</a></li>
                         </ul>
                     </li>
 
+                    {{-- ── SECTION: FINANCE ── --}}
+                    <li class="nav-item px-2 pt-3 pb-1 d-none d-xl-block">
+                        <span style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;color:#adb5bd;text-transform:uppercase;">Finance</span>
+                    </li>
+                    <li class="nav-item d-xl-none"><hr class="my-1 mx-2"></li>
+
                     {{-- Fees --}}
-                    @php
-                        $latestSessionForMenu = \App\Models\SchoolSession::orderBy('id','desc')->first();
-                        $feeStructureCount = $latestSessionForMenu
-                            ? \App\Models\FeeStructure::where('session_id', $latestSessionForMenu->id)->count()
-                            : 0;
-                        $feeStructureMissing = ($feeStructureCount === 0);
-                    @endphp
                     <li class="nav-item">
                         <a type="button" href="#fees-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('fees*') || request()->is('fee-structures*') ? 'active' : '' }}">
                             <i class="bi bi-cash-stack"></i>
                             <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Fees</span>
                             @if($feeStructureMissing)
-                                <span class="badge bg-warning text-dark ms-1 d-inline d-sm-none d-md-none d-xl-inline" title="Fee structure not set up for {{ $latestSessionForMenu->session_name }}">!</span>
+                                <span class="badge bg-warning text-dark ms-1 d-inline d-sm-none d-md-none d-xl-inline" title="Fee structure not set up">!</span>
                             @endif
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
                         <ul class="nav collapse {{ request()->is('fees*') || request()->is('fee-structures*') ? 'show' : 'hide' }} bg-white" id="fees-submenu">
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->routeIs('fees.collect') ? 'active' : '' }}" href="{{ route('fees.collect') }}"><i class="bi bi-cash-coin me-2"></i> Collect Fee</a></li>
                             <li class="nav-item w-100">
-                                <a class="nav-link {{ request()->routeIs('fees.collect') ? 'active' : '' }}" href="{{ route('fees.collect') }}">
-                                    <i class="bi bi-cash-coin me-2"></i> Collect Fee
-                                </a>
-                            </li>
-                            <li class="nav-item w-100">
-                                <a class="nav-link {{ $feeStructureMissing ? 'text-warning fw-bold' : '' }}" href="{{ route('fee-structures.index') }}">
+                                <a class="nav-link {{ $feeStructureMissing ? 'text-warning fw-bold' : '' }} {{ request()->is('fee-structures*') ? 'active' : '' }}" href="{{ route('fee-structures.index') }}">
                                     <i class="bi bi-table me-2"></i> Fee Structures
-                                    @if($feeStructureMissing)
-                                        <span class="badge bg-warning text-dark ms-1">Setup needed</span>
-                                    @endif
+                                    @if($feeStructureMissing)<span class="badge bg-warning text-dark ms-1">!</span>@endif
                                 </a>
                             </li>
                         </ul>
@@ -207,7 +220,6 @@
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
                         <ul class="nav collapse {{ request()->is('reports*') ? 'show' : 'hide' }} bg-white" id="reports-submenu">
-                            {{-- Daily Collection hidden — redundant with Collection Report, pending Angela confirmation --}}
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.dateRange') }}"><i class="bi bi-calendar-range me-2"></i> Collection Report</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.defaulters') }}"><i class="bi bi-exclamation-triangle me-2"></i> Defaulters</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.categorySummary') }}"><i class="bi bi-pie-chart me-2"></i> Category Summary</a></li>
@@ -218,35 +230,70 @@
                         </ul>
                     </li>
 
-                    {{-- Academic (day-to-day) --}}
+                    {{-- ── SECTION: ACADEMIC ── --}}
+                    <li class="nav-item px-2 pt-3 pb-1 d-none d-xl-block">
+                        <span style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;color:#adb5bd;text-transform:uppercase;">Academic</span>
+                    </li>
+                    <li class="nav-item d-xl-none"><hr class="my-1 mx-2"></li>
+
+                    {{-- Classes --}}
+                    @can('view classes')
+                    <li class="nav-item">
+                        <a class="nav-link d-flex {{ request()->is('classes') ? 'active' : '' }}" href="{{ url('classes') }}">
+                            <i class="bi bi-diagram-3"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Classes</span>
+                            <span class="ms-auto d-inline d-sm-none d-md-none d-xl-inline">{{ $classCount }}</span>
+                        </a>
+                    </li>
+                    @endcan
+
+                    {{-- Marks & Assessment --}}
                     <li class="nav-item">
                         <a type="button" href="#academic-submenu" data-bs-toggle="collapse"
                             class="d-flex nav-link {{ request()->is('marks2*') || request()->is('preprimary*') || request()->is('subjects*') || request()->is('academics/teacher*') ? 'active' : '' }}">
                             <i class="bi bi-pencil-square"></i>
-                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Academic</span>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Marks & Assessment</span>
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
                         <ul class="nav collapse {{ request()->is('marks2*') || request()->is('preprimary*') || request()->is('subjects*') || request()->is('academics/teacher*') ? 'show' : 'hide' }} bg-white" id="academic-submenu">
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('subjects.index') }}"><i class="bi bi-book me-2"></i> Subjects</a></li>
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('academics.teacher-assignments') }}"><i class="bi bi-person-badge me-2"></i> Teacher Assignments</a></li>
-                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('marks2') ? 'active' : '' }}" href="{{ route('marks.index') }}"><i class="bi bi-pencil me-2"></i> Enter Marks (Cl. 1–8)</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('subjects*') ? 'active' : '' }}" href="{{ route('subjects.index') }}"><i class="bi bi-book me-2"></i> Subjects</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('academics/teacher*') ? 'active' : '' }}" href="{{ route('academics.teacher-assignments') }}"><i class="bi bi-person-badge me-2"></i> Teacher Assignments</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('marks2') && !request()->is('marks2/review*') ? 'active' : '' }}" href="{{ route('marks.index') }}"><i class="bi bi-pencil me-2"></i> Enter Marks (Cl. 1–8)</a></li>
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('marks2/review*') ? 'active' : '' }}" href="{{ route('marks.review') }}"><i class="bi bi-grid-3x3-gap me-2"></i> Marks Review</a></li>
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('preprimary*') ? 'active' : '' }}" href="{{ route('preprimary.entry') }}"><i class="bi bi-check2-square me-2"></i> Pre-Primary Entry</a></li>
                         </ul>
                     </li>
 
+                    {{-- ── SECTION: COMMUNICATION ── --}}
+                    <li class="nav-item px-2 pt-3 pb-1 d-none d-xl-block">
+                        <span style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;color:#adb5bd;text-transform:uppercase;">Communication</span>
+                    </li>
+                    <li class="nav-item d-xl-none"><hr class="my-1 mx-2"></li>
+
+                    {{-- Communication submenu --}}
+                    <li class="nav-item">
+                        <a type="button" href="#comms-submenu" data-bs-toggle="collapse"
+                            class="d-flex nav-link {{ request()->is('notice*') || request()->is('calendar-event*') || request()->is('syllabus*') || request()->is('routine*') ? 'active' : '' }}">
+                            <i class="bi bi-megaphone"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Communication</span>
+                            <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
+                        </a>
+                        <ul class="nav collapse {{ request()->is('notice*') || request()->is('calendar-event*') || request()->is('syllabus*') || request()->is('routine*') ? 'show' : 'hide' }} bg-white" id="comms-submenu">
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('notice*') ? 'active' : '' }}" href="{{ route('notice.create') }}"><i class="bi bi-megaphone me-2"></i> Notice</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('calendar-event*') ? 'active' : '' }}" href="{{ route('events.show') }}"><i class="bi bi-calendar-event me-2"></i> Events</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('syllabus*') ? 'active' : '' }}" href="{{ route('class.syllabus.create') }}"><i class="bi bi-journal-text me-2"></i> Syllabus</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('routine*') ? 'active' : '' }}" href="{{ route('section.routine.create') }}"><i class="bi bi-calendar4-range me-2"></i> Routine</a></li>
+                        </ul>
+                    </li>
+
+                    {{-- ── SECTION: ADMINISTRATION ── --}}
+                    <li class="nav-item px-2 pt-3 pb-1 d-none d-xl-block">
+                        <span style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;color:#adb5bd;text-transform:uppercase;">Administration</span>
+                    </li>
+                    <li class="nav-item d-xl-none"><hr class="my-1 mx-2"></li>
+
                     {{-- Settings (year-end & one-time) --}}
-                    @if (!session()->has('browse_session_id'))
-                    @php
-                        $prevSession = \App\Models\SchoolSession::orderBy('id','desc')->skip(1)->first();
-                        $promotionPending = false;
-                        if ($prevSession && $latestSessionForMenu && $prevSession->id !== $latestSessionForMenu->id) {
-                            $prevCount = \App\Models\Promotion::where('session_id', $prevSession->id)->count();
-                            $newCount  = \App\Models\Promotion::where('session_id', $latestSessionForMenu->id)->count();
-                            $graduatedCount = \App\Models\User::where('student_status', 'graduated')->count();
-                            $promotionPending = ($prevCount > 0 && $newCount < ($prevCount - $graduatedCount));
-                        }
-                    @endphp
+                    @if(!session()->has('browse_session_id'))
                     <li class="nav-item">
                         <a type="button" href="#settings-submenu" data-bs-toggle="collapse"
                             class="d-flex nav-link {{ request()->is('academics/settings*') || request()->is('promotions*') ? 'active' : '' }}">
@@ -266,36 +313,12 @@
                             <li class="nav-item w-100">
                                 <a class="nav-link {{ request()->is('promotions*') ? 'active' : '' }}" href="{{ url('promotions/index') }}">
                                     <i class="bi bi-sort-numeric-up-alt me-2"></i> Promotions
-                                    @if($promotionPending)
-                                        <span class="badge bg-warning text-dark ms-1">!</span>
-                                    @endif
+                                    @if($promotionPending)<span class="badge bg-warning text-dark ms-1">!</span>@endif
                                 </a>
                             </li>
                         </ul>
                     </li>
                     @endif
-
-                    {{-- Academic utilities --}}
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('syllabus*')? 'active' : '' }}" href="{{route('class.syllabus.create')}}"><i class="bi bi-journal-text"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Syllabus</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('routine*')? 'active' : '' }}" href="{{route('section.routine.create')}}"><i class="bi bi-calendar4-range"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Routine</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('notice*')? 'active' : '' }}" href="{{route('notice.create')}}"><i class="bi bi-megaphone"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Notice</span></a>
-                    </li>
-                    <li class="nav-item border-bottom">
-                        <a class="nav-link {{ request()->is('calendar-event*')? 'active' : '' }}" href="{{route('events.show')}}"><i class="bi bi-calendar-event"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Event</span></a>
-                    </li>
-
-                    {{-- Placeholders --}}
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href="#" aria-disabled="true"><i class="bi bi-person-lines-fill"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Staff</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href="#" aria-disabled="true"><i class="bi bi-journals"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Library</span></a>
-                    </li>
 
                     @endif {{-- end admin only --}}
 
