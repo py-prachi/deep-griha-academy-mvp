@@ -137,10 +137,10 @@ class UserController extends Controller
             // Admin: full access
             $school_classes = $this->schoolClassRepository->getAllBySession($current_school_session_id);
 
-            if ($class_id == 0 || $section_id == 0) {
-                $studentList = $this->userRepository->getAllStudentsBySession($current_school_session_id);
-            } else {
+            if ($class_id != 0 && $section_id != 0) {
                 $studentList = $this->userRepository->getAllStudents($current_school_session_id, $class_id, $section_id);
+            } else {
+                $studentList = collect();
             }
 
             return view('students.list', [

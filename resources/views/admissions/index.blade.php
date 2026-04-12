@@ -47,7 +47,7 @@
 
                     {{-- New Inquiry Button --}}
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted">{{ $admissions->count() }} record(s) found</span>
+                        <span class="text-muted">{{ $admissions->total() }} record(s) found</span>
                         <a href="{{ route('admissions.create') }}" class="btn btn-success">
                             <i class="bi bi-person-plus"></i> New Inquiry
                         </a>
@@ -104,6 +104,10 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <div class="mt-3">
+                        {{ $admissions->appends(request()->query())->links() }}
                     </div>
 
                 </div>

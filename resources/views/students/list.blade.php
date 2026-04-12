@@ -7,60 +7,53 @@
         <div class="col-xs-11 col-sm-11 col-md-11 col-lg-10 col-xl-10 col-xxl-10">
             <div class="row pt-2">
                 <div class="col ps-4">
-                    <h1 class="display-6 mb-3">
-                        <i class="bi bi-person-lines-fill"></i> Student List
-                    </h1>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{route('home')}}">Home</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Student List</li>
-                        </ol>
-                    </nav>
+                    <h5 class="mb-1"><i class="bi bi-people me-1"></i> Students</h5>
+                    <p class="text-muted small mb-3">Select a class and section to view the student list.</p>
+
                     @include('session-messages')
-                    <div class="mb-4 mt-2">
-                        @if(auth()->user()->role === 'admin')
-                        <form class="row g-2 mb-3" action="{{route('student.list.show')}}" method="GET">
-                            <div class="col-auto">
-                                <select onchange="getSections(this);" class="form-select form-select-sm" aria-label="Class" name="class_id" required>
-                                    @isset($school_classes)
-                                        <option selected disabled>Select class</option>
-                                        @foreach ($school_classes as $school_class)
-                                            <option value="{{$school_class->id}}" {{($school_class->id == request()->query('class_id'))?'selected="selected"':''}}>{{$school_class->class_name}}</option>
-                                        @endforeach
-                                    @endisset
-                                </select>
-                            </div>
-                            <div class="col-auto">
-                                <select class="form-select form-select-sm" id="section-select" aria-label="Section" name="section_id" required>
-                                    <option value="{{request()->query('section_id')}}">{{request()->query('section_name')}}</option>
-                                </select>
-                            </div>
-                            <div class="col-auto">
-                                <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-arrow-counterclockwise"></i> Load</button>
-                            </div>
-                        </form>
-                        @endif
-                        @if(isset($teacher_scoped) && $teacher_scoped && $studentList->isEmpty())
-                        <div class="alert alert-info mt-3">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Select a class from the dropdown above to view students.
+
+                    <form class="row g-2 mb-3 align-items-end" action="{{route('student.list.show')}}" method="GET">
+                        <div class="col-auto">
+                            <label class="form-label form-label-sm mb-1">Class</label>
+                            <select onchange="getSections(this);" class="form-select form-select-sm" name="class_id" required>
+                                <option value="" disabled {{ !request()->query('class_id') ? 'selected' : '' }}>Select class</option>
+                                @isset($school_classes)
+                                    @foreach ($school_classes as $school_class)
+                                        <option value="{{ $school_class->id }}" {{ $school_class->id == request()->query('class_id') ? 'selected' : '' }}>
+                                            {{ $school_class->class_name }}
+                                        </option>
+                                    @endforeach
+                                @endisset
+                            </select>
                         </div>
-                        @else
-                        @foreach ($studentList as $student)
-                            @if ($loop->first)
-                                @php
-                                    $classLabel = $student->schoolClass->class_name ?? '';
-                                    $sectionLabel = $student->section->section_name ?? '';
-                                @endphp
-                                <p class="mt-3 text-muted small">
-                                    {{ $classLabel }} @if($sectionLabel) — {{ $sectionLabel }} @endif
-                                </p>
-                                @break
-                            @endif
-                        @endforeach
-                        @endif
-                        <div class="bg-white border shadow-sm p-3 mt-4">
-                            <table class="table table-sm table-hover">
+                        <div class="col-auto">
+                            <label class="form-label form-label-sm mb-1">Section</label>
+                            <select class="form-select form-select-sm" id="section-select" name="section_id" required>
+                                <option value="{{ request()->query('section_id') }}">{{ request()->query('section_name') ?: 'Select section' }}</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-search me-1"></i> Load</button>
+                        </div>
+                    </form>
+
+                    @if($studentList->isEmpty())
+                        <div class="alert alert-light border mt-2" style="max-width:420px;">
+                            <i class="bi bi-arrow-up-circle me-1 text-muted"></i>
+                            Select a class and section above to view students.
+                        </div>
+                    @else
+                    @php
+                        $first = $studentList->first();
+                        $classLabel   = $first->schoolClass->class_name ?? '';
+                        $sectionLabel = $first->section->section_name ?? '';
+                    @endphp
+                    <p class="text-muted small mb-2">
+                        Showing <strong>{{ $studentList->count() }}</strong> student(s) —
+                        {{ $classLabel }}{{ $sectionLabel ? ' — ' . $sectionLabel : '' }}
+                    </p>
+                    <div class="bg-white border shadow-sm p-3">
+                        <table class="table table-sm table-hover">
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width:50px;">Roll</th>
@@ -99,7 +92,7 @@
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    @endif
                 </div>
             </div>
             @include('layouts.footer')

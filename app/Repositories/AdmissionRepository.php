@@ -33,7 +33,7 @@ class AdmissionRepository implements AdmissionInterface
             $query->where('student_name', 'like', '%' . $filters['search'] . '%');
         }
 
-        return $query->orderBy('created_at', 'desc')->get();
+        return $query->orderBy('created_at', 'desc')->paginate(25);
     }
 
     // Find a single admission by ID
