@@ -43,7 +43,8 @@
                                     <th>Category</th>
                                     <th>Academic Year</th>
                                     <th class="text-end">Admission Fee</th>
-                                    <th class="text-end">Tuition Fee</th>
+                                    <th class="text-end">Tuition Fee (Boys)</th>
+                                    <th class="text-end">Tuition Fee (Girls)</th>
                                     <th class="text-end">Transport Fee</th>
                                     <th class="text-end">Other Fee</th>
                                     <th class="text-end">Total</th>
@@ -62,6 +63,13 @@
                                     <td>{{ $fs->academic_year }}</td>
                                     <td class="text-end">₹{{ number_format($fs->admission_fee, 2) }}</td>
                                     <td class="text-end">₹{{ number_format($fs->tuition_fee, 2) }}</td>
+                                    <td class="text-end">
+                                        @if($fs->fee_category === 'general' && $fs->girls_tuition_fee !== null)
+                                            ₹{{ number_format($fs->girls_tuition_fee, 2) }}
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
                                     <td class="text-end">₹{{ number_format($fs->transport_fee, 2) }}</td>
                                     <td class="text-end">₹{{ number_format($fs->other_fee, 2) }}</td>
                                     <td class="text-end fw-bold">₹{{ number_format($fs->total_fee, 2) }}</td>

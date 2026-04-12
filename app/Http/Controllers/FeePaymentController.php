@@ -43,8 +43,16 @@ class FeePaymentController extends Controller
     {
         $feePayments = $this->feePaymentRepository->getFeePaymentsByStudent($student_id);
         $totalPaid   = $feePayments->sum('amount_paid');
-        $totalDue    = $feeStructure ? $feeStructure->total_fee : 0;
-        $balance     = $totalDue - $totalPaid;
+        if ($feeStructure) {
+            $effectiveTuition = $feeStructure->tuitionFeeForGender($student->gender ?? 'Male');
+            $totalDue = $feeStructure->admission_fee
+                      + $effectiveTuition
+                      + $feeStructure->transport_fee
+                      + $feeStructure->other_fee;
+        } else {
+            $totalDue = 0;
+        }
+        $balance = $totalDue - $totalPaid;
         return compact('totalPaid', 'totalDue', 'balance');
     }
 

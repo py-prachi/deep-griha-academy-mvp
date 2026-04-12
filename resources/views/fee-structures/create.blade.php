@@ -62,8 +62,13 @@
                                         <input type="number" name="admission_fee" class="form-control" step="0.01" min="0" value="0">
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label fw-bold">Tuition Fee (₹)</label>
-                                        <input type="number" name="tuition_fee" class="form-control" step="0.01" min="0" value="0">
+                                        <label class="form-label fw-bold">Tuition Fee — Boys (₹)</label>
+                                        <input type="number" name="tuition_fee" id="tuition_fee" class="form-control" step="0.01" min="0" value="0"
+                                            oninput="calcGirls(this.value)">
+                                    </div>
+                                    <div class="col-md-3" id="girls_fee_row" style="display:none;">
+                                        <label class="form-label fw-bold">Tuition Fee — Girls (₹) <span class="text-muted fw-normal" style="font-size:0.82rem;">(auto 75%, editable)</span></label>
+                                        <input type="number" name="girls_tuition_fee" id="girls_tuition_fee" class="form-control" step="0.01" min="0" value="0">
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label fw-bold">Transport Fee (₹)</label>
@@ -88,4 +93,17 @@
         </div>
     </div>
 </div>
+<script>
+var catSelect = document.querySelector('select[name="fee_category"]');
+var girlsRow  = document.getElementById('girls_fee_row');
+catSelect.addEventListener('change', function() {
+    girlsRow.style.display = this.value === 'general' ? '' : 'none';
+});
+function calcGirls(val) {
+    var girls = document.getElementById('girls_tuition_fee');
+    if (document.querySelector('select[name="fee_category"]').value === 'general') {
+        girls.value = val ? Math.round(parseFloat(val) * 0.75 * 100) / 100 : 0;
+    }
+}
+</script>
 @endsection

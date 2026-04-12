@@ -16,6 +16,7 @@ class FeeStructure extends Model
         'fee_category',
         'admission_fee',
         'tuition_fee',
+        'girls_tuition_fee',
         'transport_fee',
         'other_fee',
         'total_fee',
@@ -31,12 +32,22 @@ class FeeStructure extends Model
     ];
 
     protected $casts = [
-        'admission_fee' => 'decimal:2',
-        'tuition_fee'   => 'decimal:2',
-        'transport_fee' => 'decimal:2',
-        'other_fee'     => 'decimal:2',
-        'total_fee'     => 'decimal:2',
+        'admission_fee'     => 'decimal:2',
+        'tuition_fee'       => 'decimal:2',
+        'girls_tuition_fee' => 'decimal:2',
+        'transport_fee'     => 'decimal:2',
+        'other_fee'         => 'decimal:2',
+        'total_fee'         => 'decimal:2',
     ];
+
+    // Return effective tuition fee for a given gender
+    public function tuitionFeeForGender($gender)
+    {
+        if ($this->fee_category === 'general' && strtolower($gender) === 'female' && $this->girls_tuition_fee !== null) {
+            return $this->girls_tuition_fee;
+        }
+        return $this->tuition_fee;
+    }
 
     // ── RELATIONSHIPS ─────────────────────────────────────────────────────
 

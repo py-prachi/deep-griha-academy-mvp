@@ -40,11 +40,13 @@ class FeeStructureRepository implements FeeStructureInterface
                 'fee_category' => $data['fee_category'],
             ],
             [
-                'session_id'   => $data['session_id'],
-                'admission_fee'=> $data['admission_fee'] ?? 0,
-                'tuition_fee'  => $data['tuition_fee']   ?? 0,
-                'transport_fee'=> $data['transport_fee'] ?? 0,
-                'other_fee'    => $data['other_fee']     ?? 0,
+                'session_id'        => $data['session_id'],
+                'admission_fee'     => $data['admission_fee']     ?? 0,
+                'tuition_fee'       => $data['tuition_fee']       ?? 0,
+                'girls_tuition_fee' => isset($data['girls_tuition_fee']) && $data['girls_tuition_fee'] !== ''
+                                        ? $data['girls_tuition_fee'] : null,
+                'transport_fee'     => $data['transport_fee']     ?? 0,
+                'other_fee'         => $data['other_fee']         ?? 0,
             ]
         );
     }

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\SchoolSession;
 use App\Models\SchoolClass;
 use App\Models\Section;
+use App\Models\ClassSubject;
+use App\Models\FeeStructure;
 use Illuminate\Support\Facades\DB;
 
 class SessionSetupController extends Controller
@@ -55,18 +57,24 @@ class SessionSetupController extends Controller
                 ->orderBy('id')
                 ->get();
 
-            $clonedClasses = 0;
-            $clonedSections = 0;
+            $clonedClasses   = 0;
+            $clonedSections  = 0;
+            $clonedSubjects  = 0;
+            $clonedFees      = 0;
+
+            // Map old class_id → new class_id for subject + fee cloning
+            $classIdMap = [];
 
             foreach ($sourceClasses as $sourceClass) {
-                // Clone class into new session
+                // Clone class
                 $newClass = SchoolClass::create([
                     'class_name' => $sourceClass->class_name,
                     'session_id' => $targetId,
                 ]);
                 $clonedClasses++;
+                $classIdMap[$sourceClass->id] = $newClass->id;
 
-                // Clone all sections for this class
+                // Clone sections
                 $sourceSections = Section::where('class_id', $sourceClass->id)
                     ->where('session_id', $sourceId)
                     ->get();
@@ -80,14 +88,51 @@ class SessionSetupController extends Controller
                     ]);
                     $clonedSections++;
                 }
+
+                // Clone class-subject assignments
+                $sourceSubjects = ClassSubject::where('class_id', $sourceClass->id)
+                    ->where('session_id', $sourceId)
+                    ->get();
+
+                foreach ($sourceSubjects as $cs) {
+                    ClassSubject::create([
+                        'subject_id' => $cs->subject_id,
+                        'class_id'   => $newClass->id,
+                        'session_id' => $targetId,
+                    ]);
+                    $clonedSubjects++;
+                }
+
+                // Clone fee structures
+                $sourceFees = FeeStructure::where('class_id', $sourceClass->id)
+                    ->where('session_id', $sourceId)
+                    ->get();
+
+                foreach ($sourceFees as $fee) {
+                    FeeStructure::create([
+                        'class_id'          => $newClass->id,
+                        'session_id'        => $targetId,
+                        'academic_year'     => $targetSession->session_name,
+                        'fee_category'      => $fee->fee_category,
+                        'admission_fee'     => $fee->admission_fee,
+                        'tuition_fee'       => $fee->tuition_fee,
+                        'girls_tuition_fee' => $fee->girls_tuition_fee,
+                        'transport_fee'     => $fee->transport_fee,
+                        'other_fee'         => $fee->other_fee,
+                        // total_fee auto-calculated by model boot
+                    ]);
+                    $clonedFees++;
+                }
             }
 
             DB::commit();
 
+            $sourceName = SchoolSession::find($sourceId)->session_name;
             return back()->with('status',
-                'Cloned ' . $clonedClasses . ' classes and ' . $clonedSections . ' sections from "' .
-                SchoolSession::find($sourceId)->session_name . '" into "' . $targetSession->session_name . '". ' .
-                'You can now run Promotions.'
+                'Cloned from "' . $sourceName . '" into "' . $targetSession->session_name . '": ' .
+                $clonedClasses . ' classes, ' . $clonedSections . ' sections, ' .
+                $clonedSubjects . ' subject assignments, ' . $clonedFees . ' fee structures. ' .
+                'Review fee structures for any changes, then run Promotions.'
             );
 
         } catch (\Exception $e) {

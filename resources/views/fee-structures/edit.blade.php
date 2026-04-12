@@ -56,12 +56,25 @@
                                             class="form-control">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label">Tuition Fee (₹)</label>
-                                        <input type="number" name="tuition_fee" step="0.01" min="0"
+                                        <label class="form-label">Tuition Fee{{ $feeStructure->fee_category === 'general' ? ' — Boys' : '' }} (₹)</label>
+                                        <input type="number" name="tuition_fee" id="tuition_fee" step="0.01" min="0"
                                             value="{{ old('tuition_fee', $feeStructure->tuition_fee) }}"
+                                            class="form-control"
+                                            {{ $feeStructure->fee_category === 'general' ? 'oninput="calcGirls(this.value)"' : '' }}>
+                                    </div>
+                                </div>
+                                @if($feeStructure->fee_category === 'general')
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Tuition Fee — Girls (₹) <span class="text-muted" style="font-size:0.82rem;">(auto 75% of boys, editable)</span></label>
+                                        <input type="number" name="girls_tuition_fee" id="girls_tuition_fee" step="0.01" min="0"
+                                            value="{{ old('girls_tuition_fee', $feeStructure->girls_tuition_fee ?? round($feeStructure->tuition_fee * 0.75, 2)) }}"
                                             class="form-control">
                                     </div>
                                 </div>
+                                @else
+                                <input type="hidden" name="girls_tuition_fee" value="">
+                                @endif
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Transport Fee (₹)</label>
@@ -77,7 +90,10 @@
                                     </div>
                                 </div>
                                 <div class="alert alert-info">
-                                    Current Total: <strong>₹{{ number_format($feeStructure->total_fee, 2) }}</strong> — will recalculate on save.
+                                    Current Total (Boys): <strong>₹{{ number_format($feeStructure->total_fee, 2) }}</strong> — will recalculate on save.
+                                    @if($feeStructure->fee_category === 'general' && $feeStructure->girls_tuition_fee !== null)
+                                    &nbsp;|&nbsp; Girls effective total: <strong>₹{{ number_format($feeStructure->admission_fee + $feeStructure->girls_tuition_fee + $feeStructure->transport_fee + $feeStructure->other_fee, 2) }}</strong>
+                                    @endif
                                 </div>
                                 <div class="d-flex gap-2">
                                     <button type="submit" class="btn btn-primary">Update Fee Structure</button>
@@ -93,4 +109,10 @@
         </div>
     </div>
 </div>
+<script>
+function calcGirls(val) {
+    var girls = document.getElementById('girls_tuition_fee');
+    if (girls) girls.value = val ? Math.round(parseFloat(val) * 0.75 * 100) / 100 : 0;
+}
+</script>
 @endsection
