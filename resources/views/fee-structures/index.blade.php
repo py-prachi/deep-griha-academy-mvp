@@ -42,38 +42,45 @@
                                     <th>Class</th>
                                     <th>Category</th>
                                     <th>Academic Year</th>
-                                    <th class="text-end">Admission Fee</th>
-                                    <th class="text-end">Tuition Fee (Boys)</th>
-                                    <th class="text-end">Tuition Fee (Girls)</th>
-                                    <th class="text-end">Transport Fee</th>
-                                    <th class="text-end">Other Fee</th>
+                                    <th class="text-end">Admission</th>
+                                    <th class="text-end">Tuition</th>
+                                    <th class="text-end">Transport</th>
+                                    <th class="text-end">Other</th>
                                     <th class="text-end">Total</th>
                                     <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($feeStructures as $fs)
+                                @php
+                                    $badgeClass = $fs->fee_category == 'rte' ? 'success'
+                                        : ($fs->fee_category == 'coc' ? 'info'
+                                        : ($fs->fee_category == 'discount' ? 'warning' : 'primary'));
+                                    $isGeneral  = $fs->fee_category === 'general';
+                                    // For general: use saved girls fee or default to 75% of boys tuition
+                                    $girlsFee   = $isGeneral
+                                                    ? ($fs->girls_tuition_fee !== null ? $fs->girls_tuition_fee : round($fs->tuition_fee * 0.75, 2))
+                                                    : null;
+                                    $girlsTotal = $girlsFee !== null
+                                                    ? $fs->admission_fee + $girlsFee + $fs->transport_fee + $fs->other_fee
+                                                    : null;
+                                @endphp
+                                {{-- Boys row (or single row for non-general) --}}
                                 <tr>
-                                    <td>{{ $fs->schoolClass->class_name ?? '—' }}</td>
+                                    <td rowspan="{{ $isGeneral ? 2 : 1 }}">{{ $fs->schoolClass->class_name ?? '—' }}</td>
                                     <td>
-                                        <span class="badge bg-{{ $fs->fee_category == 'rte' ? 'success' : ($fs->fee_category == 'coc' ? 'info' : ($fs->fee_category == 'discount' ? 'warning' : 'primary')) }}">
+                                        <span class="badge bg-{{ $badgeClass }}">
                                             {{ $categories[$fs->fee_category] ?? $fs->fee_category }}
+                                            @if($isGeneral) — Boys @endif
                                         </span>
                                     </td>
                                     <td>{{ $fs->academic_year }}</td>
                                     <td class="text-end">₹{{ number_format($fs->admission_fee, 2) }}</td>
                                     <td class="text-end">₹{{ number_format($fs->tuition_fee, 2) }}</td>
-                                    <td class="text-end">
-                                        @if($fs->fee_category === 'general' && $fs->girls_tuition_fee !== null)
-                                            ₹{{ number_format($fs->girls_tuition_fee, 2) }}
-                                        @else
-                                            <span class="text-muted">—</span>
-                                        @endif
-                                    </td>
                                     <td class="text-end">₹{{ number_format($fs->transport_fee, 2) }}</td>
                                     <td class="text-end">₹{{ number_format($fs->other_fee, 2) }}</td>
                                     <td class="text-end fw-bold">₹{{ number_format($fs->total_fee, 2) }}</td>
-                                    <td class="text-center">
+                                    <td class="text-center" rowspan="{{ $isGeneral ? 2 : 1 }}">
                                         <a href="{{ route('fee-structures.edit', $fs->id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
                                         <form action="{{ route('fee-structures.destroy', $fs->id) }}" method="POST" class="d-inline"
                                               onsubmit="return confirm('Delete this fee structure?')">
@@ -82,6 +89,20 @@
                                         </form>
                                     </td>
                                 </tr>
+                                {{-- Girls row — always shown for general category --}}
+                                @if($isGeneral)
+                                <tr class="table-light">
+                                    <td>
+                                        <span class="badge bg-primary">General — Girls</span>
+                                    </td>
+                                    <td>{{ $fs->academic_year }}</td>
+                                    <td class="text-end">₹{{ number_format($fs->admission_fee, 2) }}</td>
+                                    <td class="text-end">₹{{ number_format($girlsFee, 2) }}</td>
+                                    <td class="text-end">₹{{ number_format($fs->transport_fee, 2) }}</td>
+                                    <td class="text-end">₹{{ number_format($fs->other_fee, 2) }}</td>
+                                    <td class="text-end fw-bold">₹{{ number_format($girlsTotal, 2) }}</td>
+                                </tr>
+                                @endif
                                 @endforeach
                             </tbody>
                         </table>
