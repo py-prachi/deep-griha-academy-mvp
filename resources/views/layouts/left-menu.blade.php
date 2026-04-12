@@ -218,45 +218,60 @@
                         </ul>
                     </li>
 
-                    {{-- Academic Settings --}}
+                    {{-- Academic (day-to-day) --}}
                     <li class="nav-item">
-                        <a type="button" href="#academic-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('academics*') ? 'active' : '' }}">
-                            <i class="bi bi-tools"></i>
+                        <a type="button" href="#academic-submenu" data-bs-toggle="collapse"
+                            class="d-flex nav-link {{ request()->is('marks2*') || request()->is('preprimary*') || request()->is('subjects*') || request()->is('academics/teacher*') ? 'active' : '' }}">
+                            <i class="bi bi-pencil-square"></i>
                             <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Academic</span>
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
-                        <ul class="nav collapse {{ request()->is('academics*') ? 'show' : 'hide' }} bg-white" id="academic-submenu">
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ url('academics/settings') }}"><i class="bi bi-gear me-2"></i> Settings</a></li>
+                        <ul class="nav collapse {{ request()->is('marks2*') || request()->is('preprimary*') || request()->is('subjects*') || request()->is('academics/teacher*') ? 'show' : 'hide' }} bg-white" id="academic-submenu">
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('subjects.index') }}"><i class="bi bi-book me-2"></i> Subjects</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('academics.teacher-assignments') }}"><i class="bi bi-person-badge me-2"></i> Teacher Assignments</a></li>
-                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('marks2') ? 'active' : '' }}" href="{{ route('marks.index') }}"><i class="bi bi-pencil-square me-2"></i> Enter Marks (Cl. 1–8)</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('marks2') ? 'active' : '' }}" href="{{ route('marks.index') }}"><i class="bi bi-pencil me-2"></i> Enter Marks (Cl. 1–8)</a></li>
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('marks2/review*') ? 'active' : '' }}" href="{{ route('marks.review') }}"><i class="bi bi-grid-3x3-gap me-2"></i> Marks Review</a></li>
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('preprimary*') ? 'active' : '' }}" href="{{ route('preprimary.entry') }}"><i class="bi bi-check2-square me-2"></i> Pre-Primary Entry</a></li>
                         </ul>
                     </li>
 
-                    {{-- Promotion --}}
+                    {{-- Settings (year-end & one-time) --}}
                     @if (!session()->has('browse_session_id'))
                     @php
-                        // Check if any students from previous session are not yet promoted to latest session
                         $prevSession = \App\Models\SchoolSession::orderBy('id','desc')->skip(1)->first();
                         $promotionPending = false;
                         if ($prevSession && $latestSessionForMenu && $prevSession->id !== $latestSessionForMenu->id) {
                             $prevCount = \App\Models\Promotion::where('session_id', $prevSession->id)->count();
                             $newCount  = \App\Models\Promotion::where('session_id', $latestSessionForMenu->id)->count();
-                            // Count graduated students — they are intentionally not promoted
                             $graduatedCount = \App\Models\User::where('student_status', 'graduated')->count();
                             $promotionPending = ($prevCount > 0 && $newCount < ($prevCount - $graduatedCount));
                         }
                     @endphp
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('promotions*')? 'active' : '' }}" href="{{url('promotions/index')}}">
-                            <i class="bi bi-sort-numeric-up-alt"></i>
-                            <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Promotion</span>
+                        <a type="button" href="#settings-submenu" data-bs-toggle="collapse"
+                            class="d-flex nav-link {{ request()->is('academics/settings*') || request()->is('promotions*') ? 'active' : '' }}">
+                            <i class="bi bi-gear"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Settings</span>
                             @if($promotionPending)
-                                <span class="badge bg-warning text-dark ms-1 d-inline d-sm-none d-md-none d-xl-inline" title="Some students not yet promoted">!</span>
+                                <span class="badge bg-warning text-dark ms-1 d-inline d-sm-none d-md-none d-xl-inline">!</span>
                             @endif
+                            <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
+                        <ul class="nav collapse {{ request()->is('academics/settings*') || request()->is('promotions*') ? 'show' : 'hide' }} bg-white" id="settings-submenu">
+                            <li class="nav-item w-100">
+                                <a class="nav-link {{ request()->is('academics/settings*') ? 'active' : '' }}" href="{{ url('academics/settings') }}">
+                                    <i class="bi bi-calendar-plus me-2"></i> Academic Setup
+                                </a>
+                            </li>
+                            <li class="nav-item w-100">
+                                <a class="nav-link {{ request()->is('promotions*') ? 'active' : '' }}" href="{{ url('promotions/index') }}">
+                                    <i class="bi bi-sort-numeric-up-alt me-2"></i> Promotions
+                                    @if($promotionPending)
+                                        <span class="badge bg-warning text-dark ms-1">!</span>
+                                    @endif
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     @endif
 

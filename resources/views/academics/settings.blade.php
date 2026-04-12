@@ -64,11 +64,18 @@
                         <div class="col-md-4">
                             <div class="card h-100 border-primary">
                                 <div class="card-header bg-primary text-white py-2">
-                                    <strong><span class="badge bg-white text-primary me-1">2</span> Clone Classes & Sections</strong>
+                                    <strong><span class="badge bg-white text-primary me-1">2</span> Clone Setup to New Session</strong>
                                 </div>
                                 <div class="card-body">
-                                    <p class="text-muted small">Copy all classes and sections from last year into the new session.</p>
-                                    <form action="{{ route('school.session.clone-classes') }}" method="POST">
+                                    <p class="text-muted small mb-1">Copies the following from last year into the new session:</p>
+                                    <ul class="text-muted small mb-2 ps-3">
+                                        <li>All classes &amp; sections</li>
+                                        <li>Subject assignments per class</li>
+                                        <li>Fee structures (all categories)</li>
+                                    </ul>
+                                    <p class="text-muted small mb-2"><i class="bi bi-info-circle me-1"></i>Teacher assignments are <strong>not</strong> cloned — reassign after promoting students. Fee structures are copied as-is; edit any that changed.</p>
+                                    <form action="{{ route('school.session.clone-classes') }}" method="POST"
+                                        onsubmit="return confirm('This will copy all classes, sections, subject assignments and fee structures into the target session. The target session must be empty. Continue?')">
                                         @csrf
                                         <div class="mb-2">
                                             <label class="form-label form-label-sm mb-1">Copy FROM:</label>
@@ -86,7 +93,7 @@
                                                 @endforeach
                                             </select>
                                         </div>
-                                        <button class="btn btn-sm btn-primary w-100"><i class="bi bi-copy me-1"></i> Clone</button>
+                                        <button class="btn btn-sm btn-primary w-100"><i class="bi bi-copy me-1"></i> Clone Now</button>
                                     </form>
                                 </div>
                             </div>
