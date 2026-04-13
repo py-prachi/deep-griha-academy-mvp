@@ -22,6 +22,7 @@ class Routine extends Model
         'section_id',
         'course_id',
         'session_id',
+        'period_id',
     ];
 
     /**
@@ -39,9 +40,16 @@ class Routine extends Model
     }
 
     /**
-     * Get the course.
+     * Get the subject (stored as ClassSubject id in course_id column).
      */
     public function course() {
-        return $this->belongsTo(Course::class, 'course_id');
+        return $this->belongsTo(ClassSubject::class, 'course_id');
+    }
+
+    /**
+     * Get the timetable period.
+     */
+    public function period() {
+        return $this->belongsTo(TimetablePeriod::class, 'period_id');
     }
 }

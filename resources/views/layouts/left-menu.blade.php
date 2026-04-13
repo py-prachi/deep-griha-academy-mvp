@@ -35,6 +35,14 @@
                         </a>
                     </li>
 
+                    {{-- Timetable --}}
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('timetable.teacher') ? 'active' : '' }}" href="{{ route('timetable.teacher') }}">
+                            <i class="bi bi-calendar4-week"></i>
+                            <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Timetable</span>
+                        </a>
+                    </li>
+
                     {{-- Marks — shown based on CT class type --}}
                     @php
                         $menuSession = session('browse_session_id') ?: optional(\App\Models\SchoolSession::orderBy('id','desc')->first())->id;
@@ -99,6 +107,12 @@
                             href="{{ route('student.attendance.show', ['id' => Auth::user()->id]) }}">
                             <i class="bi bi-calendar2-week"></i>
                             <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Attendance</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('timetable.student') ? 'active' : '' }}" href="{{ route('timetable.student') }}">
+                            <i class="bi bi-calendar4-week"></i>
+                            <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Timetable</span>
                         </a>
                     </li>
                     <li class="nav-item border-bottom">
@@ -273,16 +287,16 @@
                     {{-- Communication submenu --}}
                     <li class="nav-item">
                         <a type="button" href="#comms-submenu" data-bs-toggle="collapse"
-                            class="d-flex nav-link {{ request()->is('notice*') || request()->is('calendar-event*') || request()->is('syllabus*') || request()->is('routine*') ? 'active' : '' }}">
+                            class="d-flex nav-link {{ request()->is('notice*') || request()->is('calendar-event*') || request()->is('syllabus*') || request()->is('timetable*') ? 'active' : '' }}">
                             <i class="bi bi-megaphone"></i>
                             <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Communication</span>
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
-                        <ul class="nav collapse {{ request()->is('notice*') || request()->is('calendar-event*') || request()->is('syllabus*') || request()->is('routine*') ? 'show' : 'hide' }} bg-white" id="comms-submenu">
+                        <ul class="nav collapse {{ request()->is('notice*') || request()->is('calendar-event*') || request()->is('syllabus*') || request()->is('timetable*') ? 'show' : 'hide' }} bg-white" id="comms-submenu">
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('notice*') ? 'active' : '' }}" href="{{ route('notice.create') }}"><i class="bi bi-megaphone me-2"></i> Notice</a></li>
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('calendar-event*') ? 'active' : '' }}" href="{{ route('events.show') }}"><i class="bi bi-calendar-event me-2"></i> Events</a></li>
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('syllabus*') ? 'active' : '' }}" href="{{ route('class.syllabus.create') }}"><i class="bi bi-journal-text me-2"></i> Syllabus</a></li>
-                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('routine*') ? 'active' : '' }}" href="{{ route('section.routine.create') }}"><i class="bi bi-calendar4-range me-2"></i> Routine</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('timetable*') ? 'active' : '' }}" href="{{ route('timetable.edit') }}"><i class="bi bi-calendar4-week me-2"></i> Timetable</a></li>
                         </ul>
                     </li>
 

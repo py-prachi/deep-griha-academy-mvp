@@ -70,7 +70,18 @@ class SectionController extends Controller
 
     public function getByClassId(Request $request) {
         $sections = $this->schoolSectionRepository->getAllByClassId($request->query('class_id', 0));
-        $courses = $this->courseRepository->getByClassId($request->query('class_id', 0));
+
+        $class_id = $request->query('class_id', 0);
+        $schoolClass = \App\Models\SchoolClass::find($class_id);
+        $session_id = $schoolClass ? $schoolClass->session_id : $this->getSchoolCurrentSession();
+        $courses = \App\Models\ClassSubject::with('subject')
+            ->where('class_id', $class_id)
+            ->where('session_id', $session_id)
+            ->get()
+            ->map(function ($cs) {
+                return ['id' => $cs->id, 'course_name' => $cs->subject->name ?? ''];
+            })
+            ->values();
 
         return response()->json(['sections' => $sections, 'courses' => $courses]);
     }

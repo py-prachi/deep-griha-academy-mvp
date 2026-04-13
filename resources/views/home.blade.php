@@ -42,13 +42,41 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card h-100 border-dashed">
-                            <div class="card-header py-2 small fw-semibold">
-                                <i class="bi bi-table me-1"></i> Timetable
+                        <div class="card h-100">
+                            <div class="card-header py-2 small fw-semibold d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-calendar4-week me-1"></i> Today's Timetable</span>
+                                <a href="{{ route('timetable.student') }}" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem;">Full Week</a>
                             </div>
-                            <div class="card-body text-center py-5 text-muted">
-                                <i class="bi bi-clock" style="font-size:2rem;"></i>
-                                <div class="small mt-2">Timetable will be available here once entered by the school.</div>
+                            <div class="card-body p-0">
+                                @if($todayWeekday > 6)
+                                <div class="text-center text-muted small p-4">No school on Sunday.</div>
+                                @elseif($todayPeriods->isEmpty() || $todayRoutines->isEmpty())
+                                <div class="text-center text-muted small p-4">
+                                    <i class="bi bi-clock" style="font-size:1.5rem;"></i>
+                                    <div class="mt-1">Timetable not set up yet.</div>
+                                </div>
+                                @else
+                                <table class="table table-sm mb-0" style="font-size:0.82rem;">
+                                    @foreach($todayPeriods as $period)
+                                        @if($period->is_break)
+                                        <tr class="table-light">
+                                            <td class="text-muted py-1 ps-3" colspan="2">
+                                                <em>{{ $period->label }}</em>
+                                                <span class="text-muted" style="font-size:0.75rem;"> {{ $period->start_time }}–{{ $period->end_time }}</span>
+                                            </td>
+                                        </tr>
+                                        @else
+                                        @php $slot = isset($todayRoutines[$period->id]) ? $todayRoutines[$period->id] : null; @endphp
+                                        <tr>
+                                            <td class="text-muted ps-3 py-1" style="width:85px;">{{ $period->start_time }}</td>
+                                            <td class="py-1 fw-semibold">
+                                                {{ $slot ? optional(optional($slot->course)->subject)->name : '—' }}
+                                            </td>
+                                        </tr>
+                                        @endif
+                                    @endforeach
+                                </table>
+                                @endif
                             </div>
                         </div>
                     </div>

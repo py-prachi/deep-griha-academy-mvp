@@ -12,7 +12,7 @@
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="{{route('home')}}">Home</a></li>
                             <li class="breadcrumb-item"><a href="{{url()->previous()}}">Classes</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Section Routine</li>
+                            <li class="breadcrumb-item active" aria-current="page">Timetable</li>
                         </ol>
                     </nav>
                     @php
@@ -48,7 +48,7 @@
                                         @endphp
                                         @foreach($courses as $course)
                                             <td>
-                                                <span>{{$course->course->course_name}}</span>
+                                                <span>{{$course->course->subject->name ?? '—'}}</span>
                                                 <div>{{$course->start}} - {{$course->end}}</div>
                                             </td>
                                         @endforeach

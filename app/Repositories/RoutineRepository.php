@@ -24,7 +24,7 @@ class RoutineRepository implements RoutineInterface {
     }
 
     public function getAll($class_id, $section_id, $session_id) {
-        return Routine::with('course')
+        return Routine::with('course.subject')
                 ->where('session_id', $session_id)
                 ->where('class_id', $class_id)
                 ->where('section_id', $section_id)

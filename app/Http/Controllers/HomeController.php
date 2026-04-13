@@ -12,6 +12,8 @@ use App\Repositories\PromotionRepository;
 use App\Repositories\AttendanceRepository;
 use App\Models\ClassTeacher;
 use App\Models\ClassSubject;
+use App\Models\Routine;
+use App\Models\TimetablePeriod;
 use App\Models\StudentTermMark;
 use App\Models\PrePrimarySkillGrade;
 use App\Http\Controllers\PrePrimaryController;
@@ -51,12 +53,30 @@ class HomeController extends Controller
             $presentCount = $attendances->where('status', 'on')->count();
             $totalCount   = $attendances->count();
 
+            // Today's timetable
+            $todayWeekday = Carbon::today()->isoWeekday(); // 1=Mon … 6=Sat
+            $todayRoutines = collect();
+            $todayPeriods  = collect();
+            if ($promotion) {
+                $todayRoutines = Routine::with(['period', 'course.subject'])
+                    ->where('class_id', $promotion->class_id)
+                    ->where('section_id', $promotion->section_id)
+                    ->where('session_id', $current_school_session_id)
+                    ->where('weekday', $todayWeekday)
+                    ->get()
+                    ->keyBy('period_id');
+                $todayPeriods = TimetablePeriod::ordered()->get();
+            }
+
             return view('home', [
-                'notices'    => $notices,
-                'promotion'  => $promotion,
-                'present'    => $presentCount,
-                'total_days' => $totalCount,
-                'isStudent'  => true,
+                'notices'       => $notices,
+                'promotion'     => $promotion,
+                'present'       => $presentCount,
+                'total_days'    => $totalCount,
+                'isStudent'     => true,
+                'todayRoutines' => $todayRoutines,
+                'todayPeriods'  => $todayPeriods,
+                'todayWeekday'  => $todayWeekday,
             ]);
         }
 

@@ -29,6 +29,7 @@ use App\Http\Controllers\SessionSetupController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\MarksController;
 use App\Http\Controllers\PrePrimaryController;
+use App\Http\Controllers\TimetableController;
 
 /*
 |--------------------------------------------------------------------------
@@ -287,6 +288,18 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}',         [LeavingCertificateController::class, 'show'])->name('show');
         Route::get('/{id}/pdf',     [LeavingCertificateController::class, 'pdf'])->name('pdf');
     });
+
+    // Timetable
+    Route::get('/timetable/edit',           [TimetableController::class, 'edit'])->name('timetable.edit');
+    Route::post('/timetable/save',          [TimetableController::class, 'save'])->name('timetable.save');
+    Route::get('/timetable/view',           [TimetableController::class, 'show'])->name('timetable.show');
+    Route::get('/timetable/teacher',        [TimetableController::class, 'teacherView'])->name('timetable.teacher');
+    Route::get('/timetable/student',        [TimetableController::class, 'studentView'])->name('timetable.student');
+    Route::post('/timetable/period/update',       [TimetableController::class, 'periodUpdate'])->name('timetable.period.update');
+    Route::post('/timetable/period/delete',       [TimetableController::class, 'periodDelete'])->name('timetable.period.delete');
+    Route::post('/timetable/period/add',          [TimetableController::class, 'periodAdd'])->name('timetable.period.add');
+    Route::post('/timetable/period/copy-defaults',[TimetableController::class, 'periodCopyDefaults'])->name('timetable.period.copy-defaults');
+    Route::post('/timetable/period/reset-day',    [TimetableController::class, 'periodResetDay'])->name('timetable.period.reset-day');
 
     // ── STUDENT EXIT ──────────────────────────────────────────────
     Route::get('/exits',              [App\Http\Controllers\StudentExitController::class, 'index'])->name('exits.index');
