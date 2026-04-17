@@ -3,9 +3,7 @@ set -e
 
 echo "=== Starting container, PORT=${PORT} ==="
 
-sed -i 's|listen = /run/php/php7.4-fpm.sock|listen = 127.0.0.1:9000|g' /etc/php/7.4/fpm/pool.d/www.conf
-
-/usr/sbin/php-fpm7.4 -D
+php-fpm -D
 sleep 1
 
 sed -i "s/listen 80/listen ${PORT:-8080}/g" /etc/nginx/sites-available/default
