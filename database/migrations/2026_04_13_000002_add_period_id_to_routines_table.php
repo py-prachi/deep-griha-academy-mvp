@@ -8,10 +8,12 @@ class AddPeriodIdToRoutinesTable extends Migration
 {
     public function up()
     {
-        Schema::table('routines', function (Blueprint $table) {
-            $table->unsignedBigInteger('period_id')->nullable()->after('course_id');
-            $table->foreign('period_id')->references('id')->on('timetable_periods')->onDelete('cascade');
-        });
+        if (!Schema::hasColumn('routines', 'period_id')) {
+            Schema::table('routines', function (Blueprint $table) {
+                $table->unsignedBigInteger('period_id')->nullable()->after('course_id');
+                $table->foreign('period_id')->references('id')->on('timetable_periods')->onDelete('cascade');
+            });
+        }
     }
 
     public function down()

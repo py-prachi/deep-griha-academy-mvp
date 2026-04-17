@@ -8,10 +8,12 @@ class AddGirlsTuitionFeeToFeeStructuresTable extends Migration
 {
     public function up()
     {
-        Schema::table('fee_structures', function (Blueprint $table) {
-            $table->decimal('girls_tuition_fee', 10, 2)->nullable()->after('tuition_fee')
-                  ->comment('Girls tuition fee for general category (25% less by default). Null = same as tuition_fee.');
-        });
+        if (!Schema::hasColumn('fee_structures', 'girls_tuition_fee')) {
+            Schema::table('fee_structures', function (Blueprint $table) {
+                $table->decimal('girls_tuition_fee', 10, 2)->nullable()->after('tuition_fee')
+                      ->comment('Girls tuition fee for general category (25% less by default). Null = same as tuition_fee.');
+            });
+        }
     }
 
     public function down()
