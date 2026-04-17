@@ -50,8 +50,14 @@ class AcademicSettingController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+        // Allow admin to exit browse mode via ?clear_browse=1
+        if ($request->query('clear_browse') && session()->has('browse_session_id')) {
+            session()->forget(['browse_session_id', 'browse_session_name']);
+            return redirect(url('academics/settings'));
+        }
+
         $current_school_session_id = $this->getSchoolCurrentSession();
 
         $latest_school_session = $this->schoolSessionRepository->getLatestSession();

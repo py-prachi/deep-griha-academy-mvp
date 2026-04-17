@@ -307,7 +307,6 @@
                     <li class="nav-item d-xl-none"><hr class="my-1 mx-2"></li>
 
                     {{-- Settings (year-end & one-time) --}}
-                    @if(!session()->has('browse_session_id'))
                     <li class="nav-item">
                         <a type="button" href="#settings-submenu" data-bs-toggle="collapse"
                             class="d-flex nav-link {{ request()->is('academics/settings*') || request()->is('promotions*') ? 'active' : '' }}">
@@ -319,6 +318,13 @@
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
                         <ul class="nav collapse {{ request()->is('academics/settings*') || request()->is('promotions*') ? 'show' : 'hide' }} bg-white" id="settings-submenu">
+                            @if(session()->has('browse_session_id'))
+                            <li class="nav-item w-100">
+                                <a class="nav-link text-primary fw-semibold" href="{{ url('academics/settings?clear_browse=1') }}">
+                                    <i class="bi bi-arrow-left-circle me-2"></i> Return to Current Session
+                                </a>
+                            </li>
+                            @endif
                             <li class="nav-item w-100">
                                 <a class="nav-link {{ request()->is('academics/settings*') ? 'active' : '' }}" href="{{ url('academics/settings') }}">
                                     <i class="bi bi-calendar-plus me-2"></i> Academic Setup
@@ -332,7 +338,6 @@
                             </li>
                         </ul>
                     </li>
-                    @endif
 
                     @endif {{-- end admin only --}}
 
