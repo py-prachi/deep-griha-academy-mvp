@@ -1,15 +1,20 @@
 #!/bin/bash
-set -e
 
-echo "=== Starting container, PORT=${PORT} ==="
+echo "=== Starting container, PORT=${PORT:-8080} ==="
 
-# Start PHP-FPM in background (& works regardless of daemonize config)
+# ── 1. Start PHP-FPM in background ──
 php-fpm &
 sleep 2
 
+# ── 2. Configure nginx port ──
 sed -i "s/listen 80/listen ${PORT:-8080}/g" /etc/nginx/sites-available/default
-nginx -t
+nginx -t && echo "nginx config OK"
 
+# ── 3. Start nginx NOW — /health returns 200 immediately (nginx-level, no php-fpm needed) ──
+nginx -g 'daemon off;' &
+echo "nginx started on port ${PORT:-8080}"
+
+# ── 4. Wait for database ──
 echo "Waiting for database..."
 until php -r "
     \$conn = @mysqli_connect(
@@ -25,12 +30,14 @@ until php -r "
 done
 echo "DB ready"
 
+# ── 5. Bootstrap Laravel ──
 cd /var/www
 php artisan package:discover --ansi || true
 php artisan config:clear
 php artisan config:cache
 php artisan migrate --force
 
+# ── 6. Seed if empty ──
 ROLE_COUNT=$(php -r "
     \$conn = mysqli_connect(
         getenv('DB_HOST'), getenv('DB_USERNAME'),
@@ -50,10 +57,13 @@ else
     echo "Database already seeded, skipping"
 fi
 
+# ── 7. Fix storage permissions ──
 mkdir -p /var/www/storage/logs
 touch /var/www/storage/logs/laravel.log
 chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
-echo "Starting nginx on port ${PORT:-8080}..."
-exec nginx -g 'daemon off;'
+echo "=== App fully ready ==="
+
+# Keep container alive (nginx + php-fpm are background processes)
+wait
