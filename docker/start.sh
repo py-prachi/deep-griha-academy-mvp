@@ -17,13 +17,14 @@ echo "nginx started on port ${PORT:-8080}"
 # ── 4. Wait for database ──
 echo "Waiting for database..."
 until php -r "
-    \$conn = @mysqli_connect(
-        getenv('DB_HOST'), getenv('DB_USERNAME'),
-        getenv('DB_PASSWORD'), getenv('DB_DATABASE'),
-        (int)(getenv('DB_PORT') ?: 3306)
-    );
-    if (\$conn) { echo 'ok'; exit(0); }
-    exit(1);
+    try {
+        \$dsn = 'mysql:host=' . getenv('DB_HOST') . ';port=' . (getenv('DB_PORT') ?: 3306) . ';dbname=' . getenv('DB_DATABASE');
+        \$pdo = new PDO(\$dsn, getenv('DB_USERNAME'), getenv('DB_PASSWORD'), [PDO::ATTR_TIMEOUT => 5]);
+        echo 'ok';
+        exit(0);
+    } catch (Exception \$e) {
+        exit(1);
+    }
 " 2>/dev/null | grep -q ok; do
     echo "DB not ready, retrying in 3s..."
     sleep 3
