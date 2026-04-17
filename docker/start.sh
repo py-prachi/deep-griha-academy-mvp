@@ -3,12 +3,17 @@ set -e
 
 echo "=== Starting container, PORT=${PORT} ==="
 
+# Start PHP-FPM in background
 php-fpm -D
 sleep 1
 
+# Configure nginx to listen on Railway's PORT
 sed -i "s/listen 80/listen ${PORT:-8080}/g" /etc/nginx/sites-available/default
-
 nginx -t
+
+# Start nginx NOW so Railway healthcheck passes immediately.
+# /health route only needs php-fpm (no DB), so it works right away.
+nginx
 
 echo "Waiting for database..."
 until php -r "
@@ -55,5 +60,7 @@ touch /var/www/storage/logs/laravel.log
 chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
-echo "Starting nginx on port ${PORT:-8080}..."
-exec nginx -g 'daemon off;'
+echo "=== App fully ready on port ${PORT:-8080} ==="
+
+# Keep container alive — tail logs so Railway shows them in the log viewer
+exec tail -f /var/log/nginx/error.log /var/www/storage/logs/laravel.log
