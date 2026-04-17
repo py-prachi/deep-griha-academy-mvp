@@ -26,6 +26,7 @@ done
 echo "DB ready"
 
 cd /var/www
+php artisan package:discover --ansi
 php artisan config:clear
 php artisan config:cache
 php artisan migrate --force
