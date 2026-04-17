@@ -27,7 +27,70 @@
                         <i class="bi bi-exclamation-triangle me-1"></i> {{ $error }}
                     </div>
                     @else
-                    @include('timetable._day-tabs', ['activeDay' => \Carbon\Carbon::today()->isoWeekday()])
+
+                    @php
+                        $dayShort = [1=>'Monday',2=>'Tuesday',3=>'Wednesday',4=>'Thursday',5=>'Friday',6=>'Saturday'];
+                        $today = \Carbon\Carbon::today()->isoWeekday();
+                    @endphp
+
+                    <div class="bg-white border shadow-sm p-3 mb-3" style="overflow-x:auto;">
+                        <table class="table table-bordered table-sm align-middle mb-0" style="min-width:700px;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:140px;">Period</th>
+                                    @foreach($dayShort as $dayNum => $dayName)
+                                        <th class="text-center" style="{{ $dayNum == $today ? 'background-color:rgba(13,110,253,0.10);' : '' }}">
+                                            {{ $dayName }}
+                                            @if($dayNum == $today)
+                                                <span class="badge bg-success ms-1" style="font-size:0.6rem;">Today</span>
+                                            @endif
+                                        </th>
+                                    @endforeach
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($allPeriods as $period)
+                                <tr>
+                                    <td class="small text-nowrap table-light">
+                                        <span class="fw-semibold">{{ $period->label }}</span>
+                                        <span class="text-muted d-block" style="font-size:0.72rem;">{{ $period->start_time }}–{{ $period->end_time }}</span>
+                                    </td>
+                                    @foreach($dayShort as $dayNum => $dayName)
+                                    @php
+                                        $dayPeriod   = isset($periodObjMap[$dayNum][$period->sort_order]) ? $periodObjMap[$dayNum][$period->sort_order] : null;
+                                        $dayIsBreak  = $dayPeriod ? (bool) $dayPeriod->is_break : (bool) $period->is_break;
+                                        $dayLabel    = $dayPeriod ? $dayPeriod->label : $period->label;
+                                        $dayPeriodId = isset($periodIdMap[$dayNum][$period->sort_order]) ? $periodIdMap[$dayNum][$period->sort_order] : null;
+                                        $routine     = $dayPeriodId && isset($grid[$dayNum][$dayPeriodId]) ? $grid[$dayNum][$dayPeriodId] : null;
+                                        $subjectName = $routine ? optional(optional($routine->course)->subject)->name : null;
+                                        $todayStyle  = $dayNum == $today ? 'background-color:rgba(13,110,253,0.08);' : '';
+                                    @endphp
+                                    <td class="text-center small {{ $dayIsBreak ? 'table-light' : '' }}" style="{{ $todayStyle }}">
+                                        @if($dayIsBreak)
+                                            <span class="text-muted fst-italic" style="font-size:0.8rem;">{{ $dayLabel }}</span>
+                                        @elseif($subjectName)
+                                            <span class="fw-semibold">{{ $subjectName }}</span>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
+                                    @endforeach
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted small p-4">
+                                        Timetable not set up yet.
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button onclick="window.print()" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-printer me-1"></i> Print
+                    </button>
+
                     @endif
 
                 </div>

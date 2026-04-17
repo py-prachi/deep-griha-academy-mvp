@@ -37,9 +37,8 @@
                         }
                     @endphp
                     @if(count($routines) > 0)
-                    <div class="bg-white p-3 border shadow-sm">
-                        <table class="table table-bordered text-center">
-                            </thead>
+                    <div class="bg-white p-3 border shadow-sm" style="overflow-x:auto;">
+                        <table class="table table-bordered text-center" style="min-width:700px;">
                             <tbody>
                                 @foreach($routines as $day => $courses)
                                     <tr><th>{{getDayName($day)}}</th>

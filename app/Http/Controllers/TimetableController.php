@@ -168,10 +168,12 @@ class TimetableController extends Controller
             }
         }
 
-        // Build per-day periods and a sort_order→period_id map per day
         $days = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday'];
-        $periodsByDay = [];
+
+        // Load actual periods for each day (custom if set, else default)
+        // periodsByDay[$weekday] = Collection of TimetablePeriod
         // periodIdMap[$weekday][$sort_order] = period_id
+        $periodsByDay = [];
         $periodIdMap  = [];
         foreach (array_keys($days) as $weekday) {
             $dayPeriods = TimetablePeriod::getForDay($weekday);
@@ -181,19 +183,54 @@ class TimetableController extends Controller
             }
         }
 
-        // Build a unified period "skeleton" using the default set (weekday=0)
-        // so rows are consistent — days with custom periods map via sort_order
-        $allPeriods = TimetablePeriod::where('weekday', 0)->orderBy('sort_order')->get();
+        // Unified row skeleton: collect all distinct sort_orders across all days,
+        // then for each row use the default period label/time (or first day that has it).
+        // We index by sort_order so rows align across days.
+        $allSortOrders = collect();
+        foreach ($periodsByDay as $dayPeriods) {
+            foreach ($dayPeriods as $p) {
+                $allSortOrders->push($p->sort_order);
+            }
+        }
+        $allSortOrders = $allSortOrders->unique()->sort()->values();
+
+        // Build a representative period object per sort_order (label, time, is_break)
+        // Prefer default (weekday=0) period; fall back to whichever day has it.
+        $defaultPeriodsBySortOrder = TimetablePeriod::where('weekday', 0)
+            ->orderBy('sort_order')->get()->keyBy('sort_order');
+
+        $allPeriods = $allSortOrders->map(function ($sortOrder) use ($defaultPeriodsBySortOrder, $periodsByDay) {
+            if (isset($defaultPeriodsBySortOrder[$sortOrder])) {
+                return $defaultPeriodsBySortOrder[$sortOrder];
+            }
+            // Fall back to first day that has this sort_order
+            foreach ($periodsByDay as $dayPeriods) {
+                foreach ($dayPeriods as $p) {
+                    if ($p->sort_order == $sortOrder) return $p;
+                }
+            }
+            return null;
+        })->filter()->values();
+
+        // periodObjMap[$weekday][$sort_order] = TimetablePeriod — so the view can check
+        // each day's own is_break/label rather than the representative default period.
+        $periodObjMap = [];
+        foreach ($periodsByDay as $weekday => $dayPeriods) {
+            foreach ($dayPeriods as $p) {
+                $periodObjMap[$weekday][$p->sort_order] = $p;
+            }
+        }
 
         $classLabel   = optional(optional($routines->first())->schoolClass)->class_name;
         $sectionLabel = optional(optional($routines->first())->section)->section_name;
 
         return view('timetable.show', [
-            'grid'         => $grid,
-            'allPeriods'   => $allPeriods,
-            'periodIdMap'  => $periodIdMap,
-            'classLabel'   => $classLabel,
-            'sectionLabel' => $sectionLabel,
+            'grid'          => $grid,
+            'allPeriods'    => $allPeriods,
+            'periodIdMap'   => $periodIdMap,
+            'periodObjMap'  => $periodObjMap,
+            'classLabel'    => $classLabel,
+            'sectionLabel'  => $sectionLabel,
         ]);
     }
 
@@ -418,15 +455,46 @@ class TimetableController extends Controller
         }
 
         $periodsByDay = [];
+        $periodIdMap  = [];
+        $periodObjMap = [];
         foreach (array_keys($days) as $weekday) {
-            $periodsByDay[$weekday] = TimetablePeriod::getForDay($weekday);
+            $dayPeriods = TimetablePeriod::getForDay($weekday);
+            $periodsByDay[$weekday] = $dayPeriods;
+            foreach ($dayPeriods as $p) {
+                $periodIdMap[$weekday][$p->sort_order]  = $p->id;
+                $periodObjMap[$weekday][$p->sort_order] = $p;
+            }
         }
+
+        // Unified sort_order skeleton (same approach as admin show)
+        $allSortOrders = collect();
+        foreach ($periodsByDay as $dayPeriods) {
+            foreach ($dayPeriods as $p) { $allSortOrders->push($p->sort_order); }
+        }
+        $allSortOrders = $allSortOrders->unique()->sort()->values();
+
+        $defaultPeriodsBySortOrder = TimetablePeriod::where('weekday', 0)
+            ->orderBy('sort_order')->get()->keyBy('sort_order');
+
+        $allPeriods = $allSortOrders->map(function ($sortOrder) use ($defaultPeriodsBySortOrder, $periodsByDay) {
+            if (isset($defaultPeriodsBySortOrder[$sortOrder])) {
+                return $defaultPeriodsBySortOrder[$sortOrder];
+            }
+            foreach ($periodsByDay as $dayPeriods) {
+                foreach ($dayPeriods as $p) {
+                    if ($p->sort_order == $sortOrder) return $p;
+                }
+            }
+            return null;
+        })->filter()->values();
 
         return view('timetable.student', [
             'promotion'    => $promotion,
             'days'         => $days,
             'grid'         => $grid,
-            'periodsByDay' => $periodsByDay,
+            'allPeriods'   => $allPeriods,
+            'periodIdMap'  => $periodIdMap,
+            'periodObjMap' => $periodObjMap,
             'error'        => null,
         ]);
     }

@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\SchoolClass;
 use App\Interfaces\SchoolClassInterface;
 use App\Models\AssignedTeacher;
+use App\Models\Promotion;
 
 class SchoolClassRepository implements SchoolClassInterface {
     public function create($request) {
@@ -36,9 +37,20 @@ class SchoolClassRepository implements SchoolClassInterface {
 
         $school_sections = $sectionRepository->getAllBySession($session_id);
 
+        // Build student count map: $studentCounts[$class_id][$section_id] = count
+        $studentCounts = [];
+        $promotions = Promotion::where('session_id', $session_id)->get(['class_id', 'section_id']);
+        foreach ($promotions as $p) {
+            if (!isset($studentCounts[$p->class_id][$p->section_id])) {
+                $studentCounts[$p->class_id][$p->section_id] = 0;
+            }
+            $studentCounts[$p->class_id][$p->section_id]++;
+        }
+
         $data = [
-            'school_classes' => $school_classes,
-            'school_sections'=> $school_sections,
+            'school_classes'  => $school_classes,
+            'school_sections' => $school_sections,
+            'studentCounts'   => $studentCounts,
         ];
 
         return $data;

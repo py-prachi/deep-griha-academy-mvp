@@ -81,13 +81,13 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card h-100 border-dashed">
+                        <div class="card h-100">
                             <div class="card-header py-2 small fw-semibold">
-                                <i class="bi bi-file-earmark-text me-1"></i> Syllabus
+                                <i class="bi bi-file-earmark-text me-1"></i> Syllabus &amp; Assignments
                             </div>
-                            <div class="card-body text-center py-5 text-muted">
+                            <div class="card-body text-center py-4 text-muted">
                                 <i class="bi bi-journal-bookmark" style="font-size:2rem;"></i>
-                                <div class="small mt-2">Syllabus documents will appear here once uploaded by the school.</div>
+                                <div class="small mt-2">Syllabus and assignments will be available here soon.</div>
                             </div>
                         </div>
                     </div>

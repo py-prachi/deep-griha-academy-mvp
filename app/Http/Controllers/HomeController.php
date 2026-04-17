@@ -65,7 +65,7 @@ class HomeController extends Controller
                     ->where('weekday', $todayWeekday)
                     ->get()
                     ->keyBy('period_id');
-                $todayPeriods = TimetablePeriod::ordered()->get();
+                $todayPeriods = TimetablePeriod::getForDay($todayWeekday);
             }
 
             return view('home', [

@@ -44,7 +44,7 @@
                                 <tr>
                                     <th style="width:140px;">Period</th>
                                     @foreach($dayShort as $dayNum => $dayName)
-                                        <th class="text-center {{ $dayNum == $today ? 'table-primary' : '' }}">
+                                        <th class="text-center" style="{{ $dayNum == $today ? 'background-color:rgba(13,110,253,0.10);' : '' }}">
                                             {{ $dayName }}
                                             @if($dayNum == $today)
                                                 <span class="badge bg-primary ms-1" style="font-size:0.6rem;">Today</span>
@@ -55,29 +55,32 @@
                             </thead>
                             <tbody>
                                 @foreach($allPeriods as $period)
-                                <tr class="{{ $period->is_break ? 'table-light' : '' }}">
-                                    <td class="small text-nowrap">
+                                <tr>
+                                    <td class="small text-nowrap table-light">
                                         <span class="fw-semibold">{{ $period->label }}</span>
                                         <span class="text-muted d-block" style="font-size:0.72rem;">{{ $period->start_time }}–{{ $period->end_time }}</span>
                                     </td>
-                                    @if($period->is_break)
-                                        <td colspan="6" class="text-center text-muted small fst-italic py-1">{{ $period->label }}</td>
-                                    @else
-                                        @foreach($dayShort as $dayNum => $dayName)
-                                        @php
-                                            $dayPeriodId = isset($periodIdMap[$dayNum][$period->sort_order]) ? $periodIdMap[$dayNum][$period->sort_order] : null;
-                                            $routine = $dayPeriodId && isset($grid[$dayNum][$dayPeriodId]) ? $grid[$dayNum][$dayPeriodId] : null;
-                                            $subjectName = $routine ? optional(optional($routine->course)->subject)->name : null;
-                                        @endphp
-                                        <td class="text-center small {{ $dayNum == $today ? 'bg-primary bg-opacity-10' : '' }}">
-                                            @if($subjectName)
-                                                <span class="fw-semibold">{{ $subjectName }}</span>
-                                            @else
-                                                <span class="text-muted">—</span>
-                                            @endif
-                                        </td>
-                                        @endforeach
-                                    @endif
+                                    @foreach($dayShort as $dayNum => $dayName)
+                                    @php
+                                        // Use this day's own period object (custom or default) to check is_break
+                                        $dayPeriod   = isset($periodObjMap[$dayNum][$period->sort_order]) ? $periodObjMap[$dayNum][$period->sort_order] : null;
+                                        $dayIsBreak  = $dayPeriod ? (bool) $dayPeriod->is_break : (bool) $period->is_break;
+                                        $dayLabel    = $dayPeriod ? $dayPeriod->label : $period->label;
+                                        $dayPeriodId = isset($periodIdMap[$dayNum][$period->sort_order]) ? $periodIdMap[$dayNum][$period->sort_order] : null;
+                                        $routine     = $dayPeriodId && isset($grid[$dayNum][$dayPeriodId]) ? $grid[$dayNum][$dayPeriodId] : null;
+                                        $subjectName = $routine ? optional(optional($routine->course)->subject)->name : null;
+                                        $todayStyle  = $dayNum == $today ? 'background-color:rgba(13,110,253,0.08);' : '';
+                                    @endphp
+                                    <td class="text-center small {{ $dayIsBreak ? 'table-light' : '' }}" style="{{ $todayStyle }}">
+                                        @if($dayIsBreak)
+                                            <span class="text-muted fst-italic" style="font-size:0.8rem;">{{ $dayLabel }}</span>
+                                        @elseif($subjectName)
+                                            <span class="fw-semibold">{{ $subjectName }}</span>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
+                                    @endforeach
                                 </tr>
                                 @endforeach
                             </tbody>
