@@ -51,15 +51,30 @@
                                         </div>
                                         <div class="col-md-3">
                                             <select class="form-select form-select-sm" id="bulkClass">
-                                                <option value="" disabled selected>Select target class</option>
+                                                <option value="" disabled {{ $nextClassId ? '' : 'selected' }}>Select target class</option>
                                                 @foreach ($school_classes as $school_class)
-                                                    <option value="{{ $school_class->id }}">{{ $school_class->class_name }}</option>
+                                                    <option value="{{ $school_class->id }}" {{ isset($nextClassId) && $nextClassId == $school_class->id ? 'selected' : '' }}>
+                                                        {{ $school_class->class_name }}
+                                                    </option>
                                                 @endforeach
                                             </select>
                                         </div>
                                         <div class="col-md-3">
-                                            <select class="form-select form-select-sm" id="bulkSection" disabled>
-                                                <option value="" disabled selected>Select target section</option>
+                                            @php
+                                                $matchedSection = isset($nextSections) && $nextSections->count()
+                                                    ? ($nextSections->firstWhere('section_name', $currentSectionName) ?? $nextSections->first())
+                                                    : null;
+                                            @endphp
+                                            <select class="form-select form-select-sm" id="bulkSection" {{ isset($nextClassId) && $nextClassId ? '' : 'disabled' }}>
+                                                @if(isset($nextSections) && $nextSections->count())
+                                                    @foreach($nextSections as $ns)
+                                                        <option value="{{ $ns->id }}" {{ $matchedSection && $ns->id == $matchedSection->id ? 'selected' : '' }}>
+                                                            {{ $ns->section_name }}
+                                                        </option>
+                                                    @endforeach
+                                                @else
+                                                    <option value="" disabled selected>Select target section</option>
+                                                @endif
                                             </select>
                                         </div>
                                         <div class="col-auto">

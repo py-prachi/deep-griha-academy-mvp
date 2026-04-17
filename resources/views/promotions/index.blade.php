@@ -74,8 +74,8 @@
                                                 @endif
                                             </td>
                                             <td class="text-center">
-                                                <a href="{{ route('promotions.index', ['class_id' => $cid]) }}"
-                                                   class="btn btn-sm {{ $class_id == $cid ? 'btn-primary' : 'btn-outline-primary' }}">
+                                                <a href="{{ route('promotions.class', $cid) }}"
+                                                   class="btn btn-sm {{ $allDone ? 'btn-outline-secondary' : 'btn-outline-primary' }}">
                                                     {{ $allDone ? 'View' : 'Promote' }}
                                                 </a>
                                             </td>
@@ -92,97 +92,6 @@
                         </div>
                     </div>
 
-                    {{-- Section detail for selected class --}}
-                    @if($class_id && isset($previousSessionSections) && count($previousSessionSections) > 0)
-                    @php
-                        $selectedClassName = '';
-                        foreach($previousSessionClasses as $sc) {
-                            if ($sc->schoolClass->id == $class_id) { $selectedClassName = $sc->schoolClass->class_name; break; }
-                        }
-                    @endphp
-                    <div class="card">
-                        <div class="card-header bg-secondary text-white">
-                            <strong>{{ $selectedClassName }} — Sections</strong>
-                        </div>
-                        <div class="card-body p-0">
-                            <table class="table table-bordered mb-0">
-                                <thead class="table-secondary">
-                                    <tr>
-                                        <th>Section</th>
-                                        <th>Status</th>
-                                        <th class="text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($previousSessionSections as $previousSessionSection)
-                                    @php
-                                        $secId      = $previousSessionSection->section->id;
-                                        $alreadyDone = in_array($secId, $promotedSectionIds);
-                                        $detail      = $promotedStudentDetail[$secId] ?? [];
-                                    @endphp
-                                    <tr>
-                                        <td><strong>Section {{ $previousSessionSection->section->section_name }}</strong></td>
-                                        <td>
-                                            @if($alreadyDone)
-                                                <span class="badge bg-success">Done</span>
-                                            @else
-                                                <span class="badge bg-warning text-dark">Not Promoted</span>
-                                            @endif
-                                        </td>
-                                        <td class="text-center">
-                                            @if($alreadyDone)
-                                                <button class="btn btn-sm btn-outline-secondary"
-                                                    type="button"
-                                                    data-bs-toggle="collapse"
-                                                    data-bs-target="#detail-{{ $secId }}">
-                                                    <i class="bi bi-people me-1"></i> View Students
-                                                </button>
-                                            @else
-                                                <a href="{{ route('promotions.create', ['previousSessionId' => $previousSessionId, 'previous_section_id' => $secId, 'previous_class_id' => $class_id]) }}"
-                                                   class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-sort-numeric-up-alt"></i> Promote
-                                                </a>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    @if($alreadyDone && !empty($detail))
-                                    <tr class="table-light">
-                                        <td colspan="3" class="p-0">
-                                            <div class="collapse" id="detail-{{ $secId }}">
-                                                <table class="table table-sm mb-0 ms-3" style="width:95%">
-                                                    <thead class="table-secondary">
-                                                        <tr>
-                                                            <th>Student</th>
-                                                            <th>Promoted To</th>
-                                                            <th>Section</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach($detail as $d)
-                                                        <tr class="{{ $d['graduated'] ? 'table-success' : '' }}">
-                                                            <td>{{ $d['name'] }}</td>
-                                                            <td>
-                                                                @if($d['graduated'])
-                                                                    <span class="badge" style="background-color:#6f42c1;">Graduated</span>
-                                                                @else
-                                                                    {{ $d['new_class'] }}
-                                                                @endif
-                                                            </td>
-                                                            <td>{{ $d['new_section'] }}</td>
-                                                        </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @endif
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    @endif
 
                 </div>
             </div>

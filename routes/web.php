@@ -171,6 +171,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Promotions
     Route::get('/promotions/index', [PromotionController::class, 'index'])->name('promotions.index');
+    Route::get('/promotions/class/{class_id}', [PromotionController::class, 'classView'])->name('promotions.class');
     Route::get('/promotions/promote', [PromotionController::class, 'create'])->name('promotions.create');
     Route::post('/promotions/promote', [PromotionController::class, 'store'])->name('promotions.store');
 

@@ -196,6 +196,37 @@
                             </div>
                         </div>
 
+                        {{-- Class & Section (editable for enquiry/pending only) --}}
+                        @if(in_array($admission->status, ['enquiry', 'pending']))
+                        <div class="bg-white border shadow-sm p-4 mb-4">
+                            <h5 class="mb-3 border-bottom pb-2"><i class="bi bi-building"></i> Class &amp; Section</h5>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Class <span class="text-danger">*</span></label>
+                                    <select name="class_id" id="editClassSelect" class="form-select" required>
+                                        <option value="">-- Select Class --</option>
+                                        @foreach($school_classes as $sc)
+                                            <option value="{{ $sc->id }}" {{ old('class_id', $admission->class_id) == $sc->id ? 'selected' : '' }}>
+                                                {{ $sc->class_name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Section</label>
+                                    <select name="section_id" id="editSectionSelect" class="form-select">
+                                        <option value="">-- Select Section --</option>
+                                        @foreach($sections as $sec)
+                                            <option value="{{ $sec->id }}" {{ old('section_id', $admission->section_id) == $sec->id ? 'selected' : '' }}>
+                                                {{ $sec->section_name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
                         <div class="d-flex gap-2 mb-5">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="bi bi-save"></i> Save Changes
@@ -210,4 +241,21 @@
         </div>
     </div>
 </div>
+@if(in_array($admission->status, ['enquiry', 'pending']))
+<script>
+document.getElementById('editClassSelect').addEventListener('change', function() {
+    var classId = this.value;
+    var sectionSelect = document.getElementById('editSectionSelect');
+    sectionSelect.innerHTML = '<option value="">Loading...</option>';
+    fetch("{{ route('get.sections.courses.by.classId') }}?class_id=" + classId)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            sectionSelect.innerHTML = '<option value="">-- Select Section --</option>';
+            (data.sections || []).forEach(function(s) {
+                sectionSelect.innerHTML += '<option value="' + s.id + '">' + s.section_name + '</option>';
+            });
+        });
+});
+</script>
+@endif
 @endsection
