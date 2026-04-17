@@ -48,8 +48,6 @@ class PromotionController extends Controller
      */
     public function index(Request $request)
     {
-        $class_id = $request->query('class_id', 0);
-
         $promotionRepository = new PromotionRepository();
         $previousSession = $this->schoolSessionRepository->getPreviousSession();
 
@@ -57,84 +55,58 @@ class PromotionController extends Controller
             return redirect('academics/settings')->with('info', 'Promotions require at least two academic sessions. Create a new session here first, then return to Promotions.');
         }
 
-        $previousSessionClasses = $promotionRepository->getClasses($previousSession['id']);
-
-        $previousSessionSections = $promotionRepository->getSections($previousSession['id'], $class_id);
-
+        $previousSessionClasses    = $promotionRepository->getClasses($previousSession['id']);
         $current_school_session_id = $this->getSchoolCurrentSession();
 
-        // Build per-section promoted map + promoted student detail for selected class
-        $promotedSectionIds    = [];
-        $promotedStudentDetail = []; // section_id => [ [name, new_class, new_section, graduated] ]
-        foreach ($previousSessionSections as $prevSection) {
-            $secId = $prevSection->section->id;
-            $sectionStudentIds = $promotionRepository->getAll(
-                $previousSession['id'], $class_id, $secId
-            )->pluck('student_id');
+        // Single pass: build class summary + per-section data for all classes
+        $classSummary          = [];
+        $classSections         = []; // class_id => section collection
+        $promotedSectionIds    = []; // all done section ids
+        $promotedStudentDetail = []; // section_id => student detail rows
 
-            if ($sectionStudentIds->isEmpty()) continue;
-
-            // A section is "done" if all its students are either promoted OR graduated
-            $promotedInNew = Promotion::where('session_id', $current_school_session_id)
-                ->whereIn('student_id', $sectionStudentIds)->count();
-            $graduatedCount = User::whereIn('id', $sectionStudentIds)
-                ->where('student_status', 'graduated')->count();
-            $handledCount = $promotedInNew + $graduatedCount;
-
-            if ($handledCount >= $sectionStudentIds->count()) {
-                $promotedSectionIds[] = $secId;
-
-                // Build detail list for display
-                $detail = [];
-                foreach ($sectionStudentIds as $sid) {
-                    $student = User::find($sid);
-                    if (!$student) continue;
-                    if ($student->student_status === 'graduated') {
-                        $detail[] = [
-                            'name'        => $student->first_name . ' ' . $student->last_name,
-                            'new_class'   => 'Graduated',
-                            'new_section' => '—',
-                            'graduated'   => true,
-                        ];
-                    } else {
-                        $newPromo = Promotion::with(['schoolClass', 'section'])
-                            ->where('session_id', $current_school_session_id)
-                            ->where('student_id', $sid)->first();
-                        $detail[] = [
-                            'name'        => $student->first_name . ' ' . $student->last_name,
-                            'new_class'   => $newPromo && $newPromo->schoolClass ? $newPromo->schoolClass->class_name : '—',
-                            'new_section' => $newPromo && $newPromo->section ? $newPromo->section->section_name : '—',
-                            'graduated'   => false,
-                        ];
-                    }
-                }
-                $promotedStudentDetail[$secId] = $detail;
-            }
-        }
-
-        // Build overall class summary — for each class, sections/students promoted vs total
-        // Graduated students count as "done"
-        $classSummary = [];
         foreach ($previousSessionClasses as $prevClass) {
-            $cid = $prevClass->schoolClass->id;
-            $allSections   = $promotionRepository->getSections($previousSession['id'], $cid);
+            $cid         = $prevClass->schoolClass->id;
+            $allSections = $promotionRepository->getSections($previousSession['id'], $cid);
+            $classSections[$cid] = $allSections;
+
             $totalSections = $allSections->count();
             $doneSections  = 0;
             $totalStudents = 0;
             $doneStudents  = 0;
+
             foreach ($allSections as $sec) {
-                $ids = $promotionRepository->getAll($previousSession['id'], $cid, $sec->section->id)->pluck('student_id');
+                $secId = $sec->section->id;
+                $ids   = $promotionRepository->getAll($previousSession['id'], $cid, $secId)->pluck('student_id');
                 $totalStudents += $ids->count();
                 if ($ids->isNotEmpty()) {
-                    $promoted   = Promotion::where('session_id', $current_school_session_id)->whereIn('student_id', $ids)->count();
-                    $graduated  = User::whereIn('id', $ids)->where('student_status', 'graduated')->count();
-                    $handled    = $promoted + $graduated;
+                    $promoted  = Promotion::where('session_id', $current_school_session_id)->whereIn('student_id', $ids)->count();
+                    $graduated = User::whereIn('id', $ids)->where('student_status', 'graduated')->count();
+                    $handled   = $promoted + $graduated;
                     $doneStudents += $handled;
                     if ($handled >= $ids->count()) {
                         $doneSections++;
+                        $promotedSectionIds[] = $secId;
+                        $detail = [];
+                        foreach ($ids as $sid) {
+                            $student = User::find($sid);
+                            if (!$student) continue;
+                            if ($student->student_status === 'graduated') {
+                                $detail[] = ['name' => $student->first_name . ' ' . $student->last_name, 'new_class' => 'Graduated', 'new_section' => '—', 'graduated' => true];
+                            } else {
+                                $newPromo = Promotion::with(['schoolClass', 'section'])->where('session_id', $current_school_session_id)->where('student_id', $sid)->first();
+                                $detail[] = [
+                                    'name'        => $student->first_name . ' ' . $student->last_name,
+                                    'new_class'   => $newPromo && $newPromo->schoolClass ? $newPromo->schoolClass->class_name : '—',
+                                    'new_section' => $newPromo && $newPromo->section ? $newPromo->section->section_name : '—',
+                                    'graduated'   => false,
+                                ];
+                            }
+                        }
+                        $promotedStudentDetail[$secId] = $detail;
                     }
                 }
             }
+
             $classSummary[$cid] = [
                 'total'         => $totalSections,
                 'done'          => $doneSections,
@@ -147,8 +119,7 @@ class PromotionController extends Controller
 
         $data = [
             'previousSessionClasses'  => $previousSessionClasses,
-            'class_id'                => $class_id,
-            'previousSessionSections' => $previousSessionSections,
+            'classSections'           => $classSections,
             'promotedSectionIds'      => $promotedSectionIds,
             'promotedStudentDetail'   => $promotedStudentDetail,
             'previousSessionId'       => $previousSession['id'],

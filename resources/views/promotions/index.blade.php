@@ -25,7 +25,6 @@
                         &rarr; <strong>{{ $latestSessionName }}</strong>
                     </div>
 
-                    {{-- All-classes overview --}}
                     <div class="card mb-4">
                         <div class="card-header bg-dark text-white">
                             <strong>All Classes — Promotion Status</strong>
@@ -55,6 +54,8 @@
                                             $noneDone = ($done == 0);
                                             $grandTotal += $totalStudents;
                                             $grandDone  += $doneStudents;
+                                            $sections = $classSections[$cid] ?? collect();
+                                            $firstSection = $sections->first();
                                         @endphp
                                         <tr class="{{ $allDone ? 'table-success' : '' }}">
                                             <td><strong>{{ $school_class->schoolClass->class_name }}</strong></td>
@@ -74,10 +75,19 @@
                                                 @endif
                                             </td>
                                             <td class="text-center">
-                                                <a href="{{ route('promotions.class', $cid) }}"
-                                                   class="btn btn-sm {{ $allDone ? 'btn-outline-secondary' : 'btn-outline-primary' }}">
-                                                    {{ $allDone ? 'View' : 'Promote' }}
-                                                </a>
+                                                @if($sections->count() == 1 && $firstSection)
+                                                    {{-- Single section: go directly to promote page --}}
+                                                    <a href="{{ route('promotions.create', ['previousSessionId' => $previousSessionId, 'previous_section_id' => $firstSection->section->id, 'previous_class_id' => $cid]) }}"
+                                                       class="btn btn-sm {{ $allDone ? 'btn-outline-secondary' : 'btn-outline-primary' }}">
+                                                        {{ $allDone ? 'View' : 'Promote' }}
+                                                    </a>
+                                                @else
+                                                    {{-- Multiple sections: go to class sections page --}}
+                                                    <a href="{{ route('promotions.class', $cid) }}"
+                                                       class="btn btn-sm {{ $allDone ? 'btn-outline-secondary' : 'btn-outline-primary' }}">
+                                                        {{ $allDone ? 'View' : 'Promote' }}
+                                                    </a>
+                                                @endif
                                             </td>
                                         </tr>
                                         @endforeach
@@ -91,7 +101,6 @@
                             </table>
                         </div>
                     </div>
-
 
                 </div>
             </div>
