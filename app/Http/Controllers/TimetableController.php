@@ -215,7 +215,10 @@ class TimetableController extends Controller
         // periodObjMap[$weekday][$sort_order] = TimetablePeriod — so the view can check
         // each day's own is_break/label rather than the representative default period.
         $periodObjMap = [];
+        $customDays   = []; // weekdays that have their own custom period records
         foreach ($periodsByDay as $weekday => $dayPeriods) {
+            $isCustom = $dayPeriods->first() && $dayPeriods->first()->weekday != 0;
+            if ($isCustom) $customDays[] = $weekday;
             foreach ($dayPeriods as $p) {
                 $periodObjMap[$weekday][$p->sort_order] = $p;
             }
@@ -229,6 +232,7 @@ class TimetableController extends Controller
             'allPeriods'    => $allPeriods,
             'periodIdMap'   => $periodIdMap,
             'periodObjMap'  => $periodObjMap,
+            'customDays'    => $customDays,
             'classLabel'    => $classLabel,
             'sectionLabel'  => $sectionLabel,
         ]);

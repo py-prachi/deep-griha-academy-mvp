@@ -25,8 +25,8 @@
                     </div>
                     <nav aria-label="breadcrumb" class="mb-3">
                         <ol class="breadcrumb small mb-0">
-                            <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-                            <li class="breadcrumb-item active">Timetable</li>
+                            <li class="breadcrumb-item"><a href="{{ route('timetable.edit', ['class_id' => request('class_id'), 'section_id' => request('section_id')]) }}">Timetable</a></li>
+                            <li class="breadcrumb-item active">Full Week View</li>
                         </ol>
                     </nav>
 
@@ -63,21 +63,34 @@
                                     @foreach($dayShort as $dayNum => $dayName)
                                     @php
                                         // Use this day's own period object (custom or default) to check is_break
-                                        $dayPeriod   = isset($periodObjMap[$dayNum][$period->sort_order]) ? $periodObjMap[$dayNum][$period->sort_order] : null;
-                                        $dayIsBreak  = $dayPeriod ? (bool) $dayPeriod->is_break : (bool) $period->is_break;
-                                        $dayLabel    = $dayPeriod ? $dayPeriod->label : $period->label;
-                                        $dayPeriodId = isset($periodIdMap[$dayNum][$period->sort_order]) ? $periodIdMap[$dayNum][$period->sort_order] : null;
-                                        $routine     = $dayPeriodId && isset($grid[$dayNum][$dayPeriodId]) ? $grid[$dayNum][$dayPeriodId] : null;
-                                        $subjectName = $routine ? optional(optional($routine->course)->subject)->name : null;
-                                        $todayStyle  = $dayNum == $today ? 'background-color:rgba(13,110,253,0.08);' : '';
+                                        $dayPeriod    = isset($periodObjMap[$dayNum][$period->sort_order]) ? $periodObjMap[$dayNum][$period->sort_order] : null;
+                                        $isDayCustom  = in_array($dayNum, $customDays);
+                                        // If this day is custom but has no period at this sort_order, cell is empty
+                                        $dayIsAbsent  = $isDayCustom && !$dayPeriod;
+                                        $dayIsBreak   = !$dayIsAbsent && $dayPeriod ? (bool) $dayPeriod->is_break : (!$dayIsAbsent && (bool) $period->is_break);
+                                        $dayLabel     = $dayPeriod ? $dayPeriod->label : $period->label;
+                                        $dayPeriodId  = isset($periodIdMap[$dayNum][$period->sort_order]) ? $periodIdMap[$dayNum][$period->sort_order] : null;
+                                        $routine      = $dayPeriodId && isset($grid[$dayNum][$dayPeriodId]) ? $grid[$dayNum][$dayPeriodId] : null;
+                                        $subjectName  = $routine ? optional(optional($routine->course)->subject)->name : null;
+                                        $todayStyle   = $dayNum == $today ? 'background-color:rgba(13,110,253,0.08);' : '';
                                     @endphp
                                     <td class="text-center small {{ $dayIsBreak ? 'table-light' : '' }}" style="{{ $todayStyle }}">
-                                        @if($dayIsBreak)
+                                        @if($dayIsAbsent)
+                                            {{-- Custom day with no period at this slot --}}
+                                            <span class="text-muted" style="font-size:0.8rem;">–</span>
+                                        @elseif($dayIsBreak)
                                             <span class="text-muted fst-italic" style="font-size:0.8rem;">{{ $dayLabel }}</span>
                                         @elseif($subjectName)
+                                            @if($dayPeriod && $dayPeriod->label !== $period->label)
+                                                <span class="text-muted d-block" style="font-size:0.7rem;">{{ $dayPeriod->label }}</span>
+                                            @endif
                                             <span class="fw-semibold">{{ $subjectName }}</span>
                                         @else
-                                            <span class="text-muted">—</span>
+                                            @if($dayPeriod && $dayPeriod->label !== $period->label)
+                                                <span class="text-muted fst-italic" style="font-size:0.8rem;">{{ $dayPeriod->label }}</span>
+                                            @else
+                                                <span class="text-muted">—</span>
+                                            @endif
                                         @endif
                                     </td>
                                     @endforeach

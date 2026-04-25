@@ -18,13 +18,19 @@
                         <h6 class="text-uppercase text-muted small fw-bold border-bottom pb-1 mb-2">
                             <i class="bi bi-clock me-1"></i> Default Period Schedule
                             <span class="fw-normal text-secondary ms-1">(used for any day that has no custom schedule)</span>
-                        </h6>
-                        <div class="bg-white border shadow-sm p-3" style="max-width:560px;">
-                            @include('timetable._period-table', ['periods' => $defaultPeriods, 'weekday' => 0])
-                            <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addPeriod(0)">
-                                <i class="bi bi-plus me-1"></i> Add Period
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-2 py-0 px-2"
+                                data-bs-toggle="collapse" data-bs-target="#defaultPeriodTable" style="font-size:0.75rem;">
+                                <i class="bi bi-pencil me-1"></i> Edit
                             </button>
-                            <span class="text-muted small ms-2">Changes save automatically.</span>
+                        </h6>
+                        <div class="collapse" id="defaultPeriodTable">
+                            <div class="bg-white border shadow-sm p-3" style="max-width:560px;">
+                                @include('timetable._period-table', ['periods' => $defaultPeriods, 'weekday' => 0])
+                                <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addPeriod(0)">
+                                    <i class="bi bi-plus me-1"></i> Add Period
+                                </button>
+                                <span class="text-muted small ms-2">Changes save automatically.</span>
+                            </div>
                         </div>
                     </div>
 
@@ -116,7 +122,7 @@
                                     @endif
                                 </div>
 
-                                <div id="period-setup-{{ $dayNum }}">
+                                <div id="period-setup-{{ $dayNum }}" {{ !$hasCustomPeriods ? 'style=display:none;' : '' }}>
                                     @include('timetable._period-table', ['periods' => $dayPeriods, 'weekday' => $dayNum])
                                     @if($hasCustomPeriods)
                                     <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addPeriod({{ $dayNum }})">
