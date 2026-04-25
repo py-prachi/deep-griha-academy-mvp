@@ -302,6 +302,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/timetable/period/copy-defaults',[TimetableController::class, 'periodCopyDefaults'])->name('timetable.period.copy-defaults');
     Route::post('/timetable/period/reset-day',    [TimetableController::class, 'periodResetDay'])->name('timetable.period.reset-day');
 
+    // ── COUNSELLING ───────────────────────────────────────────────
+    Route::get('/counselling',              [App\Http\Controllers\CounsellingController::class, 'index'])->name('counselling.index');
+    Route::post('/counselling',             [App\Http\Controllers\CounsellingController::class, 'store'])->name('counselling.store');
+    Route::put('/counselling/{id}',         [App\Http\Controllers\CounsellingController::class, 'update'])->name('counselling.update');
+    Route::post('/counselling/{id}/end',    [App\Http\Controllers\CounsellingController::class, 'end'])->name('counselling.end');
+
     // ── STUDENT EXIT ──────────────────────────────────────────────
     Route::get('/exits',              [App\Http\Controllers\StudentExitController::class, 'index'])->name('exits.index');
     Route::get('/exits/create',       [App\Http\Controllers\StudentExitController::class, 'create'])->name('exits.create');

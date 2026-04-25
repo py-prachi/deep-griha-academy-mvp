@@ -186,6 +186,16 @@
                         </a>
                     </li>
 
+                    {{-- Counselling (admin only) --}}
+                    @if(auth()->user()->role === 'admin')
+                    <li class="nav-item w-100">
+                        <a class="nav-link {{ request()->routeIs('counselling.*') ? 'active' : '' }}" href="{{ route('counselling.index') }}">
+                            <i class="bi bi-heart-pulse me-2"></i>
+                            <span class="d-inline d-sm-none d-md-none d-xl-inline">Counselling</span>
+                        </a>
+                    </li>
+                    @endif
+
                     {{-- Exit Formalities --}}
                     <li class="nav-item">
                         <a type="button" href="#exit-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('lc*') || request()->routeIs('exits.*') ? 'active' : '' }}">
