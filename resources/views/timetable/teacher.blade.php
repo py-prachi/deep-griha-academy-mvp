@@ -8,11 +8,23 @@
             <div class="row pt-2">
                 <div class="col ps-4">
 
-                    <h5 class="mb-1"><i class="bi bi-calendar4-week me-1"></i> My Timetable</h5>
+                    <h5 class="mb-1">
+                        <i class="bi bi-calendar4-week me-1"></i>
+                        @if(isset($viewingTeacher) && $viewingTeacher)
+                            {{ $viewingTeacher->first_name }} {{ $viewingTeacher->last_name }} — Timetable
+                        @else
+                            My Timetable
+                        @endif
+                    </h5>
                     <nav aria-label="breadcrumb" class="mb-3">
                         <ol class="breadcrumb small mb-0">
-                            <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-                            <li class="breadcrumb-item active">My Timetable</li>
+                            @if(isset($viewingTeacher) && $viewingTeacher)
+                                <li class="breadcrumb-item"><a href="{{ route('teacher.list.show') }}">Teachers</a></li>
+                                <li class="breadcrumb-item active">Timetable</li>
+                            @else
+                                <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
+                                <li class="breadcrumb-item active">My Timetable</li>
+                            @endif
                         </ol>
                     </nav>
 

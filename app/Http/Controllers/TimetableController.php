@@ -248,10 +248,18 @@ class TimetableController extends Controller
             abort(403);
         }
 
+        // Admin can view any teacher's timetable via ?teacher_id=
+        $teacherId = $user->id;
+        $viewingTeacher = null;
+        if ($user->role === 'admin' && $request->query('teacher_id')) {
+            $teacherId = (int) $request->query('teacher_id');
+            $viewingTeacher = \App\Models\User::find($teacherId);
+        }
+
         $session_id = $this->getSchoolCurrentSession();
 
         $assignments = SubjectTeacher::with(['subject', 'schoolClass', 'section'])
-            ->where('teacher_id', $user->id)
+            ->where('teacher_id', $teacherId)
             ->where('session_id', $session_id)
             ->get();
 
@@ -289,10 +297,11 @@ class TimetableController extends Controller
         }
 
         return view('timetable.teacher', [
-            'days'         => $days,
-            'grid'         => $grid,
-            'periodsByDay' => $periodsByDay,
-            'routines'     => $routines,
+            'days'          => $days,
+            'grid'          => $grid,
+            'periodsByDay'  => $periodsByDay,
+            'routines'      => $routines,
+            'viewingTeacher'=> $viewingTeacher,
         ]);
     }
 
