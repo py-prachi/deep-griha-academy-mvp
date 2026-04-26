@@ -241,17 +241,11 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Student <span class="text-danger">*</span></label>
-                        <select name="student_user_id" class="form-select" required>
-                            <option value="">— Select student —</option>
-                            @foreach($students as $p)
-                                @if($p->student)
-                                <option value="{{ $p->student->id }}">
-                                    {{ $p->student->first_name }} {{ $p->student->last_name }}
-                                    — {{ optional($p->schoolClass)->class_name }} {{ optional($p->section)->section_name }}
-                                </option>
-                                @endif
-                            @endforeach
-                        </select>
+                        <input type="text" id="studentSearch" class="form-control mb-1"
+                            placeholder="Type name to search..." autocomplete="off">
+                        <input type="hidden" name="student_user_id" id="studentId" required>
+                        <div id="studentResults" class="list-group" style="max-height:200px;overflow-y:auto;display:none;"></div>
+                        <div id="studentSelected" class="alert alert-success py-1 px-2 small mt-1" style="display:none;"></div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Start Date <span class="text-danger">*</span></label>
@@ -274,4 +268,66 @@
         </form>
     </div>
 </div>
+<script>
+// Build student list from server data
+var studentList = [
+    @foreach($students as $p)
+        @if($p->student)
+        {
+            id: {{ $p->student->id }},
+            name: "{{ addslashes($p->student->first_name . ' ' . $p->student->last_name) }}",
+            label: "{{ addslashes($p->student->first_name . ' ' . $p->student->last_name) }} — {{ optional($p->schoolClass)->class_name }} {{ optional($p->section)->section_name }}"
+        },
+        @endif
+    @endforeach
+];
+
+var searchInput   = document.getElementById('studentSearch');
+var studentIdInput= document.getElementById('studentId');
+var resultsBox    = document.getElementById('studentResults');
+var selectedBox   = document.getElementById('studentSelected');
+
+searchInput.addEventListener('input', function() {
+    var q = this.value.trim().toLowerCase();
+    resultsBox.innerHTML = '';
+    selectedBox.style.display = 'none';
+    studentIdInput.value = '';
+
+    if (q.length < 2) { resultsBox.style.display = 'none'; return; }
+
+    var matches = studentList.filter(function(s) {
+        return s.name.toLowerCase().indexOf(q) !== -1;
+    }).slice(0, 10);
+
+    if (matches.length === 0) {
+        resultsBox.innerHTML = '<div class="list-group-item text-muted small">No students found</div>';
+        resultsBox.style.display = 'block';
+        return;
+    }
+
+    matches.forEach(function(s) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'list-group-item list-group-item-action small py-1';
+        btn.textContent = s.label;
+        btn.addEventListener('click', function() {
+            studentIdInput.value = s.id;
+            searchInput.value = '';
+            resultsBox.style.display = 'none';
+            selectedBox.textContent = '✓ ' + s.label;
+            selectedBox.style.display = 'block';
+        });
+        resultsBox.appendChild(btn);
+    });
+    resultsBox.style.display = 'block';
+});
+
+// Clear selection when modal closes
+document.getElementById('addModal').addEventListener('hidden.bs.modal', function() {
+    searchInput.value = '';
+    studentIdInput.value = '';
+    resultsBox.style.display = 'none';
+    selectedBox.style.display = 'none';
+});
+</script>
 @endsection
