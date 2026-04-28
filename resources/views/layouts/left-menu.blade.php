@@ -189,7 +189,7 @@
                         </a>
                         <ul class="nav collapse {{ request()->is('students*') || request()->routeIs('counselling.*') ? 'show' : 'hide' }} bg-white" id="students-submenu">
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('students*') ? 'active' : '' }}" href="{{ route('student.list.show') }}"><i class="bi bi-person-lines-fill me-2"></i> All Students</a></li>
-                            <li class="nav-item w-100"><a class="nav-link {{ request()->routeIs('counselling.*') ? 'active' : '' }}" href="{{ route('counselling.index') }}"><i class="bi bi-heart-pulse me-2"></i> Counselling</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->routeIs('counselling.*') ? 'active' : '' }}" href="{{ route('counselling.index') }}"><i class="bi bi-journal-medical me-2"></i> Counselling</a></li>
                         </ul>
                     </li>
                     @else
