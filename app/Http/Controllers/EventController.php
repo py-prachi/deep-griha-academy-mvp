@@ -107,7 +107,7 @@ class EventController extends Controller
         $user = auth()->user();
 
         $query = Event::where('session_id', $current_school_session_id)
-            ->with('creator:id,first_name,last_name');
+            ->with('creator');
 
         if ($request->filled('activity_type')) {
             $query->where('activity_type', 'like', '%' . $request->activity_type . '%');
@@ -126,7 +126,7 @@ class EventController extends Controller
 
         $events = $query->orderBy('start', 'desc')->paginate(20)->withQueryString();
         $teachers = $user->role === 'admin'
-            ? User::where('role', 'teacher')->orderBy('first_name')->get(['id', 'first_name', 'last_name'])
+            ? User::where('role', 'teacher')->orderBy('first_name')->get()
             : collect();
 
         return view('events.report', compact('events', 'teachers'));
@@ -137,7 +137,11 @@ class EventController extends Controller
         if (!$request->hasFile('photo')) return null;
 
         if (config('cloudinary.cloud_url')) {
-            return cloudinary()->upload($request->file('photo')->getRealPath())->getSecurePath();
+            try {
+                return cloudinary()->upload($request->file('photo')->getRealPath())->getSecurePath();
+            } catch (\Exception $e) {
+                \Log::error('Cloudinary upload failed: ' . $e->getMessage());
+            }
         }
 
         $path = $request->file('photo')->store('events', 'public');
