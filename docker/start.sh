@@ -37,6 +37,7 @@ php artisan package:discover --ansi || true
 php artisan config:clear
 php artisan config:cache
 php artisan migrate --force
+php artisan storage:link --force || true
 
 # ── 6. Seed if empty ──
 ROLE_COUNT=$(php -r "

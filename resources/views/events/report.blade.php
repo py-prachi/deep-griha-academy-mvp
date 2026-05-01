@@ -41,7 +41,7 @@
                                     <option value="">All teachers</option>
                                     @foreach($teachers as $teacher)
                                         <option value="{{ $teacher->id }}" {{ request('created_by') == $teacher->id ? 'selected' : '' }}>
-                                            {{ $teacher->first_name }} {{ $teacher->last_name }}
+                                            {{ $teacher->full_name }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -89,7 +89,7 @@
                                         @endif
                                     </td>
                                     @if(auth()->user()->role === 'admin')
-                                    <td>{{ $event->creator ? $event->creator->first_name . ' ' . $event->creator->last_name : '—' }}</td>
+                                    <td>{{ $event->creator?->full_name ?? '—' }}</td>
                                     @endif
                                     <td class="text-center">
                                         @if($event->photo_url)
@@ -183,7 +183,7 @@
                                                     @if(auth()->user()->role === 'admin')
                                                     <div class="col-12">
                                                         <span class="text-muted">Logged by</span>
-                                                        <div>{{ $event->creator ? $event->creator->first_name . ' ' . $event->creator->last_name : '—' }}</div>
+                                                        <div>{{ $event->creator?->full_name ?? '—' }}</div>
                                                     </div>
                                                     @endif
                                                     @if($event->photo_url)
