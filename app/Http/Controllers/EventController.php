@@ -136,11 +136,11 @@ class EventController extends Controller
     {
         if (!$request->hasFile('photo')) return null;
 
-        if (config('cloudinary.cloud_url')) {
+        if (env('CLOUDINARY_URL') || config('cloudinary.cloud_url')) {
             try {
                 return cloudinary()->upload($request->file('photo')->getRealPath())->getSecurePath();
             } catch (\Exception $e) {
-                \Log::error('Cloudinary upload failed: ' . $e->getMessage());
+                \Log::channel('stderr')->error('Cloudinary upload failed: ' . $e->getMessage());
             }
         }
 

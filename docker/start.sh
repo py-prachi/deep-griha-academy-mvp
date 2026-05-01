@@ -38,6 +38,7 @@ php artisan config:clear
 php artisan config:cache
 php artisan migrate --force
 php artisan storage:link --force || true
+php artisan config:cache  # re-run after package:discover to ensure env vars are cached
 
 # ── 6. Seed if empty ──
 ROLE_COUNT=$(php -r "
