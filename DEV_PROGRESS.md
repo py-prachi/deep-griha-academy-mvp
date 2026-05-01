@@ -366,3 +366,43 @@ https://github.com/py-prachi/deep-griha-academy-mvp
 - TrustProxies set to '*' for https asset loading behind Railway proxy
 - Builder: Dockerfile (not Railpack)
 - Dockerfile path: Dockerfile.railway
+
+---
+
+## Phase 8 — Enhanced Events (Activity Log) — IN PROGRESS 🚧
+
+### What this replaces
+Teachers previously used a Google Form to log activities (Home Visits, Exposure Visits,
+Vocational Activities, Community Outreach, etc.) with photos saved to Google Drive.
+This feature brings that logging into the app on the school calendar.
+
+### Features
+- Admin + teachers can log activities from the calendar (click and drag to select date)
+- Full activity form: title, activity type (free text), location, duration, participants,
+  description, purpose/action taken, skills/values, outcome, photo upload
+- Teachers can only edit/delete their own activities; admin can edit/delete all
+- Event Report page with filters (activity type, date range, teacher) — paginated table
+- Click any event on dashboard or calendar to see full detail popup
+- Photo storage: Cloudinary in production, local disk fallback in dev
+
+### Photo Storage — Cloudinary
+- Package: `cloudinary-labs/cloudinary-laravel` v2.1 (PHP 7.4 compatible)
+- **Before deploying to production, set in Railway dashboard:**
+  ```
+  CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+  ```
+- How to get credentials:
+  1. Create free account at https://cloudinary.com (25 GB free — sufficient for NGO scale)
+  2. Dashboard → API Keys → copy Cloud Name, API Key, API Secret
+  3. Format: `cloudinary://424242424242:AbCdEf-xYz@your-cloud-name`
+- Without this env var the app falls back to local disk storage (fine for dev/staging)
+
+### Files changed
+- `database/migrations/2026_05_01_000001_add_activity_fields_to_events_table.php`
+- `app/Models/Event.php`
+- `app/Http/Controllers/EventController.php`
+- `resources/views/components/events/event-calendar.blade.php`
+- `resources/views/events/index.blade.php`
+- `resources/views/events/report.blade.php` (new)
+- `routes/web.php` — added `events/report` route
+- `resources/views/layouts/left-menu.blade.php` — Events + My Activities added for teachers

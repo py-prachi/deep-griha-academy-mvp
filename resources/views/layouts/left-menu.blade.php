@@ -98,6 +98,20 @@
                     </li>
 
 
+                    {{-- ── TEACHER: Events ── --}}
+                    <li class="nav-item">
+                        <a type="button" href="#teacher-events-submenu" data-bs-toggle="collapse"
+                            class="d-flex nav-link {{ request()->is('calendar-event*') || request()->is('events/report*') ? 'active' : '' }}">
+                            <i class="bi bi-calendar-event"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Events</span>
+                            <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
+                        </a>
+                        <ul class="nav collapse {{ request()->is('calendar-event*') || request()->is('events/report*') ? 'show' : 'hide' }} bg-white" id="teacher-events-submenu">
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('calendar-event*') ? 'active' : '' }}" href="{{ route('events.show') }}"><i class="bi bi-calendar-plus me-2"></i> Log Activity</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('events/report*') ? 'active' : '' }}" href="{{ route('events.report') }}"><i class="bi bi-table me-2"></i> My Activities</a></li>
+                        </ul>
+                    </li>
+
                     @endif
 
                     {{-- ── STUDENT ONLY ── --}}
@@ -302,14 +316,15 @@
                     {{-- Communication submenu --}}
                     <li class="nav-item">
                         <a type="button" href="#comms-submenu" data-bs-toggle="collapse"
-                            class="d-flex nav-link {{ request()->is('notice*') || request()->is('calendar-event*') || request()->is('syllabus*') || request()->is('timetable*') ? 'active' : '' }}">
+                            class="d-flex nav-link {{ request()->is('notice*') || request()->is('calendar-event*') || request()->is('events/report*') || request()->is('syllabus*') || request()->is('timetable*') ? 'active' : '' }}">
                             <i class="bi bi-megaphone"></i>
                             <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Communication</span>
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
-                        <ul class="nav collapse {{ request()->is('notice*') || request()->is('calendar-event*') || request()->is('syllabus*') || request()->is('timetable*') ? 'show' : 'hide' }} bg-white" id="comms-submenu">
+                        <ul class="nav collapse {{ request()->is('notice*') || request()->is('calendar-event*') || request()->is('events/report*') || request()->is('syllabus*') || request()->is('timetable*') ? 'show' : 'hide' }} bg-white" id="comms-submenu">
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('notice*') ? 'active' : '' }}" href="{{ route('notice.create') }}"><i class="bi bi-megaphone me-2"></i> Notice</a></li>
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('calendar-event*') ? 'active' : '' }}" href="{{ route('events.show') }}"><i class="bi bi-calendar-event me-2"></i> Events</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('events/report*') ? 'active' : '' }}" href="{{ route('events.report') }}"><i class="bi bi-table me-2"></i> Event Report</a></li>
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('syllabus*') ? 'active' : '' }}" href="{{ route('class.syllabus.create') }}"><i class="bi bi-journal-text me-2"></i> Syllabus</a></li>
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('timetable*') ? 'active' : '' }}" href="{{ route('timetable.edit') }}"><i class="bi bi-calendar4-week me-2"></i> Timetable</a></li>
                         </ul>
