@@ -64,7 +64,6 @@ class EventController extends Controller
             default:
                 break;
         }
-        dd($event);
         return response()->json($event);
     }
 }

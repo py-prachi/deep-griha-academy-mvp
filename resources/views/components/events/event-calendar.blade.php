@@ -3,6 +3,20 @@
 
 <div id='full_calendar_events'></div>
 
+<div class="modal fade" id="eventDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-calendar-event me-2"></i><span id="eventDetailTitle"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0"><i class="bi bi-clock me-2 text-muted"></i><span id="eventDetailDate"></span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
@@ -99,6 +113,13 @@
                             }
                         });
                     }
+                } else {
+                    var start = moment(event.start).format('D MMM YYYY');
+                    var end   = event.end ? moment(event.end).format('D MMM YYYY') : start;
+                    var dateStr = (start === end) ? start : start + ' – ' + end;
+                    $('#eventDetailTitle').text(event.title);
+                    $('#eventDetailDate').text(dateStr);
+                    $('#eventDetailModal').modal('show');
                 }
             }
         });
