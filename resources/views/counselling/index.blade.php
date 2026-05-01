@@ -9,7 +9,7 @@
                 <div class="col ps-4">
 
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h4 class="mb-0"><i class="bi bi-heart-pulse me-1"></i> Counselling</h4>
+                        <h4 class="mb-0"><i class="bi bi-journal-medical me-1"></i> Counselling</h4>
                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
                             <i class="bi bi-plus-lg me-1"></i> Add Student
                         </button>

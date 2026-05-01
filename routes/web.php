@@ -195,9 +195,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/academics/subject-teacher', [SubjectController::class, 'saveSubjectTeacher'])->name('academics.saveSubjectTeacher');
     Route::delete('/academics/subject-teacher/{subjectTeacher}', [SubjectController::class, 'removeSubjectTeacher'])->name('academics.removeSubjectTeacher');
 
-    // Calendar events
+    // Calendar events (admin + teacher)
     Route::get('calendar-event', [EventController::class, 'index'])->name('events.show');
     Route::post('calendar-crud-ajax', [EventController::class, 'calendarEvents'])->name('events.crud');
+    Route::get('events/report', [EventController::class, 'report'])->name('events.report');
 
     // Routines
     Route::get('/routine/create', [RoutineController::class, 'create'])->name('section.routine.create');
