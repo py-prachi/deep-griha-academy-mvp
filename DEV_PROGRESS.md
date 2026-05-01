@@ -360,6 +360,22 @@ https://github.com/py-prachi/deep-griha-academy-mvp
 - Feature branches → merge to develop → auto deploys to staging
 - Staging approved → merge to main → auto deploys to production
 
+### Service Pause — May 2026
+- Railway staging paused on 1 May 2026 (school closed, cost saving)
+- DB dump saved to Google Drive: https://drive.google.com/file/d/1HZbAFjpVH94ejkzcT7H0I2o0ydC9NWKt/view?usp=drive_link
+- Resume on 1 June 2026
+
+### June 1st Resume Checklist
+1. Re-subscribe to Railway (Hobby plan)
+2. Push develop → Railway auto-deploys staging
+3. Staging DB will be re-seeded automatically (fresh seed on empty DB)
+4. If real data needs restoring, import the dump above via:
+   `mysqldump` restore using public Railway MySQL URL
+5. Verify Cloudinary photo upload works (URL should be `res.cloudinary.com/...`)
+   - CLOUDINARY_URL already set in Railway variables
+   - If still failing, check Railway deploy logs for `Cloudinary upload failed:` error
+6. Test events page — create an activity with photo, check Event Report
+
 ### Known Railway Settings
 - Networking port must be set to 8080 on app service
 - APP_URL and ASSET_URL must be set to the https domain
