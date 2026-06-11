@@ -34,7 +34,7 @@ class TimetableController extends Controller
      */
     public function edit(Request $request)
     {
-        if (auth()->user()->role !== 'admin') {
+        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) {
             abort(403);
         }
 
@@ -98,7 +98,7 @@ class TimetableController extends Controller
      */
     public function save(Request $request)
     {
-        if (auth()->user()->role !== 'admin') {
+        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) {
             abort(403);
         }
 
@@ -148,7 +148,7 @@ class TimetableController extends Controller
      */
     public function show(Request $request)
     {
-        if (auth()->user()->role !== 'admin') abort(403);
+        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) abort(403);
 
         $class_id   = $request->query('class_id');
         $section_id = $request->query('section_id');
@@ -310,7 +310,7 @@ class TimetableController extends Controller
      */
     public function periodUpdate(Request $request)
     {
-        if (auth()->user()->role !== 'admin') abort(403);
+        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) abort(403);
 
         $period = TimetablePeriod::find($request->input('id'));
         if (!$period) return response()->json(['ok' => false, 'error' => 'Period not found']);
@@ -330,7 +330,7 @@ class TimetableController extends Controller
      */
     public function periodDelete(Request $request)
     {
-        if (auth()->user()->role !== 'admin') abort(403);
+        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) abort(403);
 
         $period = TimetablePeriod::find($request->input('id'));
         if (!$period) return response()->json(['ok' => false, 'error' => 'Not found']);
@@ -347,7 +347,7 @@ class TimetableController extends Controller
      */
     public function periodAdd(Request $request)
     {
-        if (auth()->user()->role !== 'admin') abort(403);
+        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) abort(403);
 
         $weekday = (int) $request->input('weekday', 0);
         $maxSort = TimetablePeriod::where('weekday', $weekday)->max('sort_order') ?? 0;
@@ -376,7 +376,7 @@ class TimetableController extends Controller
      */
     public function periodResetDay(Request $request)
     {
-        if (auth()->user()->role !== 'admin') abort(403);
+        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) abort(403);
 
         $weekday = (int) $request->input('weekday');
         if ($weekday < 1 || $weekday > 6) return response()->json(['ok' => false, 'error' => 'Invalid day']);
@@ -397,7 +397,7 @@ class TimetableController extends Controller
      */
     public function periodCopyDefaults(Request $request)
     {
-        if (auth()->user()->role !== 'admin') abort(403);
+        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) abort(403);
 
         $weekday = (int) $request->input('weekday');
         if ($weekday < 1 || $weekday > 6) return response()->json(['ok' => false, 'error' => 'Invalid day']);

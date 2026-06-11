@@ -37,10 +37,24 @@
 
                     {{-- Timetable --}}
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('timetable.teacher') ? 'active' : '' }}" href="{{ route('timetable.teacher') }}">
+                        <a type="button" href="#teacher-timetable-submenu" data-bs-toggle="collapse"
+                            class="d-flex nav-link {{ request()->is('timetable*') ? 'active' : '' }}">
                             <i class="bi bi-calendar4-week"></i>
-                            <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Timetable</span>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Timetable</span>
+                            <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
+                        <ul class="nav collapse {{ request()->is('timetable*') ? 'show' : 'hide' }} bg-white" id="teacher-timetable-submenu">
+                            <li class="nav-item w-100">
+                                <a class="nav-link {{ request()->routeIs('timetable.teacher') ? 'active' : '' }}" href="{{ route('timetable.teacher') }}">
+                                    <i class="bi bi-person-lines-fill me-2"></i> My Timetable
+                                </a>
+                            </li>
+                            <li class="nav-item w-100">
+                                <a class="nav-link {{ request()->routeIs('timetable.edit') || request()->routeIs('timetable.show') ? 'active' : '' }}" href="{{ route('timetable.edit') }}">
+                                    <i class="bi bi-pencil-square me-2"></i> Enter Timetable
+                                </a>
+                            </li>
+                        </ul>
                     </li>
 
                     {{-- Marks — shown based on CT class type --}}
