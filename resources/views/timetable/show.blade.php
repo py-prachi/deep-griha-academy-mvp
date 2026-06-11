@@ -111,7 +111,7 @@
 
                 </div>
             </div>
-            @include('layouts.footer')
+            <div class="no-print">@include('layouts.footer')</div>
         </div>
     </div>
 </div>
@@ -121,45 +121,58 @@
     .print-only { display: none; }
 
     @media print {
-        .no-print,
-        .left-menu,
-        nav.navbar,
-        footer,
-        nav[aria-label="breadcrumb"] { display: none !important; }
+        /* Hide nav bar, sidebar, buttons, breadcrumb, footer */
+        .navbar,
+        .border-rt-e6,
+        .no-print { display: none !important; }
 
         .print-only { display: block !important; }
 
-        .container,
-        .row,
-        [class*="col-lg-"],
-        [class*="col-xl-"],
-        [class*="col-xxl-"] {
+        /* Collapse the Bootstrap grid so content fills the page */
+        .container { width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+        .row { margin: 0 !important; }
+        .col-xs-11, .col-sm-11, .col-md-11,
+        .col-lg-10, .col-xl-10, .col-xxl-10 {
             width: 100% !important;
             max-width: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
             flex: 0 0 100% !important;
+            padding: 0 !important;
         }
+        .col.ps-4 { padding-left: 0.5rem !important; }
 
-        .col.ps-4 { padding-left: 0 !important; }
-
+        /* Table fills the page, no horizontal scroll */
         .bg-white.border.shadow-sm {
             border: none !important;
             box-shadow: none !important;
             padding: 0 !important;
             overflow: visible !important;
         }
-
         table {
-            font-size: 0.78rem;
+            font-size: 0.76rem !important;
             min-width: unset !important;
             width: 100% !important;
+            table-layout: fixed !important;
         }
+        table th, table td {
+            white-space: normal !important;
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
+            padding: 0.25rem 0.3rem !important;
+        }
+        /* Give period column a fixed narrow width; days share the rest equally */
+        table th:first-child, table td:first-child { width: 13% !important; }
 
-        .table-light { background: #f8f9fa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .table thead.table-light th { background: #e9ecef !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        /* Remove today highlight (inline style) and Today badge */
+        table thead th, table tbody td { background-color: white !important; }
+        table .table-light, table thead.table-light th {
+            background-color: #e9ecef !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        thead .badge { display: none !important; }
 
-        body { font-size: 11px; }
+        footer, .footer { display: none !important; }
+        body { font-size: 11px; margin: 0; }
     }
 </style>
 @endpush
