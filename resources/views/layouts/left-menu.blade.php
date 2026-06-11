@@ -246,6 +246,7 @@
                         </a>
                         <ul class="nav collapse {{ request()->is('fees*') || request()->is('fee-structures*') ? 'show' : 'hide' }} bg-white" id="fees-submenu">
                             <li class="nav-item w-100"><a class="nav-link {{ request()->routeIs('fees.collect') ? 'active' : '' }}" href="{{ route('fees.collect') }}"><i class="bi bi-cash-coin me-2"></i> Collect Fee</a></li>
+                            @if(Auth::user()->role == 'admin')
                             <li class="nav-item w-100">
                                 <a class="nav-link {{ $feeStructureMissing ? 'text-warning fw-bold' : '' }} {{ request()->routeIs('fee-structures.index') ? 'active' : '' }}" href="{{ route('fee-structures.index') }}">
                                     <i class="bi bi-table me-2"></i> Fee Structures
@@ -262,6 +263,7 @@
                                     <i class="bi bi-printer me-2"></i> Fee Overview / Print
                                 </a>
                             </li>
+                            @endif
                         </ul>
                     </li>
 
