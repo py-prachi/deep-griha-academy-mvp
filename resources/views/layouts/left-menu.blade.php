@@ -247,9 +247,19 @@
                         <ul class="nav collapse {{ request()->is('fees*') || request()->is('fee-structures*') ? 'show' : 'hide' }} bg-white" id="fees-submenu">
                             <li class="nav-item w-100"><a class="nav-link {{ request()->routeIs('fees.collect') ? 'active' : '' }}" href="{{ route('fees.collect') }}"><i class="bi bi-cash-coin me-2"></i> Collect Fee</a></li>
                             <li class="nav-item w-100">
-                                <a class="nav-link {{ $feeStructureMissing ? 'text-warning fw-bold' : '' }} {{ request()->is('fee-structures*') ? 'active' : '' }}" href="{{ route('fee-structures.index') }}">
+                                <a class="nav-link {{ $feeStructureMissing ? 'text-warning fw-bold' : '' }} {{ request()->routeIs('fee-structures.index') ? 'active' : '' }}" href="{{ route('fee-structures.index') }}">
                                     <i class="bi bi-table me-2"></i> Fee Structures
                                     @if($feeStructureMissing)<span class="badge bg-warning text-dark ms-1">!</span>@endif
+                                </a>
+                            </li>
+                            <li class="nav-item w-100">
+                                <a class="nav-link {{ request()->routeIs('fee-structures.import*') ? 'active' : '' }}" href="{{ route('fee-structures.import') }}">
+                                    <i class="bi bi-upload me-2"></i> Import Fee Structure
+                                </a>
+                            </li>
+                            <li class="nav-item w-100">
+                                <a class="nav-link {{ request()->routeIs('fee-structures.overview') ? 'active' : '' }}" href="{{ route('fee-structures.overview') }}">
+                                    <i class="bi bi-printer me-2"></i> Fee Overview / Print
                                 </a>
                             </li>
                         </ul>

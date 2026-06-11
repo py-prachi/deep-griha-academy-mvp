@@ -257,6 +257,12 @@ Route::middleware(['auth'])->group(function () {
 
     // ── FEE STRUCTURE ─────────────────────────────────────────────────────
     Route::get('/fee-structures',                        [App\Http\Controllers\FeeStructureController::class, 'index'])->name('fee-structures.index');
+    Route::get('/fee-structures/overview',               [App\Http\Controllers\FeeStructureController::class, 'overview'])->name('fee-structures.overview');
+    Route::get('/fee-structures/print',                  [App\Http\Controllers\FeeStructureController::class, 'printOverview'])->name('fee-structures.print');
+    Route::get('/fee-structures/import',                 [App\Http\Controllers\FeeStructureImportController::class, 'showForm'])->name('fee-structures.import');
+    Route::get('/fee-structures/import/template',        [App\Http\Controllers\FeeStructureImportController::class, 'downloadTemplate'])->name('fee-structures.import.template');
+    Route::post('/fee-structures/import/preview',        [App\Http\Controllers\FeeStructureImportController::class, 'preview'])->name('fee-structures.import.preview');
+    Route::post('/fee-structures/import/commit',         [App\Http\Controllers\FeeStructureImportController::class, 'commit'])->name('fee-structures.import.commit');
     Route::get('/fee-structures/create',                 [App\Http\Controllers\FeeStructureController::class, 'create'])->name('fee-structures.create');
     Route::post('/fee-structures',                       [App\Http\Controllers\FeeStructureController::class, 'store'])->name('fee-structures.store');
     Route::get('/fee-structures/{id}/edit',              [App\Http\Controllers\FeeStructureController::class, 'edit'])->name('fee-structures.edit');
