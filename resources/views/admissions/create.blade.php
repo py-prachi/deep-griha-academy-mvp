@@ -79,6 +79,10 @@
                                     <label class="form-label">Previous School Last Attended</label>
                                     <input type="text" name="previous_school" class="form-control" value="{{ old('previous_school') }}">
                                 </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Aadhaar No.</label>
+                                    <input type="text" name="aadhaar_no" class="form-control" maxlength="12" pattern="\d{12}" placeholder="12-digit number" value="{{ old('aadhaar_no') }}">
+                                </div>
                             </div>
                         </div>
 

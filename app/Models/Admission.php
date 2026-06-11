@@ -54,6 +54,7 @@ class Admission extends Model
         'doctor_name_phone',
         'blood_type',
         'previous_school',
+        'aadhaar_no',
         'inquiry_date',
         'confirmed_date',
         'exit_date',

@@ -293,6 +293,11 @@
         </span>
     </div>
 
+    <div class="field-row">
+        Aadhaar No. :-
+        <span class="field-line" style="min-width:200px;">{{ $lc->admission->aadhaar_no ?? '' }}</span>
+    </div>
+
     <div style="border-bottom: 1px solid #000; height: 16px; margin-bottom: 9px;">&nbsp;</div>
 
     <div class="field-row">
