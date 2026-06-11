@@ -8,7 +8,16 @@
             <div class="row pt-2">
                 <div class="col ps-4">
 
-                    <div class="d-flex align-items-center justify-content-between mb-1">
+                    {{-- Print header (hidden on screen) --}}
+                    <div class="print-only text-center mb-3">
+                        <h5 class="fw-bold mb-0">Deep Griha Academy</h5>
+                        <p class="mb-0">Timetable
+                            @if($classLabel) &mdash; {{ $classLabel }}{{ $sectionLabel ? ' ' . $sectionLabel : '' }} @endif
+                        </p>
+                        <small class="text-muted">Printed on {{ date('d M Y') }}</small>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between mb-1 no-print">
                         <h5 class="mb-0">
                             <i class="bi bi-calendar4-week me-1"></i> Timetable
                             @if($classLabel) &mdash; {{ $classLabel }}{{ $sectionLabel ? ' ' . $sectionLabel : '' }} @endif
@@ -23,7 +32,7 @@
                             </button>
                         </div>
                     </div>
-                    <nav aria-label="breadcrumb" class="mb-3">
+                    <nav aria-label="breadcrumb" class="mb-3 no-print">
                         <ol class="breadcrumb small mb-0">
                             <li class="breadcrumb-item"><a href="{{ route('timetable.edit', ['class_id' => request('class_id'), 'section_id' => request('section_id')]) }}">Timetable</a></li>
                             <li class="breadcrumb-item active">Full Week View</li>
@@ -106,4 +115,52 @@
         </div>
     </div>
 </div>
+
+@push('styles')
+<style>
+    .print-only { display: none; }
+
+    @media print {
+        .no-print,
+        .left-menu,
+        nav.navbar,
+        footer,
+        nav[aria-label="breadcrumb"] { display: none !important; }
+
+        .print-only { display: block !important; }
+
+        .container,
+        .row,
+        [class*="col-lg-"],
+        [class*="col-xl-"],
+        [class*="col-xxl-"] {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            flex: 0 0 100% !important;
+        }
+
+        .col.ps-4 { padding-left: 0 !important; }
+
+        .bg-white.border.shadow-sm {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            overflow: visible !important;
+        }
+
+        table {
+            font-size: 0.78rem;
+            min-width: unset !important;
+            width: 100% !important;
+        }
+
+        .table-light { background: #f8f9fa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .table thead.table-light th { background: #e9ecef !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+        body { font-size: 11px; }
+    }
+</style>
+@endpush
 @endsection
