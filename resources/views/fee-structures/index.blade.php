@@ -12,9 +12,17 @@
                             <i class="bi bi-arrow-left"></i>
                         </a>
                         <h4 class="mb-0">Fee Structures</h4>
-                        <a href="{{ route('fee-structures.create') }}" class="btn btn-primary btn-sm ms-auto">
-                            <i class="fas fa-plus"></i> Add Fee Structure
-                        </a>
+                        <div class="ms-auto d-flex gap-2">
+                            <a href="{{ route('fee-structures.overview') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-printer me-1"></i> Overview / Print
+                            </a>
+                            <a href="{{ route('fee-structures.import') }}" class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-upload me-1"></i> Import
+                            </a>
+                            <a href="{{ route('fee-structures.create') }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Add
+                            </a>
+                        </div>
                     </div>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">

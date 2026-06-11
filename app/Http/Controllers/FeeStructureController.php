@@ -127,4 +127,39 @@ class FeeStructureController extends Controller
             return back()->withError($e->getMessage());
         }
     }
+
+    public function overview()
+    {
+        $current_school_session_id = $this->getSchoolCurrentSession();
+        $session    = $this->schoolSessionRepository->getLatestSession();
+        $classes    = $this->schoolClassRepository->getAllBySession($current_school_session_id);
+        $all        = $this->feeStructureRepository->getAll($current_school_session_id);
+        $structured = [];
+        foreach ($all as $fs) {
+            $structured[$fs->class_id][$fs->fee_category] = $fs;
+        }
+        return view('fee-structures.overview', [
+            'classes'    => $classes,
+            'structured' => $structured,
+            'session'    => $session,
+            'categories' => FeeStructure::CATEGORY_LABELS,
+        ]);
+    }
+
+    public function printOverview()
+    {
+        $current_school_session_id = $this->getSchoolCurrentSession();
+        $session    = $this->schoolSessionRepository->getLatestSession();
+        $classes    = $this->schoolClassRepository->getAllBySession($current_school_session_id);
+        $all        = $this->feeStructureRepository->getAll($current_school_session_id);
+        $structured = [];
+        foreach ($all as $fs) {
+            $structured[$fs->class_id][$fs->fee_category] = $fs;
+        }
+        return view('fee-structures.overview-print', [
+            'classes'    => $classes,
+            'structured' => $structured,
+            'session'    => $session,
+        ]);
+    }
 }

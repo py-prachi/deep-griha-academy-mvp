@@ -115,7 +115,7 @@
                                     </div>
                                     <div class="col-md-3 text-center border-end">
                                         <div class="text-muted small">Tuition Fee</div>
-                                        <div class="fw-bold">₹{{ number_format($feeStructure->tuition_fee, 2) }}</div>
+                                        <div class="fw-bold">₹{{ number_format($feeStructure->tuitionFeeForGender($student->gender ?? 'Male'), 2) }}</div>
                                     </div>
                                     <div class="col-md-3 text-center border-end">
                                         <div class="text-muted small">Transport Fee</div>
