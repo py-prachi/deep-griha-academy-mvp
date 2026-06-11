@@ -239,7 +239,7 @@
                 No. <strong style="font-size:14px; letter-spacing:1px;">{{ $lc->lc_number }}</strong>
             </td>
             <td style="width:60%; text-align:center;">
-                Register No. of Pupil :&nbsp;&nbsp;<strong style="font-size:13px;">
+                Permanent Enrollment No. :&nbsp;&nbsp;<strong style="font-size:13px;">
                     @if($lc->admission)
                         @if($lc->admission->class_id >= 4)
                             {{ $lc->admission->general_id ? $lc->admission->general_id : '—' }}

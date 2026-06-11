@@ -108,6 +108,7 @@
                                     <div class="col-md-6"><strong>Place of Birth:</strong> {{ $admission->place_of_birth ?? '-' }}</div>
                                     <div class="col-md-6"><strong>Language at Home:</strong> {{ $admission->language_spoken_at_home ?? '-' }}</div>
                                     <div class="col-md-6"><strong>Previous School:</strong> {{ $admission->previous_school ?? '-' }}</div>
+                                    <div class="col-md-6"><strong>Aadhaar No.:</strong> {{ $admission->aadhaar_no ?? '-' }}</div>
                                     <div class="col-md-6"><strong>Class:</strong> {{ $admission->schoolClass->class_name ?? '-' }}</div>
                                     <div class="col-md-6"><strong>Section:</strong> {{ $admission->section->section_name ?? 'Not assigned' }}</div>
                                     <div class="col-md-6"><strong>Academic Year:</strong> {{ $admission->academic_year }}</div>
