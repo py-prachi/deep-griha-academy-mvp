@@ -32,11 +32,10 @@
 <script>
     document.getElementById('btn_log_activity').addEventListener('click', function () {
         var today = new Date().toISOString().slice(0, 10);
-        document.getElementById('create_start').value = today + ' 00:00:00';
-        document.getElementById('create_end').value   = today + ' 00:00:00';
         document.getElementById('createEventForm').reset();
-        document.getElementById('create_start').value = today + ' 00:00:00';
-        document.getElementById('create_end').value   = today + ' 00:00:00';
+        document.getElementById('create_start').value        = today + ' 00:00:00';
+        document.getElementById('create_end').value          = today + ' 00:00:00';
+        document.getElementById('create_activity_date').value = today;
         new bootstrap.Modal(document.getElementById('createEventModal')).show();
     });
 </script>

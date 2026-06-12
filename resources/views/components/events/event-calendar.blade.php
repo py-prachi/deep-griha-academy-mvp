@@ -90,6 +90,10 @@
                     <input type="hidden" id="create_start" name="start">
                     <input type="hidden" id="create_end" name="end">
                     <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Activity Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="create_activity_date" required>
+                        </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="title" required placeholder="e.g. Home Visit – Rajan">
@@ -168,6 +172,10 @@
                     <input type="hidden" id="edit_start" name="start">
                     <input type="hidden" id="edit_end" name="end">
                     <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Activity Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="edit_activity_date" required>
+                        </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="edit_title" name="title" required>
@@ -265,11 +273,11 @@
 
             select: function (event_start, event_end) {
                 @if($selectable == 'true')
-                $('#create_start').val($.fullCalendar.formatDate(event_start, "Y-MM-DD HH:mm:ss"));
-                $('#create_end').val($.fullCalendar.formatDate(event_end, "Y-MM-DD HH:mm:ss"));
+                var dateStr = $.fullCalendar.formatDate(event_start, "Y-MM-DD");
                 $('#createEventForm')[0].reset();
-                $('#create_start').val($.fullCalendar.formatDate(event_start, "Y-MM-DD HH:mm:ss"));
-                $('#create_end').val($.fullCalendar.formatDate(event_end, "Y-MM-DD HH:mm:ss"));
+                $('#create_start').val(dateStr + ' 00:00:00');
+                $('#create_end').val(dateStr + ' 00:00:00');
+                $('#create_activity_date').val(dateStr);
                 new bootstrap.Modal(document.getElementById('createEventModal')).show();
                 @endif
                 calendar.fullCalendar('unselect');
@@ -343,6 +351,8 @@
         // Create form submit
         $('#createEventForm').on('submit', function (e) {
             e.preventDefault();
+            var d = $('#create_activity_date').val();
+            if (d) { $('#create_start').val(d + ' 00:00:00'); $('#create_end').val(d + ' 00:00:00'); }
             var formData = new FormData(this);
             formData.append('type', 'create');
             $.ajax({
@@ -369,6 +379,7 @@
             $('#edit_event_id').val(currentEvent.id);
             $('#edit_start').val($.fullCalendar.formatDate(currentEvent.start, "Y-MM-DD HH:mm:ss"));
             $('#edit_end').val(currentEvent.end ? $.fullCalendar.formatDate(currentEvent.end, "Y-MM-DD HH:mm:ss") : $.fullCalendar.formatDate(currentEvent.start, "Y-MM-DD HH:mm:ss"));
+            $('#edit_activity_date').val(moment(currentEvent.start).format('YYYY-MM-DD'));
             $('#edit_title').val(currentEvent.title);
             $('#edit_activity_type').val(currentEvent.activity_type || '');
             $('#edit_location').val(currentEvent.location || '');
@@ -389,6 +400,8 @@
         // Edit form submit
         $('#editEventForm').on('submit', function (e) {
             e.preventDefault();
+            var d = $('#edit_activity_date').val();
+            if (d) { $('#edit_start').val(d + ' 00:00:00'); $('#edit_end').val(d + ' 00:00:00'); }
             var formData = new FormData(this);
             formData.append('type', 'edit');
             $.ajax({
