@@ -188,11 +188,23 @@ class AdmissionRepository implements AdmissionInterface
             // Create promotion record so student appears in existing student list
             $promotionRepository = new \App\Repositories\PromotionRepository();
             $promotionRepository->assignClassSection([
-                'session_id'    => $admission->session_id,
-                'class_id'      => $admission->class_id,
-                'section_id'    => $data['section_id'],
+                'session_id'     => $admission->session_id,
+                'class_id'       => $admission->class_id,
+                'section_id'     => $data['section_id'],
                 'id_card_number' => $admission->dga_admission_no ?? $admission->general_id ?? '',
             ], $student->id);
+
+            // Auto-assign next roll number if roll numbers are already in use for this class+section
+            $maxRoll = \App\Models\Promotion::where('session_id', $admission->session_id)
+                ->where('class_id', $admission->class_id)
+                ->where('section_id', $data['section_id'])
+                ->max('roll_number');
+
+            if ($maxRoll !== null) {
+                \App\Models\Promotion::where('student_id', $student->id)
+                    ->where('session_id', $admission->session_id)
+                    ->update(['roll_number' => $maxRoll + 1]);
+            }
 
             // Link student back to admission
             $admission->student_user_id = $student->id;
