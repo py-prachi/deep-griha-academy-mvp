@@ -99,11 +99,11 @@
                             <input type="text" class="form-control" name="activity_type" placeholder="e.g. Academics, Awareness Sessions">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Place</label>
+                            <label class="form-label">Place of activity/event</label>
                             <input type="text" class="form-control" name="location">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Duration</label>
+                            <label class="form-label">Duration of activity/event</label>
                             <input type="text" class="form-control" name="duration" placeholder="e.g. 45 minutes, 1 day">
                         </div>
                         <div class="col-md-6">
@@ -115,11 +115,11 @@
                             <input type="text" class="form-control" name="participants" placeholder="e.g. 40 students + 3 teachers">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Description</label>
+                            <label class="form-label">Description of activity/event</label>
                             <textarea class="form-control" name="description" rows="3" placeholder="What happened during the activity?"></textarea>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Purpose</label>
+                            <label class="form-label">Purpose of activity/event</label>
                             <textarea class="form-control" name="purpose" rows="2" placeholder="Objectives or discussion points"></textarea>
                         </div>
                         <div class="col-12">
@@ -177,11 +177,11 @@
                             <input type="text" class="form-control" id="edit_activity_type" name="activity_type">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Place</label>
+                            <label class="form-label">Place of activity/event</label>
                             <input type="text" class="form-control" id="edit_location" name="location">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Duration</label>
+                            <label class="form-label">Duration of activity/event</label>
                             <input type="text" class="form-control" id="edit_duration" name="duration">
                         </div>
                         <div class="col-md-6">
@@ -197,7 +197,7 @@
                             <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Purpose</label>
+                            <label class="form-label">Purpose of activity/event</label>
                             <textarea class="form-control" id="edit_purpose" name="purpose" rows="2"></textarea>
                         </div>
                         <div class="col-12">
