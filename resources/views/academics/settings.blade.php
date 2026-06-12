@@ -122,6 +122,26 @@
                     </h6>
                     <div class="row g-3 mb-4">
 
+                        {{-- Roll Number Assignment --}}
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6><i class="bi bi-sort-numeric-down me-1 text-primary"></i> Assign Roll Numbers</h6>
+                                    <p class="text-muted small">
+                                        Assign roll numbers to all students in the current session, sorted A–Z by first name within each class.
+                                        <strong>One-time action</strong> — run once after all admissions are confirmed.
+                                    </p>
+                                    <form method="POST" action="{{ route('promotions.reassignRollNumbers') }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-primary w-100"
+                                            onclick="return confirm('Assign roll numbers to all students in the current session (sorted A-Z by first name per class)?\n\nThis will overwrite any existing roll numbers.')">
+                                            <i class="bi bi-sort-numeric-down me-1"></i> Assign Roll Numbers
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Subjects --}}
                         <div class="col-md-4">
                             <div class="card h-100">

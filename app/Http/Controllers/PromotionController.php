@@ -405,6 +405,8 @@ class PromotionController extends Controller
             }
         }
 
-        return back()->with('status', 'Roll numbers reassigned successfully (sorted by first name).');
+        $total = Promotion::where('session_id', $session_id)->count();
+        return redirect()->route('student.list.show')
+            ->with('status', 'Roll numbers assigned for ' . $total . ' student(s), sorted A-Z by first name per class.');
     }
 }
