@@ -44,7 +44,7 @@ class EventController extends Controller
         switch ($request->type) {
             case 'create':
                 $event = Event::create([
-                    'title'             => $request->title,
+                    'title'             => $request->activity_type ?: 'Activity',
                     'start'             => $request->start,
                     'end'               => $request->end,
                     'session_id'        => $current_school_session_id,
@@ -70,7 +70,7 @@ class EventController extends Controller
                     return response()->json(['error' => 'Unauthorized'], 403);
                 }
                 $event->update([
-                    'title'             => $request->title,
+                    'title'             => $request->activity_type ?: $event->title,
                     'start'             => $request->start,
                     'end'               => $request->end,
                     'activity_type'     => $request->activity_type,

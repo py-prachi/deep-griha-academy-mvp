@@ -94,10 +94,6 @@
                             <label class="form-label fw-semibold">Activity Date <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="create_activity_date" required>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="title" required placeholder="e.g. Home Visit – Rajan">
-                        </div>
                         <div class="col-md-6">
                             <label class="form-label">Activity / Event's Name</label>
                             <input type="text" class="form-control" name="activity_type" placeholder="e.g. Academics, Awareness Sessions">
@@ -175,10 +171,6 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Activity Date <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="edit_activity_date" required>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="edit_title" name="title" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Activity / Event's Name</label>
