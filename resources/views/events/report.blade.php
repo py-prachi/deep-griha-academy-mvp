@@ -89,7 +89,7 @@
                                         @endif
                                     </td>
                                     @if(auth()->user()->role === 'admin')
-                                    <td>{{ $event->creator?->full_name ?? '—' }}</td>
+                                    <td>{{ optional($event->creator)->full_name ?? '—' }}</td>
                                     @endif
                                     <td class="text-center">
                                         @if($event->photo_url)
@@ -181,7 +181,7 @@
                                                     @if(auth()->user()->role === 'admin')
                                                     <div class="col-12">
                                                         <span class="text-muted">Logged by</span>
-                                                        <div>{{ $event->creator?->full_name ?? '—' }}</div>
+                                                        <div>{{ optional($event->creator)->full_name ?? '—' }}</div>
                                                     </div>
                                                     @endif
                                                     @if($event->photo_url)
