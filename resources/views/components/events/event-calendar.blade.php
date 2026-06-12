@@ -90,29 +90,13 @@
                     <input type="hidden" id="create_start" name="start">
                     <input type="hidden" id="create_end" name="end">
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Activity Date <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="create_activity_date" required>
-                        </div>
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label class="form-label">Activity / Event's Name</label>
                             <input type="text" class="form-control" name="activity_type" placeholder="e.g. Academics, Awareness Sessions">
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Place of activity/event</label>
-                            <input type="text" class="form-control" name="location">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Duration of activity/event</label>
-                            <input type="text" class="form-control" name="duration" placeholder="e.g. 45 minutes, 1 day">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">No. of Attendants</label>
-                            <input type="number" class="form-control" name="participant_count" min="1">
-                        </div>
                         <div class="col-12">
-                            <label class="form-label">Attendee's Details</label>
-                            <input type="text" class="form-control" name="participants" placeholder="e.g. 40 students + 3 teachers">
+                            <label class="form-label fw-semibold">Date of activity/event <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="create_activity_date" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Description of activity/event</label>
@@ -123,16 +107,32 @@
                             <textarea class="form-control" name="purpose" rows="2" placeholder="Objectives or discussion points"></textarea>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Training / DGS Core Values Applied</label>
-                            <input type="text" class="form-control" name="skills_values" placeholder="e.g. Participation, Equal Opportunity">
+                            <label class="form-label">Place of activity/event</label>
+                            <input type="text" class="form-control" name="location">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Remarks</label>
-                            <textarea class="form-control" name="outcome" rows="2" placeholder="Any remarks or observations"></textarea>
+                            <label class="form-label">Duration of activity/event</label>
+                            <input type="text" class="form-control" name="duration" placeholder="e.g. 45 minutes, 1 day">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Attendee's details</label>
+                            <input type="text" class="form-control" name="participants" placeholder="e.g. 40 students + 3 teachers">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">No. of Attendants</label>
+                            <input type="number" class="form-control" name="participant_count" min="1">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Please mention if any training/DGS core values components applied</label>
+                            <input type="text" class="form-control" name="skills_values" placeholder="e.g. Participation, Equal Opportunity">
                         </div>
                         <div class="col-12">
                             <label class="form-label">Pic (Google Drive link)</label>
                             <input type="url" class="form-control" name="photo_url" placeholder="Paste Google Drive share link">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Remarks</label>
+                            <textarea class="form-control" name="outcome" rows="2" placeholder="Any remarks or observations"></textarea>
                         </div>
                         <div class="col-12">
                             <div class="form-check">
@@ -168,32 +168,16 @@
                     <input type="hidden" id="edit_start" name="start">
                     <input type="hidden" id="edit_end" name="end">
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Activity Date <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="edit_activity_date" required>
-                        </div>
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label class="form-label">Activity / Event's Name</label>
                             <input type="text" class="form-control" id="edit_activity_type" name="activity_type">
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Place of activity/event</label>
-                            <input type="text" class="form-control" id="edit_location" name="location">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Duration of activity/event</label>
-                            <input type="text" class="form-control" id="edit_duration" name="duration">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">No. of Attendants</label>
-                            <input type="number" class="form-control" id="edit_participant_count" name="participant_count" min="1">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Date of activity/event <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="edit_activity_date" required>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Attendee's Details</label>
-                            <input type="text" class="form-control" id="edit_participants" name="participants">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Description</label>
+                            <label class="form-label">Description of activity/event</label>
                             <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
                         </div>
                         <div class="col-12">
@@ -201,16 +185,32 @@
                             <textarea class="form-control" id="edit_purpose" name="purpose" rows="2"></textarea>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Training / DGS Core Values Applied</label>
-                            <input type="text" class="form-control" id="edit_skills_values" name="skills_values">
+                            <label class="form-label">Place of activity/event</label>
+                            <input type="text" class="form-control" id="edit_location" name="location">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Remarks</label>
-                            <textarea class="form-control" id="edit_outcome" name="outcome" rows="2"></textarea>
+                            <label class="form-label">Duration of activity/event</label>
+                            <input type="text" class="form-control" id="edit_duration" name="duration">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Attendee's details</label>
+                            <input type="text" class="form-control" id="edit_participants" name="participants">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">No. of Attendants</label>
+                            <input type="number" class="form-control" id="edit_participant_count" name="participant_count" min="1">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Please mention if any training/DGS core values components applied</label>
+                            <input type="text" class="form-control" id="edit_skills_values" name="skills_values">
                         </div>
                         <div class="col-12">
                             <label class="form-label">Pic (Google Drive link)</label>
                             <input type="url" class="form-control" id="edit_photo_url" name="photo_url">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Remarks</label>
+                            <textarea class="form-control" id="edit_outcome" name="outcome" rows="2"></textarea>
                         </div>
                         <div class="col-12">
                             <div class="form-check">
