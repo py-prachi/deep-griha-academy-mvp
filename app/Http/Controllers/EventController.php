@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use App\Traits\SchoolSession;
 use App\Interfaces\SchoolSessionInterface;
 
@@ -56,7 +55,7 @@ class EventController extends Controller
                     'participants'      => $request->participants,
                     'participant_count' => $request->participant_count ?: null,
                     'skills_values'     => $request->skills_values,
-                    'photo_url'         => $this->handlePhotoUpload($request),
+                    'photo_url'         => $request->photo_url ?: null,
                     'outcome'           => $request->outcome,
                     'created_by'        => $user->id,
                 ]);
@@ -68,7 +67,6 @@ class EventController extends Controller
                 if (!$isAdmin && $event->created_by !== $user->id) {
                     return response()->json(['error' => 'Unauthorized'], 403);
                 }
-                $photoUrl = $this->handlePhotoUpload($request) ?? $event->photo_url;
                 $event->update([
                     'title'             => $request->title,
                     'start'             => $request->start,
@@ -81,7 +79,7 @@ class EventController extends Controller
                     'participants'      => $request->participants,
                     'participant_count' => $request->participant_count ?: null,
                     'skills_values'     => $request->skills_values,
-                    'photo_url'         => $photoUrl,
+                    'photo_url'         => $request->photo_url ?: $event->photo_url,
                     'outcome'           => $request->outcome,
                 ]);
                 $event->refresh();
@@ -132,19 +130,5 @@ class EventController extends Controller
         return view('events.report', compact('events', 'teachers'));
     }
 
-    private function handlePhotoUpload(Request $request): ?string
-    {
-        if (!$request->hasFile('photo')) return null;
 
-        if (env('CLOUDINARY_URL') || config('cloudinary.cloud_url')) {
-            try {
-                return cloudinary()->upload($request->file('photo')->getRealPath())->getSecurePath();
-            } catch (\Exception $e) {
-                \Log::channel('stderr')->error('Cloudinary upload failed: ' . $e->getMessage());
-            }
-        }
-
-        $path = $request->file('photo')->store('events', 'public');
-        return Storage::url($path);
-    }
 }

@@ -14,7 +14,7 @@
             <div class="modal-body">
                 <div class="row g-2 small">
                     <div class="col-md-6" id="det_type_row">
-                        <span class="text-muted">Activity Type</span>
+                        <span class="text-muted">Activity / Event's Name</span>
                         <div class="fw-semibold" id="det_type"></div>
                     </div>
                     <div class="col-md-6">
@@ -50,13 +50,13 @@
                         <div id="det_skills"></div>
                     </div>
                     <div class="col-12" id="det_outcome_row">
-                        <span class="text-muted">Outcome</span>
+                        <span class="text-muted">Remarks</span>
                         <div id="det_outcome"></div>
                     </div>
                     <div class="col-12" id="det_photo_row">
                         <span class="text-muted">Photo</span>
                         <div class="mt-1">
-                            <img id="det_photo" src="" class="img-fluid rounded" style="max-height:300px;" alt="Event photo">
+                            <a id="det_photo" href="" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-image me-1"></i> View Photo</a>
                         </div>
                     </div>
                 </div>
@@ -85,7 +85,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="createEventForm" enctype="multipart/form-data">
+                <form id="createEventForm">
                     @csrf
                     <input type="hidden" id="create_start" name="start">
                     <input type="hidden" id="create_end" name="end">
@@ -95,11 +95,11 @@
                             <input type="text" class="form-control" name="title" required placeholder="e.g. Home Visit – Rajan">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Activity Type</label>
-                            <input type="text" class="form-control" name="activity_type" placeholder="e.g. Home Visit, Exposure Visit">
+                            <label class="form-label">Activity / Event's Name</label>
+                            <input type="text" class="form-control" name="activity_type" placeholder="e.g. Academics, Awareness Sessions">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Location</label>
+                            <label class="form-label">Place</label>
                             <input type="text" class="form-control" name="location">
                         </div>
                         <div class="col-md-6">
@@ -107,11 +107,11 @@
                             <input type="text" class="form-control" name="duration" placeholder="e.g. 45 minutes, 1 day">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Participant Count</label>
+                            <label class="form-label">No. of Attendants</label>
                             <input type="number" class="form-control" name="participant_count" min="1">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Participants</label>
+                            <label class="form-label">Attendee's Details</label>
                             <input type="text" class="form-control" name="participants" placeholder="e.g. 40 students + 3 teachers">
                         </div>
                         <div class="col-12">
@@ -119,20 +119,20 @@
                             <textarea class="form-control" name="description" rows="3" placeholder="What happened during the activity?"></textarea>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Purpose / Action Taken</label>
+                            <label class="form-label">Purpose</label>
                             <textarea class="form-control" name="purpose" rows="2" placeholder="Objectives or discussion points"></textarea>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Skills / Values</label>
-                            <input type="text" class="form-control" name="skills_values" placeholder="e.g. Teamwork, Discipline, Respect">
+                            <label class="form-label">Training / DGS Core Values Applied</label>
+                            <input type="text" class="form-control" name="skills_values" placeholder="e.g. Participation, Equal Opportunity">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Outcome</label>
-                            <textarea class="form-control" name="outcome" rows="2" placeholder="What was the result?"></textarea>
+                            <label class="form-label">Remarks</label>
+                            <textarea class="form-control" name="outcome" rows="2" placeholder="Any remarks or observations"></textarea>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Photo</label>
-                            <input type="file" class="form-control" name="photo" accept="image/*">
+                            <label class="form-label">Pic (Google Drive link)</label>
+                            <input type="url" class="form-control" name="photo_url" placeholder="Paste Google Drive share link">
                         </div>
                     </div>
                 </form>
@@ -154,7 +154,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="editEventForm" enctype="multipart/form-data">
+                <form id="editEventForm">
                     @csrf
                     <input type="hidden" id="edit_event_id" name="id">
                     <input type="hidden" id="edit_start" name="start">
@@ -165,11 +165,11 @@
                             <input type="text" class="form-control" id="edit_title" name="title" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Activity Type</label>
+                            <label class="form-label">Activity / Event's Name</label>
                             <input type="text" class="form-control" id="edit_activity_type" name="activity_type">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Location</label>
+                            <label class="form-label">Place</label>
                             <input type="text" class="form-control" id="edit_location" name="location">
                         </div>
                         <div class="col-md-6">
@@ -177,11 +177,11 @@
                             <input type="text" class="form-control" id="edit_duration" name="duration">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Participant Count</label>
+                            <label class="form-label">No. of Attendants</label>
                             <input type="number" class="form-control" id="edit_participant_count" name="participant_count" min="1">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Participants</label>
+                            <label class="form-label">Attendee's Details</label>
                             <input type="text" class="form-control" id="edit_participants" name="participants">
                         </div>
                         <div class="col-12">
@@ -189,21 +189,20 @@
                             <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Purpose / Action Taken</label>
+                            <label class="form-label">Purpose</label>
                             <textarea class="form-control" id="edit_purpose" name="purpose" rows="2"></textarea>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Skills / Values</label>
+                            <label class="form-label">Training / DGS Core Values Applied</label>
                             <input type="text" class="form-control" id="edit_skills_values" name="skills_values">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Outcome</label>
+                            <label class="form-label">Remarks</label>
                             <textarea class="form-control" id="edit_outcome" name="outcome" rows="2"></textarea>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Replace Photo</label>
-                            <input type="file" class="form-control" name="photo" accept="image/*">
-                            <div class="form-text">Leave empty to keep existing photo.</div>
+                            <label class="form-label">Pic (Google Drive link)</label>
+                            <input type="url" class="form-control" id="edit_photo_url" name="photo_url">
                         </div>
                     </div>
                 </form>
@@ -297,7 +296,7 @@
                 setDetRow('det_outcome_row',      'det_outcome',      event.outcome);
 
                 if (event.photo_url) {
-                    $('#det_photo').attr('src', event.photo_url);
+                    $('#det_photo').attr('href', event.photo_url);
                     $('#det_photo_row').show();
                 } else {
                     $('#det_photo_row').hide();
@@ -364,6 +363,7 @@
             $('#edit_purpose').val(currentEvent.purpose || '');
             $('#edit_skills_values').val(currentEvent.skills_values || '');
             $('#edit_outcome').val(currentEvent.outcome || '');
+            $('#edit_photo_url').val(currentEvent.photo_url || '');
             setTimeout(function () {
                 new bootstrap.Modal(document.getElementById('editEventModal')).show();
             }, 300);

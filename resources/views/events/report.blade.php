@@ -93,9 +93,7 @@
                                     @endif
                                     <td class="text-center">
                                         @if($event->photo_url)
-                                            <a href="{{ $event->photo_url }}" target="_blank">
-                                                <img src="{{ $event->photo_url }}" alt="photo" style="height:40px;width:56px;object-fit:cover;" class="rounded">
-                                            </a>
+                                            <a href="{{ $event->photo_url }}" target="_blank" class="btn btn-sm btn-outline-secondary py-0 px-1"><i class="bi bi-image"></i></a>
                                         @else
                                             <span class="text-muted">—</span>
                                         @endif
@@ -176,7 +174,7 @@
                                                     @endif
                                                     @if($event->outcome)
                                                     <div class="col-12">
-                                                        <span class="text-muted">Outcome</span>
+                                                        <span class="text-muted">Remarks</span>
                                                         <div>{{ $event->outcome }}</div>
                                                     </div>
                                                     @endif
@@ -188,9 +186,9 @@
                                                     @endif
                                                     @if($event->photo_url)
                                                     <div class="col-12">
-                                                        <span class="text-muted">Photo</span>
+                                                        <span class="text-muted">Pic</span>
                                                         <div class="mt-1">
-                                                            <img src="{{ $event->photo_url }}" class="img-fluid rounded" style="max-height:300px;" alt="Event photo">
+                                                            <a href="{{ $event->photo_url }}" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-image me-1"></i> View Photo</a>
                                                         </div>
                                                     </div>
                                                     @endif
