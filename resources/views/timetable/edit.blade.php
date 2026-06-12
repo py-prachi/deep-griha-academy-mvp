@@ -72,7 +72,7 @@
                     @if($class_id && $section_id)
 
                     {{-- ── DAY TABS ── --}}
-                    @php $dayShort = [1=>'Mon',2=>'Tue',3=>'Wed',4=>'Thu',5=>'Fri',6=>'Sat']; @endphp
+                    @php $dayShort = [1=>'Mon',2=>'Tue',3=>'Wed',4=>'Thu',5=>'Fri']; @endphp
 
                     <ul class="nav nav-tabs mb-0" id="dayTabs" role="tablist">
                         @foreach($days as $dayNum => $dayName)
@@ -283,7 +283,7 @@
     }
 
     function resetDay(weekday) {
-        var dayNames = ['','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        var dayNames = ['','Monday','Tuesday','Wednesday','Thursday','Friday'];
         if (!confirm('Reset ' + dayNames[weekday] + ' back to the default schedule? This will also clear any subject slots saved for this day.')) return;
         fetch('{{ route("timetable.period.reset-day") }}', {
             method: 'POST',
@@ -299,7 +299,7 @@
     }
 
     function customiseDay(weekday) {
-        if (!confirm('Copy the default schedule into ' + ['','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][weekday] + '? You can then edit it independently.')) return;
+        if (!confirm('Copy the default schedule into ' + ['','Monday','Tuesday','Wednesday','Thursday','Friday'][weekday] + '? You can then edit it independently.')) return;
         fetch('{{ route("timetable.period.copy-defaults") }}', {
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF},

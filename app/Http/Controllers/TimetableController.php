@@ -50,7 +50,7 @@ class TimetableController extends Controller
         // periodsByDay[$weekday] = Collection of TimetablePeriod
         $periodsByDay = [];
 
-        $days = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday'];
+        $days = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday'];
 
         if ($class_id && $section_id) {
             $classSubjects = ClassSubject::with('subject')
@@ -105,7 +105,7 @@ class TimetableController extends Controller
         $request->validate([
             'class_id'   => 'required',
             'section_id' => 'required',
-            'weekday'    => 'required|integer|min:1|max:6',
+            'weekday'    => 'required|integer|min:1|max:5',
         ]);
 
         $class_id   = $request->input('class_id');
@@ -135,7 +135,7 @@ class TimetableController extends Controller
             ]);
         }
 
-        $dayNames = [1=>'Monday',2=>'Tuesday',3=>'Wednesday',4=>'Thursday',5=>'Friday',6=>'Saturday'];
+        $dayNames = [1=>'Monday',2=>'Tuesday',3=>'Wednesday',4=>'Thursday',5=>'Friday'];
         return redirect()->route('timetable.edit', [
             'class_id'   => $class_id,
             'section_id' => $section_id,
@@ -168,7 +168,7 @@ class TimetableController extends Controller
             }
         }
 
-        $days = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday'];
+        $days = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday'];
 
         // Load actual periods for each day (custom if set, else default)
         // periodsByDay[$weekday] = Collection of TimetablePeriod
@@ -282,7 +282,7 @@ class TimetableController extends Controller
                 ->get();
         }
 
-        $days = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday'];
+        $days = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday'];
 
         $grid = [];
         foreach ($routines as $routine) {
@@ -442,7 +442,7 @@ class TimetableController extends Controller
             ->where('session_id', $session_id)
             ->first();
 
-        $days = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday'];
+        $days = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday'];
 
         if (!$promotion) {
             return view('timetable.student', [
