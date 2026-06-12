@@ -25,6 +25,7 @@ class EventController extends Controller
             $data = Event::whereDate('start', '>=', $request->start)
                 ->whereDate('end', '<=', $request->end)
                 ->where('session_id', $current_school_session_id)
+                ->where('publish_to_calendar', true)
                 ->get(['id', 'title', 'start', 'end', 'activity_type', 'description',
                        'purpose', 'location', 'duration', 'participants', 'participant_count',
                        'skills_values', 'photo_url', 'outcome', 'created_by']);
@@ -55,9 +56,10 @@ class EventController extends Controller
                     'participants'      => $request->participants,
                     'participant_count' => $request->participant_count ?: null,
                     'skills_values'     => $request->skills_values,
-                    'photo_url'         => $request->photo_url ?: null,
-                    'outcome'           => $request->outcome,
-                    'created_by'        => $user->id,
+                    'photo_url'            => $request->photo_url ?: null,
+                    'outcome'              => $request->outcome,
+                    'publish_to_calendar'  => $request->boolean('publish_to_calendar'),
+                    'created_by'           => $user->id,
                 ]);
                 break;
 
@@ -79,8 +81,9 @@ class EventController extends Controller
                     'participants'      => $request->participants,
                     'participant_count' => $request->participant_count ?: null,
                     'skills_values'     => $request->skills_values,
-                    'photo_url'         => $request->photo_url ?: $event->photo_url,
-                    'outcome'           => $request->outcome,
+                    'photo_url'            => $request->photo_url ?: $event->photo_url,
+                    'outcome'              => $request->outcome,
+                    'publish_to_calendar'  => $request->boolean('publish_to_calendar'),
                 ]);
                 $event->refresh();
                 break;

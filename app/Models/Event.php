@@ -13,7 +13,7 @@ class Event extends Model
         'title', 'start', 'end', 'session_id',
         'activity_type', 'description', 'purpose', 'location', 'duration',
         'participants', 'participant_count', 'skills_values', 'photo_url', 'outcome',
-        'created_by',
+        'publish_to_calendar', 'created_by',
     ];
 
     public function creator()

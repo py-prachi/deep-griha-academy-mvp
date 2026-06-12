@@ -134,6 +134,14 @@
                             <label class="form-label">Pic (Google Drive link)</label>
                             <input type="url" class="form-control" name="photo_url" placeholder="Paste Google Drive share link">
                         </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="publish_to_calendar" id="create_publish" value="1">
+                                <label class="form-check-label" for="create_publish">
+                                    Publish to school calendar <span class="text-muted small">(visible to all teachers &amp; students)</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -203,6 +211,14 @@
                         <div class="col-12">
                             <label class="form-label">Pic (Google Drive link)</label>
                             <input type="url" class="form-control" id="edit_photo_url" name="photo_url">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="publish_to_calendar" id="edit_publish" value="1">
+                                <label class="form-check-label" for="edit_publish">
+                                    Publish to school calendar <span class="text-muted small">(visible to all teachers &amp; students)</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -364,6 +380,7 @@
             $('#edit_skills_values').val(currentEvent.skills_values || '');
             $('#edit_outcome').val(currentEvent.outcome || '');
             $('#edit_photo_url').val(currentEvent.photo_url || '');
+            $('#edit_publish').prop('checked', !!currentEvent.publish_to_calendar);
             setTimeout(function () {
                 new bootstrap.Modal(document.getElementById('editEventModal')).show();
             }, 300);
