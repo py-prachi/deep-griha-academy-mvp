@@ -80,7 +80,7 @@ class PromotionController extends Controller
                 $totalStudents += $ids->count();
                 if ($ids->isNotEmpty()) {
                     $promoted  = Promotion::where('session_id', $current_school_session_id)->whereIn('student_id', $ids)->count();
-                    $graduated = User::whereIn('id', $ids)->where('student_status', 'graduated')->count();
+                    $graduated = User::whereIn('id', $ids)->whereIn('student_status', ['graduated', 'exited'])->count();
                     $handled   = $promoted + $graduated;
                     $doneStudents += $handled;
                     if ($handled >= $ids->count()) {
@@ -90,8 +90,8 @@ class PromotionController extends Controller
                         foreach ($ids as $sid) {
                             $student = User::find($sid);
                             if (!$student) continue;
-                            if ($student->student_status === 'graduated') {
-                                $detail[] = ['name' => $student->first_name . ' ' . $student->last_name, 'new_class' => 'Graduated', 'new_section' => '—', 'graduated' => true];
+                            if (in_array($student->student_status, ['graduated', 'exited'])) {
+                                $detail[] = ['name' => $student->first_name . ' ' . $student->last_name, 'new_class' => ucfirst($student->student_status), 'new_section' => '—', 'graduated' => true];
                             } else {
                                 $newPromo = Promotion::with(['schoolClass', 'section'])->where('session_id', $current_school_session_id)->where('student_id', $sid)->first();
                                 $detail[] = [
@@ -159,7 +159,7 @@ class PromotionController extends Controller
             if ($sectionStudentIds->isEmpty()) continue;
 
             $promotedInNew  = Promotion::where('session_id', $current_school_session_id)->whereIn('student_id', $sectionStudentIds)->count();
-            $graduatedCount = User::whereIn('id', $sectionStudentIds)->where('student_status', 'graduated')->count();
+            $graduatedCount = User::whereIn('id', $sectionStudentIds)->whereIn('student_status', ['graduated', 'exited'])->count();
             $handledCount   = $promotedInNew + $graduatedCount;
 
             if ($handledCount >= $sectionStudentIds->count()) {
@@ -168,8 +168,8 @@ class PromotionController extends Controller
                 foreach ($sectionStudentIds as $sid) {
                     $student = User::find($sid);
                     if (!$student) continue;
-                    if ($student->student_status === 'graduated') {
-                        $detail[] = ['name' => $student->first_name . ' ' . $student->last_name, 'new_class' => 'Graduated', 'new_section' => '—', 'graduated' => true];
+                    if (in_array($student->student_status, ['graduated', 'exited'])) {
+                        $detail[] = ['name' => $student->first_name . ' ' . $student->last_name, 'new_class' => ucfirst($student->student_status), 'new_section' => '—', 'graduated' => true];
                     } else {
                         $newPromo = Promotion::with(['schoolClass', 'section'])->where('session_id', $current_school_session_id)->where('student_id', $sid)->first();
                         $detail[] = [

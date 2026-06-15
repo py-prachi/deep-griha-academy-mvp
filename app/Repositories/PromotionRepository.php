@@ -52,6 +52,7 @@ class PromotionRepository {
                 ->where('session_id', $session_id)
                 ->where('class_id', $class_id)
                 ->where('section_id', $section_id)
+                ->whereHas('student', fn($q) => $q->whereNotIn('student_status', ['exited', 'graduated']))
                 ->get();
     }
 

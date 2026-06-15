@@ -47,5 +47,11 @@ class StudentExitRepository implements StudentExitInterface
         $admission->status    = Admission::STATUS_EXITED;
         $admission->exit_date = $exitDate;
         $admission->save();
+
+        // Sync student_status on the user account so promotions skip them
+        if ($admission->student_user_id) {
+            \App\Models\User::where('id', $admission->student_user_id)
+                ->update(['student_status' => 'exited']);
+        }
     }
 }
