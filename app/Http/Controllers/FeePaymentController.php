@@ -54,9 +54,9 @@ class FeePaymentController extends Controller
     }
 
     // Calculates balance using fee payments only (excludes misc)
-    private function calculateBalance($student, $feeStructure, $student_id, float $discountPct = 0)
+    private function calculateBalance($student, $feeStructure, $student_id, float $discountPct = 0, $session_id = null)
     {
-        $feePayments = $this->feePaymentRepository->getFeePaymentsByStudent($student_id);
+        $feePayments = $this->feePaymentRepository->getFeePaymentsByStudent($student_id, $session_id);
         $totalPaid        = $feePayments->sum('amount_paid');
         $effectiveTuition = 0;
         if ($feeStructure) {
@@ -113,7 +113,7 @@ class FeePaymentController extends Controller
                         );
                     }
 
-                    $calc = $this->calculateBalance($student, $feeStructure, $student->id, $this->discountPct($student));
+                    $calc = $this->calculateBalance($student, $feeStructure, $student->id, $this->discountPct($student), $current_school_session_id);
 
                     $student->_promotion    = $promotion;
                     $student->_balance      = $calc['balance'];
@@ -158,11 +158,11 @@ class FeePaymentController extends Controller
             );
         }
 
-        // All payments for history display (fee + misc)
+        // All payments for history display (fee + misc) — unscoped, show full history
         $payments = $this->feePaymentRepository->getByStudent($student_id);
 
-        // Balance uses fee payments only, with discount applied for discount-category students
-        $calc = $this->calculateBalance($student, $feeStructure, $student_id, $discountPct);
+        // Balance uses fee payments for current session only
+        $calc = $this->calculateBalance($student, $feeStructure, $student_id, $discountPct, $current_school_session_id);
 
         return view('fees.ledger', [
             'student'          => $student,
@@ -200,7 +200,7 @@ class FeePaymentController extends Controller
             );
         }
 
-        $calc = $this->calculateBalance($student, $feeStructure, $student_id, $discountPct);
+        $calc = $this->calculateBalance($student, $feeStructure, $student_id, $discountPct, $current_school_session_id);
 
         return view('fees.create', [
             'student'          => $student,
@@ -254,6 +254,7 @@ class FeePaymentController extends Controller
         try {
             $payment = $this->feePaymentRepository->store([
                 'student_user_id'      => $student_id,
+                'session_id'           => $this->getSchoolCurrentSession(),
                 'payment_date'         => $request->payment_date,
                 'amount_paid'          => $request->amount_paid,
                 'payment_mode'         => $request->payment_mode,
@@ -303,7 +304,7 @@ class FeePaymentController extends Controller
                     $student->admission->class_id, $session->session_name, $resolvedCat
                 );
             }
-            $calc    = $this->calculateBalance($student, $feeStructure, $student->id, $discountPct);
+            $calc    = $this->calculateBalance($student, $feeStructure, $student->id, $discountPct, $current_school_session_id);
             $balance = $calc['balance'];
         }
 

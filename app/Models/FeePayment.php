@@ -9,6 +9,7 @@ class FeePayment extends Model
 
     protected $fillable = [
         'student_user_id',
+        'session_id',
         'challan_no',
         'payment_date',
         'amount_paid',

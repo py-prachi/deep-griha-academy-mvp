@@ -18,13 +18,15 @@ class FeePaymentRepository implements FeePaymentInterface
     }
 
     // Fee payments only — used for balance calculation
-    public function getFeePaymentsByStudent($student_user_id)
+    public function getFeePaymentsByStudent($student_user_id, $session_id = null)
     {
-        return FeePayment::with('lineItems', 'recordedBy')
+        $query = FeePayment::with('lineItems', 'recordedBy')
             ->where('student_user_id', $student_user_id)
-            ->where('payment_category', FeePayment::CATEGORY_FEE)
-            ->orderBy('payment_date', 'desc')
-            ->get();
+            ->where('payment_category', FeePayment::CATEGORY_FEE);
+        if ($session_id) {
+            $query->where('session_id', $session_id);
+        }
+        return $query->orderBy('payment_date', 'desc')->get();
     }
 
     public function store($data)
@@ -67,6 +69,7 @@ class FeePaymentRepository implements FeePaymentInterface
 
             $payment = FeePayment::create([
                 'student_user_id'      => $data['student_user_id'],
+                'session_id'           => $data['session_id'] ?? null,
                 'challan_no'           => FeePayment::nextChallanNo(),
                 'payment_date'         => $data['payment_date'],
                 'amount_paid'          => $data['amount_paid'],
@@ -188,6 +191,7 @@ class FeePaymentRepository implements FeePaymentInterface
             LEFT JOIN admissions a ON a.id = u.admission_id
             LEFT JOIN fee_payments fp ON fp.student_user_id = u.id
                 AND fp.payment_category = 'fee'
+                AND fp.session_id = ?
             WHERE u.role = 'student'
             GROUP BY u.id, u.first_name, u.last_name, u.fee_category,
                      u.admission_id, a.dga_admission_no, u.dga_admission_no,
@@ -196,23 +200,11 @@ class FeePaymentRepository implements FeePaymentInterface
                      a.discount_percentage, u.gender
             HAVING ROUND(balance, 0) >= 1
             ORDER BY sc.class_name, s.section_name, u.first_name
-        ", [$session_id, $session_id]);
+        ", [$session_id, $session_id, $session_id]);
     }
 
     public function getCategoryWiseSummary($session_id)
     {
-        // Derive academic year date range from session_name (e.g. "2025-2026" → Apr 2025 – Mar 2026)
-        $session = \App\Models\SchoolSession::find($session_id);
-        $startDate = null;
-        $endDate   = null;
-        if ($session) {
-            $parts = explode('-', $session->session_name);
-            $startYear = (int) trim($parts[0]);
-            $endYear   = isset($parts[1]) ? (int) trim($parts[1]) : $startYear + 1;
-            $startDate = $startYear . '-04-01';
-            $endDate   = $endYear   . '-03-31';
-        }
-
         return DB::select("
             SELECT
                 u.fee_category,
@@ -256,11 +248,11 @@ class FeePaymentRepository implements FeePaymentInterface
                 SELECT student_user_id, SUM(amount_paid) as amount_paid
                 FROM fee_payments
                 WHERE payment_category = 'fee'
-                AND payment_date >= ? AND payment_date <= ?
+                AND session_id = ?
                 GROUP BY student_user_id
             ) fp_totals ON fp_totals.student_user_id = u.id
             WHERE u.role = 'student'
             GROUP BY u.fee_category
-        ", [$session_id, $session_id, $startDate, $endDate]);
+        ", [$session_id, $session_id, $session_id]);
     }
 }

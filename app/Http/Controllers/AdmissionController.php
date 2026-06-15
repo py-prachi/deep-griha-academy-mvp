@@ -200,6 +200,7 @@ class AdmissionController extends Controller
             if ($request->filled('amount_paid') && $request->amount_paid > 0) {
                 $payment = $this->feePaymentRepository->store([
                     'student_user_id'      => $admission->student_user_id,
+                    'session_id'           => $this->getSchoolCurrentSession(),
                     'payment_date'         => $request->payment_date ?? now()->toDateString(),
                     'amount_paid'          => $request->amount_paid,
                     'payment_mode'         => $request->payment_mode ?? 'cash',
