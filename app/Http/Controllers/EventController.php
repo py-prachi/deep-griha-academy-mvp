@@ -105,11 +105,9 @@ class EventController extends Controller
 
     public function report(Request $request)
     {
-        $current_school_session_id = $this->getSchoolCurrentSession();
         $user = auth()->user();
 
-        $query = Event::where('session_id', $current_school_session_id)
-            ->with('creator');
+        $query = Event::with('creator');
 
         if ($request->filled('activity_type')) {
             $query->where('activity_type', 'like', '%' . $request->activity_type . '%');
@@ -136,10 +134,9 @@ class EventController extends Controller
 
     private function buildEventQuery(Request $request)
     {
-        $session_id = $this->getSchoolCurrentSession();
         $user = auth()->user();
 
-        $query = Event::where('session_id', $session_id)->with('creator');
+        $query = Event::with('creator');
 
         if ($request->filled('activity_type')) {
             $query->where('activity_type', 'like', '%' . $request->activity_type . '%');
