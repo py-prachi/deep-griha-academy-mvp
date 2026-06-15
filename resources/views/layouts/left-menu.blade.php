@@ -167,7 +167,7 @@
                         if ($prevSession && $latestSessionForMenu && $prevSession->id !== $latestSessionForMenu->id) {
                             $prevCount = \App\Models\Promotion::where('session_id', $prevSession->id)->count();
                             $newCount  = \App\Models\Promotion::where('session_id', $latestSessionForMenu->id)->count();
-                            $graduatedCount = \App\Models\User::where('student_status', 'graduated')->count();
+                            $graduatedCount = \App\Models\User::whereIn('student_status', ['graduated', 'exited'])->count();
                             $promotionPending = ($prevCount > 0 && $newCount < ($prevCount - $graduatedCount));
                         }
                     @endphp
