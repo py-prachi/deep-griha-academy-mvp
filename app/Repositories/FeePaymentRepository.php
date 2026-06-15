@@ -156,7 +156,11 @@ class FeePaymentRepository implements FeePaymentInterface
                               ELSE fs.tuition_fee END
                          * (1 - COALESCE(a.discount_percentage, 0) / 100))
                         + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
-                    ELSE fs.total_fee
+                    ELSE
+                        (CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
+                              THEN fs.girls_tuition_fee
+                              ELSE fs.tuition_fee END)
+                        + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
                     END
                 , 0) AS total_due,
                 COALESCE(SUM(fp.amount_paid), 0) AS total_paid,
@@ -167,7 +171,11 @@ class FeePaymentRepository implements FeePaymentInterface
                               ELSE fs.tuition_fee END
                          * (1 - COALESCE(a.discount_percentage, 0) / 100))
                         + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
-                    ELSE fs.total_fee
+                    ELSE
+                        (CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
+                              THEN fs.girls_tuition_fee
+                              ELSE fs.tuition_fee END)
+                        + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
                     END
                 , 0) - COALESCE(SUM(fp.amount_paid), 0) AS balance
             FROM users u
@@ -216,7 +224,11 @@ class FeePaymentRepository implements FeePaymentInterface
                               ELSE fs.tuition_fee END
                          * (1 - COALESCE(a.discount_percentage, 0) / 100))
                         + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
-                    ELSE COALESCE(fs.total_fee, 0)
+                    ELSE
+                        COALESCE(CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
+                              THEN fs.girls_tuition_fee
+                              ELSE fs.tuition_fee END, 0)
+                        + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
                     END
                 ), 0) AS total_due,
                 COALESCE(SUM(fp_totals.amount_paid), 0) AS total_collected,
@@ -227,7 +239,11 @@ class FeePaymentRepository implements FeePaymentInterface
                               ELSE fs.tuition_fee END
                          * (1 - COALESCE(a.discount_percentage, 0) / 100))
                         + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
-                    ELSE COALESCE(fs.total_fee, 0)
+                    ELSE
+                        COALESCE(CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
+                              THEN fs.girls_tuition_fee
+                              ELSE fs.tuition_fee END, 0)
+                        + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
                     END
                 ), 0) - COALESCE(SUM(fp_totals.amount_paid), 0) AS total_balance
             FROM users u
