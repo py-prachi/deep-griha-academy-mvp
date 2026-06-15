@@ -173,21 +173,34 @@ class FeeReportController extends Controller
         $sessions = $this->schoolSessionRepository->getAll();
         $selectedSessionId = $request->get('session_id', $this->getSchoolCurrentSession());
         $selectedSession = $sessions->firstWhere('id', $selectedSessionId);
-        $students = User::with(['admission'])
-            ->join('promotions', 'promotions.student_id', '=', 'users.id')
-            ->join('school_classes', 'school_classes.id', '=', 'promotions.class_id')
-            ->join('sections', 'sections.id', '=', 'promotions.section_id')
-            ->where('promotions.session_id', $selectedSessionId)
-            ->where('users.fee_category', 'rte')
-            ->where('users.role', 'student')
-            ->select('users.*', 'school_classes.class_name', 'sections.section_name')
-            ->orderBy('school_classes.id')
-            ->get();
+
+        $baseQuery = function ($category) use ($selectedSessionId) {
+            return User::with(['admission'])
+                ->join('promotions', 'promotions.student_id', '=', 'users.id')
+                ->join('school_classes', 'school_classes.id', '=', 'promotions.class_id')
+                ->join('sections', 'sections.id', '=', 'promotions.section_id')
+                ->where('promotions.session_id', $selectedSessionId)
+                ->where('users.fee_category', $category)
+                ->where('users.role', 'student')
+                ->select('users.*', 'school_classes.class_name', 'sections.section_name')
+                ->orderBy('school_classes.id')
+                ->get();
+        };
+
+        $rteStudents      = $baseQuery('rte');
+        $discountStudents = $baseQuery('discount');
+        $cocStudents      = $baseQuery('coc');
+
         if ($request->get('pdf')) {
+            $students = $rteStudents;
             $pdf = Pdf::loadView('reports.rte-pdf', compact('students'))->setPaper('a4', 'portrait');
             return $pdf->download('rte-students.pdf');
         }
-        return view('reports.rte', compact('students', 'sessions', 'selectedSessionId', 'selectedSession'));
+
+        return view('reports.rte', compact(
+            'rteStudents', 'discountStudents', 'cocStudents',
+            'sessions', 'selectedSessionId', 'selectedSession'
+        ));
     }
 
         public function miscSales(Request $request)

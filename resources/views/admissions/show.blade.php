@@ -229,8 +229,12 @@
                     </div>
 
                     <div class="mb-3" id="discountField" style="display:none;">
-                        <label class="form-label">Discounted Amount (₹)</label>
-                        <input type="number" name="discounted_amount" class="form-control" step="0.01">
+                        <label class="form-label">Discount % <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="number" name="discount_percentage" class="form-control" step="0.01" min="0" max="100" placeholder="e.g. 50">
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <div class="form-text">Applied on General category tuition fee for this student's class.</div>
                     </div>
 
                     <div class="mb-3">
@@ -251,7 +255,7 @@
                     @if(!$isPrePrimary)
                     <div class="mb-3">
                         <label class="form-label">General Register ID (from ZP Portal)</label>
-                        <input type="text" name="general_id" class="form-control" placeholder="11-digit ID">
+                        <input type="text" name="general_id" class="form-control" placeholder="11-digit ID" maxlength="11" pattern="\d{11}" inputmode="numeric">
                     </div>
                     @endif
 

@@ -147,7 +147,8 @@ class AdmissionRepository implements AdmissionInterface
 
             // Set fee category
             $admission->fee_category      = $data['fee_category'];
-            $admission->discounted_amount = $data['discounted_amount'] ?? null;
+            $admission->discount_percentage = isset($data['discount_percentage']) && $data['discount_percentage'] !== ''
+                ? $data['discount_percentage'] : null;
             $admission->section_id        = $data['section_id'] ?? $admission->section_id;
 
             // If already confirmed, bail out early

@@ -50,17 +50,11 @@
                                 <hr><h6 class="text-muted mb-3">Fee Components</h6>
                                 <div class="row mb-3">
                                     <div class="col-md-6">
-                                        <label class="form-label">Admission Fee (₹)</label>
-                                        <input type="number" name="admission_fee" id="admission_fee" step="0.01" min="0"
-                                            value="{{ old('admission_fee', $feeStructure->admission_fee) }}"
-                                            class="form-control" oninput="recalcTotals()">
-                                    </div>
-                                    <div class="col-md-6">
                                         <label class="form-label">Tuition Fee{{ $feeStructure->fee_category === 'general' ? ' — Boys' : '' }} (₹)</label>
                                         <input type="number" name="tuition_fee" id="tuition_fee" step="0.01" min="0"
                                             value="{{ old('tuition_fee', $feeStructure->tuition_fee) }}"
                                             class="form-control"
-                                            oninput="calcGirls(this.value)">
+                                            oninput="calcGirls(this.value); recalcTotals();">
                                     </div>
                                 </div>
                                 @if($feeStructure->fee_category === 'general')
@@ -119,17 +113,15 @@ function fmt(n) { return '₹' + n.toLocaleString('en-IN', {minimumFractionDigit
 function calcGirls(val) {
     var girls = document.getElementById('girls_tuition_fee');
     if (girls) {
-        girls.value = val ? Math.round(parseFloat(val) * 0.75 * 100) / 100 : 0;
+        girls.value = val ? (Math.round(parseFloat(val) * 0.75) + 50) : 0;
     }
-    recalcTotals();
 }
 
 function recalcTotals() {
-    var admission  = v('admission_fee');
     var boysTuition = v('tuition_fee');
-    var transport  = v('transport_fee');
-    var other      = v('other_fee');
-    var boysTotal  = admission + boysTuition + transport + other;
+    var transport   = v('transport_fee');
+    var other       = v('other_fee');
+    var boysTotal   = boysTuition + transport + other;
 
     var boysEl = document.getElementById('boys_total_display');
     if (boysEl) boysEl.textContent = fmt(boysTotal);
@@ -138,7 +130,7 @@ function recalcTotals() {
     var girlsEl    = document.getElementById('girls_total_display');
     if (girlsInput && girlsEl) {
         var girlsTuition = parseFloat(girlsInput.value) || 0;
-        girlsEl.textContent = fmt(admission + girlsTuition + transport + other);
+        girlsEl.textContent = fmt(girlsTuition + transport + other);
     }
 }
 

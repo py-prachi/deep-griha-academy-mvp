@@ -60,9 +60,8 @@ class FeeStructureController extends Controller
     {
         $request->validate([
             'class_id'          => 'required|exists:school_classes,id',
-            'fee_category'      => 'required|in:general,rte,coc,discount',
+            'fee_category'      => 'required|in:general,rte,coc',
             'academic_year'     => 'required|string',
-            'admission_fee'     => 'nullable|numeric|min:0',
             'tuition_fee'       => 'nullable|numeric|min:0',
             'girls_tuition_fee' => 'nullable|numeric|min:0',
             'transport_fee'     => 'nullable|numeric|min:0',
@@ -99,7 +98,6 @@ class FeeStructureController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'admission_fee'     => 'nullable|numeric|min:0',
             'tuition_fee'       => 'nullable|numeric|min:0',
             'girls_tuition_fee' => 'nullable|numeric|min:0',
             'transport_fee'     => 'nullable|numeric|min:0',
@@ -108,7 +106,7 @@ class FeeStructureController extends Controller
 
         try {
             $this->feeStructureRepository->update($id, $request->only([
-                'admission_fee', 'tuition_fee', 'girls_tuition_fee', 'transport_fee', 'other_fee'
+                'tuition_fee', 'girls_tuition_fee', 'transport_fee', 'other_fee'
             ]));
             return redirect()->route('fee-structures.index')
                 ->with('status', 'Fee structure updated successfully!');

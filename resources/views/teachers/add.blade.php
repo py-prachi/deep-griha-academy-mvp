@@ -69,7 +69,7 @@
                                     <input type="text" class="form-control form-control-sm" name="city" value="{{ old('city') }}" autocomplete="off">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">Zip</label>
+                                    <label class="form-label">PIN Code</label>
                                     <input type="text" class="form-control form-control-sm" name="zip" value="{{ old('zip') }}" autocomplete="off">
                                 </div>
 

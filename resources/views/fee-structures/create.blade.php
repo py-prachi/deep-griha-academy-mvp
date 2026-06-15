@@ -58,10 +58,6 @@
                                         <input type="text" class="form-control" value="{{ $session->session_name }}" readonly>
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label fw-bold">Admission Fee (₹)</label>
-                                        <input type="number" name="admission_fee" class="form-control" step="0.01" min="0" value="0">
-                                    </div>
-                                    <div class="col-md-3">
                                         <label class="form-label fw-bold">Tuition Fee — Boys (₹)</label>
                                         <input type="number" name="tuition_fee" id="tuition_fee" class="form-control" step="0.01" min="0" value="0"
                                             oninput="calcGirls(this.value)">
@@ -102,7 +98,7 @@ catSelect.addEventListener('change', function() {
 function calcGirls(val) {
     var girls = document.getElementById('girls_tuition_fee');
     if (document.querySelector('select[name="fee_category"]').value === 'general') {
-        girls.value = val ? Math.round(parseFloat(val) * 0.75 * 100) / 100 : 0;
+        girls.value = val ? (Math.round(parseFloat(val) * 0.75) + 50) : 0;
     }
 }
 </script>

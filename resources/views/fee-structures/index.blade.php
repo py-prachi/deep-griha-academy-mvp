@@ -50,7 +50,6 @@
                                     <th>Class</th>
                                     <th>Category</th>
                                     <th>Academic Year</th>
-                                    <th class="text-end">Admission</th>
                                     <th class="text-end">Tuition</th>
                                     <th class="text-end">Transport</th>
                                     <th class="text-end">Other</th>
@@ -62,15 +61,13 @@
                                 @foreach($feeStructures as $fs)
                                 @php
                                     $badgeClass = $fs->fee_category == 'rte' ? 'success'
-                                        : ($fs->fee_category == 'coc' ? 'info'
-                                        : ($fs->fee_category == 'discount' ? 'warning' : 'primary'));
+                                        : ($fs->fee_category == 'coc' ? 'info' : 'primary');
                                     $isGeneral  = $fs->fee_category === 'general';
-                                    // For general: use saved girls fee or default to 75% of boys tuition
                                     $girlsFee   = $isGeneral
-                                                    ? ($fs->girls_tuition_fee !== null ? $fs->girls_tuition_fee : round($fs->tuition_fee * 0.75, 2))
+                                                    ? ($fs->girls_tuition_fee !== null ? $fs->girls_tuition_fee : round($fs->tuition_fee * 0.75) + 50)
                                                     : null;
                                     $girlsTotal = $girlsFee !== null
-                                                    ? $fs->admission_fee + $girlsFee + $fs->transport_fee + $fs->other_fee
+                                                    ? $girlsFee + $fs->transport_fee + $fs->other_fee
                                                     : null;
                                 @endphp
                                 {{-- Boys row (or single row for non-general) --}}
@@ -83,7 +80,6 @@
                                         </span>
                                     </td>
                                     <td>{{ $fs->academic_year }}</td>
-                                    <td class="text-end">₹{{ number_format($fs->admission_fee, 2) }}</td>
                                     <td class="text-end">₹{{ number_format($fs->tuition_fee, 2) }}</td>
                                     <td class="text-end">₹{{ number_format($fs->transport_fee, 2) }}</td>
                                     <td class="text-end">₹{{ number_format($fs->other_fee, 2) }}</td>
@@ -104,7 +100,6 @@
                                         <span class="badge bg-primary">General — Girls</span>
                                     </td>
                                     <td>{{ $fs->academic_year }}</td>
-                                    <td class="text-end">₹{{ number_format($fs->admission_fee, 2) }}</td>
                                     <td class="text-end">₹{{ number_format($girlsFee, 2) }}</td>
                                     <td class="text-end">₹{{ number_format($fs->transport_fee, 2) }}</td>
                                     <td class="text-end">₹{{ number_format($fs->other_fee, 2) }}</td>

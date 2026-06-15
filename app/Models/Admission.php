@@ -22,6 +22,7 @@ class Admission extends Model
         'student_user_id',
         'fee_category',
         'discounted_amount',
+        'discount_percentage',
         'student_name',
         'date_of_birth',
         'gender',
@@ -66,7 +67,8 @@ class Admission extends Model
         'confirmed_date'     => 'date',
         'exit_date'          => 'date',
         'transport_required' => 'boolean',
-        'discounted_amount'  => 'decimal:2',
+        'discounted_amount'   => 'decimal:2',
+        'discount_percentage' => 'decimal:2',
     ];
 
     // ── STATUS CONSTANTS ──────────────────────────────────────────────────

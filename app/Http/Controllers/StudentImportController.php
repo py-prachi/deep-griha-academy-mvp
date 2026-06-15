@@ -302,6 +302,15 @@ class StudentImportController extends Controller
                 }
             }
 
+            // General ID checks
+            if ($d['general_id'] !== '') {
+                if (!preg_match('/^\d{11}$/', $d['general_id'])) {
+                    $errors[] = 'General ID must be exactly 11 digits';
+                } elseif (Admission::where('general_id', $d['general_id'])->exists()) {
+                    $errors[] = 'General ID ' . $d['general_id'] . ' already exists in the system';
+                }
+            }
+
             // Session / academic year
             $d['session_id']    = $session ? $session->id : null;
             $d['academic_year'] = $session ? $session->session_name : '';

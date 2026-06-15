@@ -41,7 +41,7 @@
                                 @else
                                 <div class="col-md-3">
                                     <label class="form-label">General ID <span class="text-muted small">(ZP Portal / SARAL)</span></label>
-                                    <input type="text" name="general_id" class="form-control" value="{{ old('general_id', $admission->general_id) }}" placeholder="11-digit ZP ID">
+                                    <input type="text" name="general_id" class="form-control" value="{{ old('general_id', $admission->general_id) }}" placeholder="11-digit ZP ID" maxlength="11" pattern="\d{11}" inputmode="numeric">
                                 </div>
                                 @endif
                                 <div class="col-md-3">

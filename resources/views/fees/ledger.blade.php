@@ -106,22 +106,28 @@
                         {{-- Fee Structure Breakdown --}}
                         @if($feeStructure)
                         <div class="card mb-3">
-                            <div class="card-header"><strong>Fee Structure Breakdown</strong></div>
+                            <div class="card-header d-flex align-items-center justify-content-between">
+                                <strong>Fee Structure Breakdown</strong>
+                                @if(($discountPct ?? 0) > 0)
+                                    <span class="badge bg-warning text-dark">{{ $discountPct }}% Discount Applied</span>
+                                @endif
+                            </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-3 text-center border-end">
-                                        <div class="text-muted small">Admission Fee</div>
-                                        <div class="fw-bold">₹{{ number_format($feeStructure->admission_fee, 2) }}</div>
-                                    </div>
-                                    <div class="col-md-3 text-center border-end">
+                                    <div class="col-md-4 text-center border-end">
                                         <div class="text-muted small">Tuition Fee</div>
-                                        <div class="fw-bold">₹{{ number_format($feeStructure->tuitionFeeForGender($student->gender ?? 'Male'), 2) }}</div>
+                                        @if(($discountPct ?? 0) > 0)
+                                            <div class="text-muted text-decoration-line-through small">₹{{ number_format($feeStructure->tuitionFeeForGender($student->gender ?? 'Male'), 2) }}</div>
+                                            <div class="fw-bold text-success">₹{{ number_format($effectiveTuition ?? 0, 2) }}</div>
+                                        @else
+                                            <div class="fw-bold">₹{{ number_format($effectiveTuition ?? $feeStructure->tuitionFeeForGender($student->gender ?? 'Male'), 2) }}</div>
+                                        @endif
                                     </div>
-                                    <div class="col-md-3 text-center border-end">
+                                    <div class="col-md-4 text-center border-end">
                                         <div class="text-muted small">Transport Fee</div>
                                         <div class="fw-bold">₹{{ number_format($feeStructure->transport_fee, 2) }}</div>
                                     </div>
-                                    <div class="col-md-3 text-center">
+                                    <div class="col-md-4 text-center">
                                         <div class="text-muted small">Other Fee</div>
                                         <div class="fw-bold">₹{{ number_format($feeStructure->other_fee, 2) }}</div>
                                     </div>
@@ -130,7 +136,7 @@
                         </div>
                         @else
                         <div class="alert alert-warning">
-                            No fee structure found for this student's class and category. Please <a href="{{ route('fee-structures.create') }}">set up a fee structure</a> first.
+                            No fee structure found for this student's class. Please <a href="{{ route('fee-structures.create') }}">set up a General fee structure</a> first.
                         </div>
                         @endif
 

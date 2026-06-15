@@ -64,13 +64,13 @@
                             <strong>Columns in the template:</strong>
                             <code>class_name</code> &nbsp;|&nbsp;
                             <code>fee_category</code> &nbsp;|&nbsp;
-                            <code>admission_fee</code> &nbsp;|&nbsp;
                             <code>tuition_fee (boys)</code> &nbsp;|&nbsp;
                             <code>transport_fee</code> &nbsp;|&nbsp;
                             <code>other_fee</code>
                             <br class="mt-1">
                             Total is auto-calculated. Academic year is taken from the current session.
-                            Girls tuition fee is auto-calculated at 75% of boys rate for general category.
+                            Fee categories: <code>general</code>, <code>rte</code>, <code>coc</code>.
+                            Girls tuition fee is auto-calculated at 75% + ₹50 of boys rate for general category.
                         </div>
                     </div>
                     @endif
@@ -108,7 +108,6 @@
                                             <th>Row</th>
                                             <th>Class</th>
                                             <th>Category</th>
-                                            <th class="text-end">Admission</th>
                                             <th class="text-end">Tuition (Boys)</th>
                                             <th class="text-end">Transport</th>
                                             <th class="text-end">Other</th>
@@ -129,11 +128,11 @@
                                             <td class="text-muted small">{{ $row['line'] }}</td>
                                             <td class="fw-semibold">{{ $d['class_name'] }}</td>
                                             <td>
-                                                @php $catColour = ['general'=>'primary','rte'=>'success','coc'=>'info','discount'=>'warning'][$d['fee_category']] ?? 'secondary'; @endphp
+                                                @php $catColour = ['general'=>'primary','rte'=>'success','coc'=>'info'][$d['fee_category']] ?? 'secondary'; @endphp
                                                 <span class="badge bg-{{ $catColour }}">{{ $d['fee_category'] }}</span>
                                             </td>
 
-                                            @foreach(['admission_fee','tuition_fee','transport_fee','other_fee'] as $field)
+                                            @foreach(['tuition_fee','transport_fee','other_fee'] as $field)
                                             @php
                                                 $newVal  = $d[$field] !== '' ? (float)$d[$field] : null;
                                                 $changed = isset($diff[$field]);

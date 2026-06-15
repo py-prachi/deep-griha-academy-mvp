@@ -41,7 +41,6 @@ class FeeStructureRepository implements FeeStructureInterface
             ],
             [
                 'session_id'        => $data['session_id'],
-                'admission_fee'     => $data['admission_fee']     ?? 0,
                 'tuition_fee'       => $data['tuition_fee']       ?? 0,
                 'girls_tuition_fee' => isset($data['girls_tuition_fee']) && $data['girls_tuition_fee'] !== ''
                                         ? $data['girls_tuition_fee'] : null,

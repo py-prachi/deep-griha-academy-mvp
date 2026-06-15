@@ -38,22 +38,40 @@ class FeePaymentController extends Controller
 
     // ── HELPERS ───────────────────────────────────────────────────────────
 
+    // Discount students use the general fee structure; resolve which category to look up
+    private function resolvedFeeCategory($feeCategory): string
+    {
+        return $feeCategory === 'discount' ? 'general' : ($feeCategory ?? 'general');
+    }
+
+    // For a discount student, pull their discount % from the admission record
+    private function discountPct($student): float
+    {
+        if (($student->fee_category ?? '') === 'discount' && $student->admission) {
+            return (float) ($student->admission->discount_percentage ?? 0);
+        }
+        return 0;
+    }
+
     // Calculates balance using fee payments only (excludes misc)
-    private function calculateBalance($student, $feeStructure, $student_id)
+    private function calculateBalance($student, $feeStructure, $student_id, float $discountPct = 0)
     {
         $feePayments = $this->feePaymentRepository->getFeePaymentsByStudent($student_id);
-        $totalPaid   = $feePayments->sum('amount_paid');
+        $totalPaid        = $feePayments->sum('amount_paid');
+        $effectiveTuition = 0;
         if ($feeStructure) {
             $effectiveTuition = $feeStructure->tuitionFeeForGender($student->gender ?? 'Male');
-            $totalDue = $feeStructure->admission_fee
-                      + $effectiveTuition
+            if ($discountPct > 0) {
+                $effectiveTuition = round($effectiveTuition * (1 - $discountPct / 100), 2);
+            }
+            $totalDue = $effectiveTuition
                       + $feeStructure->transport_fee
                       + $feeStructure->other_fee;
         } else {
             $totalDue = 0;
         }
         $balance = $totalDue - $totalPaid;
-        return compact('totalPaid', 'totalDue', 'balance');
+        return compact('totalPaid', 'totalDue', 'balance', 'effectiveTuition');
     }
 
     // ── COLLECT FEE (search entry point) ─────────────────────────────────
@@ -84,17 +102,18 @@ class FeePaymentController extends Controller
 
                     $admission = $student->admission;
                     $feeStructure = null;
+                    $resolvedCat  = $this->resolvedFeeCategory($student->fee_category);
                     if ($promotion) {
                         $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
-                            $promotion->class_id, $session->session_name, $student->fee_category ?? 'general'
+                            $promotion->class_id, $session->session_name, $resolvedCat
                         );
                     } elseif ($admission) {
                         $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
-                            $admission->class_id, $session->session_name, $admission->fee_category ?? 'general'
+                            $admission->class_id, $session->session_name, $resolvedCat
                         );
                     }
 
-                    $calc = $this->calculateBalance($student, $feeStructure, $student->id);
+                    $calc = $this->calculateBalance($student, $feeStructure, $student->id, $this->discountPct($student));
 
                     $student->_promotion    = $promotion;
                     $student->_balance      = $calc['balance'];
@@ -121,36 +140,40 @@ class FeePaymentController extends Controller
             ->first();
 
         $feeStructure = null;
-        $admission = $student->admission;
+        $admission    = $student->admission;
+        $resolvedCat  = $this->resolvedFeeCategory($student->fee_category);
+        $discountPct  = $this->discountPct($student);
+
         if ($promotion) {
             $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
                 $promotion->class_id,
                 $session->session_name,
-                $student->fee_category ?? 'general'
+                $resolvedCat
             );
         } elseif ($admission) {
-            // Fallback for students without a promotion record
             $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
                 $admission->class_id,
                 $session->session_name,
-                $admission->fee_category ?? 'general'
+                $resolvedCat
             );
         }
 
         // All payments for history display (fee + misc)
         $payments = $this->feePaymentRepository->getByStudent($student_id);
 
-        // Balance uses fee payments only
-        $calc = $this->calculateBalance($student, $feeStructure, $student_id);
+        // Balance uses fee payments only, with discount applied for discount-category students
+        $calc = $this->calculateBalance($student, $feeStructure, $student_id, $discountPct);
 
         return view('fees.ledger', [
-            'student'      => $student,
-            'promotion'    => $promotion,
-            'feeStructure' => $feeStructure,
-            'payments'     => $payments,
-            'totalDue'     => $calc['totalDue'],
-            'totalPaid'    => $calc['totalPaid'],
-            'balance'      => $calc['balance'],
+            'student'          => $student,
+            'promotion'        => $promotion,
+            'feeStructure'     => $feeStructure,
+            'payments'         => $payments,
+            'totalDue'         => $calc['totalDue'],
+            'totalPaid'        => $calc['totalPaid'],
+            'balance'          => $calc['balance'],
+            'effectiveTuition' => $calc['effectiveTuition'],
+            'discountPct'      => $discountPct,
         ]);
     }
 
@@ -168,20 +191,23 @@ class FeePaymentController extends Controller
             ->first();
 
         $feeStructure = null;
+        $discountPct  = $this->discountPct($student);
         if ($promotion) {
             $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
                 $promotion->class_id,
                 $session->session_name,
-                $student->fee_category ?? 'general'
+                $this->resolvedFeeCategory($student->fee_category)
             );
         }
 
-        $calc = $this->calculateBalance($student, $feeStructure, $student_id);
+        $calc = $this->calculateBalance($student, $feeStructure, $student_id, $discountPct);
 
         return view('fees.create', [
-            'student'      => $student,
-            'promotion'    => $promotion,
-            'feeStructure' => $feeStructure,
+            'student'          => $student,
+            'promotion'        => $promotion,
+            'feeStructure'     => $feeStructure,
+            'discountPct'      => $discountPct,
+            'effectiveTuition' => $calc['effectiveTuition'],
             'totalDue'     => $calc['totalDue'],
             'totalPaid'    => $calc['totalPaid'],
             'balance'      => $calc['balance'],

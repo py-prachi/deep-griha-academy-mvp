@@ -48,7 +48,6 @@
                                             {{-- General: boys + girls --}}
                                             <th colspan="2" class="text-center">General</th>
                                             <th class="text-center">RTE</th>
-                                            <th class="text-center">Discount</th>
                                             <th class="text-center">COC</th>
                                         </tr>
                                         <tr class="table-secondary">
@@ -56,19 +55,17 @@
                                             <th class="text-center small">Girls Total</th>
                                             <th class="text-center small">Total</th>
                                             <th class="text-center small">Total</th>
-                                            <th class="text-center small">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach($classes as $class)
                                         @php
-                                            $gen      = isset($structured[$class->id]['general'])  ? $structured[$class->id]['general']  : null;
-                                            $rte      = isset($structured[$class->id]['rte'])      ? $structured[$class->id]['rte']      : null;
-                                            $disc     = isset($structured[$class->id]['discount']) ? $structured[$class->id]['discount'] : null;
-                                            $coc      = isset($structured[$class->id]['coc'])      ? $structured[$class->id]['coc']      : null;
+                                            $gen  = $structured[$class->id]['general'] ?? null;
+                                            $rte  = $structured[$class->id]['rte']     ?? null;
+                                            $coc  = $structured[$class->id]['coc']     ?? null;
 
-                                            $girlsFee = $gen ? ($gen->girls_tuition_fee !== null ? $gen->girls_tuition_fee : $gen->tuition_fee) : null;
-                                            $girlsTotal = $gen ? ($gen->admission_fee + $girlsFee + $gen->transport_fee + $gen->other_fee) : null;
+                                            $girlsFee   = $gen ? ($gen->girls_tuition_fee !== null ? $gen->girls_tuition_fee : round($gen->tuition_fee * 0.75) + 50) : null;
+                                            $girlsTotal = $gen ? ($girlsFee + $gen->transport_fee + $gen->other_fee) : null;
                                         @endphp
                                         <tr>
                                             <td class="fw-semibold">{{ $class->class_name }}</td>
@@ -78,8 +75,7 @@
                                                 @if($gen)
                                                     <span class="fw-bold">₹{{ number_format($gen->total_fee, 0) }}</span>
                                                     <div class="text-muted small fee-breakdown">
-                                                        Adm: ₹{{ number_format($gen->admission_fee,0) }}
-                                                        &nbsp;|&nbsp; Tuit: ₹{{ number_format($gen->tuition_fee,0) }}
+                                                        Tuit: ₹{{ number_format($gen->tuition_fee,0) }}
                                                         @if($gen->transport_fee > 0) &nbsp;|&nbsp; Trans: ₹{{ number_format($gen->transport_fee,0) }} @endif
                                                         @if($gen->other_fee > 0) &nbsp;|&nbsp; Other: ₹{{ number_format($gen->other_fee,0) }} @endif
                                                     </div>
@@ -93,8 +89,7 @@
                                                 @if($gen)
                                                     <span class="fw-bold">₹{{ number_format($girlsTotal, 0) }}</span>
                                                     <div class="text-muted small fee-breakdown">
-                                                        Adm: ₹{{ number_format($gen->admission_fee,0) }}
-                                                        &nbsp;|&nbsp; Tuit: ₹{{ number_format($girlsFee,0) }}
+                                                        Tuit: ₹{{ number_format($girlsFee,0) }}
                                                         @if($gen->transport_fee > 0) &nbsp;|&nbsp; Trans: ₹{{ number_format($gen->transport_fee,0) }} @endif
                                                         @if($gen->other_fee > 0) &nbsp;|&nbsp; Other: ₹{{ number_format($gen->other_fee,0) }} @endif
                                                     </div>
@@ -107,19 +102,6 @@
                                             <td class="text-center">
                                                 @if($rte)
                                                     <span class="badge bg-success">₹{{ number_format($rte->total_fee, 0) }}</span>
-                                                @else
-                                                    <span class="text-muted">—</span>
-                                                @endif
-                                            </td>
-
-                                            {{-- Discount --}}
-                                            <td class="text-end">
-                                                @if($disc)
-                                                    <span class="fw-bold">₹{{ number_format($disc->total_fee, 0) }}</span>
-                                                    <div class="text-muted small fee-breakdown">
-                                                        Tuit: ₹{{ number_format($disc->tuition_fee,0) }}
-                                                        @if($disc->transport_fee > 0) &nbsp;|&nbsp; Trans: ₹{{ number_format($disc->transport_fee,0) }} @endif
-                                                    </div>
                                                 @else
                                                     <span class="text-muted">—</span>
                                                 @endif

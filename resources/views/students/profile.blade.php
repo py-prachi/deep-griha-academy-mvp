@@ -90,18 +90,20 @@
                                             <tr>
                                                 <th scope="row">City:</th>
                                                 <td>{{$student->city ?? '—'}}</td>
-                                                <th>Zip:</th>
+                                                <th>PIN Code:</th>
                                                 <td>{{$student->zip ?? '—'}}</td>
                                             </tr>
                                             <tr>
-                                                <th scope="row">Blood Type:</th>
+                                                <th scope="row">Transport:</th>
+                                                <td>{{ $a && $a->transport_required ? 'Yes' : 'No' }}</td>
+                                                <th>Blood Type:</th>
                                                 <td>{{$student->blood_type ?? '—'}}</td>
-                                                <th>Phone:</th>
-                                                <td>{{$student->phone ?? '—'}}</td>
                                             </tr>
                                             <tr>
-                                                <th scope="row">Gender:</th>
-                                                <td colspan="3">{{$student->gender ?? '—'}}</td>
+                                                <th scope="row">Phone:</th>
+                                                <td>{{$student->phone ?? '—'}}</td>
+                                                <th>Gender:</th>
+                                                <td>{{$student->gender ?? '—'}}</td>
                                             </tr>
                                         </tbody>
                                     </table>

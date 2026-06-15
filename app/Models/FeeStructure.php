@@ -14,7 +14,6 @@ class FeeStructure extends Model
         'session_id',
         'academic_year',
         'fee_category',
-        'admission_fee',
         'tuition_fee',
         'girls_tuition_fee',
         'transport_fee',
@@ -22,17 +21,15 @@ class FeeStructure extends Model
         'total_fee',
     ];
 
-    const CATEGORIES = ['general', 'rte', 'coc', 'discount'];
+    const CATEGORIES = ['general', 'rte', 'coc'];
 
     const CATEGORY_LABELS = [
-        'general'  => 'General',
-        'rte'      => 'RTE',
-        'coc'      => 'COC',
-        'discount' => 'Discount',
+        'general' => 'General',
+        'rte'     => 'RTE',
+        'coc'     => 'COC',
     ];
 
     protected $casts = [
-        'admission_fee'     => 'decimal:2',
         'tuition_fee'       => 'decimal:2',
         'girls_tuition_fee' => 'decimal:2',
         'transport_fee'     => 'decimal:2',
@@ -63,10 +60,9 @@ class FeeStructure extends Model
     {
         static::saving(function ($feeStructure) {
             $feeStructure->total_fee =
-                $feeStructure->admission_fee +
-                $feeStructure->tuition_fee +
-                $feeStructure->transport_fee +
-                $feeStructure->other_fee;
+                ($feeStructure->tuition_fee  ?? 0) +
+                ($feeStructure->transport_fee ?? 0) +
+                ($feeStructure->other_fee     ?? 0);
         });
     }
 }

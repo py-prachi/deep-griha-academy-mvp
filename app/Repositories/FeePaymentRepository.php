@@ -149,22 +149,42 @@ class FeePaymentRepository implements FeePaymentInterface
                 u.general_id,
                 sc.class_name,
                 s.section_name,
-                COALESCE(fs.total_fee, 0) AS total_due,
+                COALESCE(
+                    CASE WHEN u.fee_category = 'discount' THEN
+                        (CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
+                              THEN fs.girls_tuition_fee
+                              ELSE fs.tuition_fee END
+                         * (1 - COALESCE(a.discount_percentage, 0) / 100))
+                        + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
+                    ELSE fs.total_fee
+                    END
+                , 0) AS total_due,
                 COALESCE(SUM(fp.amount_paid), 0) AS total_paid,
-                COALESCE(fs.total_fee, 0) - COALESCE(SUM(fp.amount_paid), 0) AS balance
+                COALESCE(
+                    CASE WHEN u.fee_category = 'discount' THEN
+                        (CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
+                              THEN fs.girls_tuition_fee
+                              ELSE fs.tuition_fee END
+                         * (1 - COALESCE(a.discount_percentage, 0) / 100))
+                        + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
+                    ELSE fs.total_fee
+                    END
+                , 0) - COALESCE(SUM(fp.amount_paid), 0) AS balance
             FROM users u
             JOIN promotions p ON p.student_id = u.id AND p.session_id = ?
             JOIN school_classes sc ON sc.id = p.class_id
             JOIN sections s ON s.id = p.section_id
             LEFT JOIN fee_structures fs ON fs.class_id = p.class_id
                 AND fs.session_id = ?
-                AND fs.fee_category = u.fee_category
+                AND fs.fee_category = CASE WHEN u.fee_category = 'discount' THEN 'general' ELSE u.fee_category END
+            LEFT JOIN admissions a ON a.id = u.admission_id
             LEFT JOIN fee_payments fp ON fp.student_user_id = u.id
                 AND fp.payment_category = 'fee'
             WHERE u.role = 'student'
             GROUP BY u.id, u.first_name, u.last_name, u.fee_category,
                      u.admission_id, u.dga_admission_no, u.general_id, sc.class_name, s.section_name,
-                     fs.total_fee
+                     fs.total_fee, fs.tuition_fee, fs.girls_tuition_fee, fs.transport_fee, fs.other_fee,
+                     a.discount_percentage, u.gender
             HAVING balance > 0
             ORDER BY sc.class_name, s.section_name, u.first_name
         ", [$session_id, $session_id]);
@@ -188,14 +208,33 @@ class FeePaymentRepository implements FeePaymentInterface
             SELECT
                 u.fee_category,
                 COUNT(DISTINCT u.id) AS student_count,
-                COALESCE(SUM(fs.total_fee), 0) AS total_due,
+                COALESCE(SUM(
+                    CASE WHEN u.fee_category = 'discount' THEN
+                        (CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
+                              THEN fs.girls_tuition_fee
+                              ELSE fs.tuition_fee END
+                         * (1 - COALESCE(a.discount_percentage, 0) / 100))
+                        + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
+                    ELSE COALESCE(fs.total_fee, 0)
+                    END
+                ), 0) AS total_due,
                 COALESCE(SUM(fp_totals.amount_paid), 0) AS total_collected,
-                COALESCE(SUM(fs.total_fee), 0) - COALESCE(SUM(fp_totals.amount_paid), 0) AS total_balance
+                COALESCE(SUM(
+                    CASE WHEN u.fee_category = 'discount' THEN
+                        (CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
+                              THEN fs.girls_tuition_fee
+                              ELSE fs.tuition_fee END
+                         * (1 - COALESCE(a.discount_percentage, 0) / 100))
+                        + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
+                    ELSE COALESCE(fs.total_fee, 0)
+                    END
+                ), 0) - COALESCE(SUM(fp_totals.amount_paid), 0) AS total_balance
             FROM users u
             JOIN promotions p ON p.student_id = u.id AND p.session_id = ?
             LEFT JOIN fee_structures fs ON fs.class_id = p.class_id
                 AND fs.session_id = ?
-                AND fs.fee_category = u.fee_category
+                AND fs.fee_category = CASE WHEN u.fee_category = 'discount' THEN 'general' ELSE u.fee_category END
+            LEFT JOIN admissions a ON a.id = u.admission_id
             LEFT JOIN (
                 SELECT student_user_id, SUM(amount_paid) as amount_paid
                 FROM fee_payments

@@ -72,10 +72,9 @@ class FeeStructureImportController extends Controller
             $d = [
                 'class_name'    => trim((string) ($row[0] ?? '')),
                 'fee_category'  => strtolower(trim((string) ($row[1] ?? ''))),
-                'admission_fee' => trim((string) ($row[2] ?? '')),
-                'tuition_fee'   => trim((string) ($row[3] ?? '')),
-                'transport_fee' => trim((string) ($row[4] ?? '')),
-                'other_fee'     => trim((string) ($row[5] ?? '')),
+                'tuition_fee'   => trim((string) ($row[2] ?? '')),
+                'transport_fee' => trim((string) ($row[3] ?? '')),
+                'other_fee'     => trim((string) ($row[4] ?? '')),
             ];
 
             $errors = [];
@@ -90,11 +89,11 @@ class FeeStructureImportController extends Controller
 
             if ($d['fee_category'] === '') {
                 $errors[] = 'fee_category is required';
-            } elseif (!in_array($d['fee_category'], ['general', 'rte', 'coc', 'discount'])) {
-                $errors[] = 'fee_category must be general / rte / coc / discount';
+            } elseif (!in_array($d['fee_category'], ['general', 'rte', 'coc'])) {
+                $errors[] = 'fee_category must be general / rte / coc';
             }
 
-            foreach (['admission_fee', 'tuition_fee', 'transport_fee', 'other_fee'] as $field) {
+            foreach (['tuition_fee', 'transport_fee', 'other_fee'] as $field) {
                 if ($d[$field] !== '' && !is_numeric($d[$field])) {
                     $errors[] = $field . ' must be a number';
                 }
@@ -117,7 +116,6 @@ class FeeStructureImportController extends Controller
             $diff = [];
             if ($existing) {
                 $compareFields = [
-                    'admission_fee' => (float) ($d['admission_fee'] !== '' ? $d['admission_fee'] : 0),
                     'tuition_fee'   => (float) ($d['tuition_fee']   !== '' ? $d['tuition_fee']   : 0),
                     'transport_fee' => (float) ($d['transport_fee'] !== '' ? $d['transport_fee'] : 0),
                     'other_fee'     => (float) ($d['other_fee']     !== '' ? $d['other_fee']     : 0),
@@ -175,9 +173,8 @@ class FeeStructureImportController extends Controller
                     'session_id'        => $d['session_id'],
                     'academic_year'     => $d['academic_year'],
                     'fee_category'      => $d['fee_category'],
-                    'admission_fee'     => $d['admission_fee'] !== '' ? $d['admission_fee'] : 0,
                     'tuition_fee'       => $tuitionFee,
-                    'girls_tuition_fee' => $d['fee_category'] === 'general' ? round($tuitionFee * 0.75, 2) : null,
+                    'girls_tuition_fee' => $d['fee_category'] === 'general' ? round($tuitionFee * 0.75) + 50 : null,
                     'transport_fee'     => $d['transport_fee'] !== '' ? $d['transport_fee'] : 0,
                     'other_fee'         => $d['other_fee']     !== '' ? $d['other_fee']     : 0,
                 ]);

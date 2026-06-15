@@ -141,6 +141,10 @@ class AdmissionController extends Controller
     // ── UPDATE ADMISSION ──────────────────────────────────────────────────
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'general_id' => 'nullable|digits:11|unique:admissions,general_id,' . $id,
+        ]);
+
         try {
             $admission = $this->admissionRepository->update($id, $request->all());
             // Keep promotion id_card_number in sync when general_id is updated
@@ -173,6 +177,8 @@ class AdmissionController extends Controller
         $request->validate([
             'fee_category'   => 'required|in:general,rte,coc,discount',
             'section_id'     => 'required|exists:sections,id',
+            'general_id'          => 'nullable|digits:11|unique:admissions,general_id',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100|required_if:fee_category,discount',
             'payment_date'   => 'nullable|date',
             'amount_paid'    => 'nullable|numeric|min:1',
             'payment_mode'   => 'nullable|in:cash,cheque,qr',
