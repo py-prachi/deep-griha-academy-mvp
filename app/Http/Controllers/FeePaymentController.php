@@ -292,16 +292,18 @@ class FeePaymentController extends Controller
         $balance = null;
         if ($payment->payment_category === 'fee') {
             $feeStructure = null;
+            $resolvedCat  = $this->resolvedFeeCategory($student->fee_category);
+            $discountPct  = $this->discountPct($student);
             if ($promotion) {
                 $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
-                    $promotion->class_id, $session->session_name, $student->fee_category ?? 'general'
+                    $promotion->class_id, $session->session_name, $resolvedCat
                 );
             } elseif ($student->admission) {
                 $feeStructure = $this->feeStructureRepository->getByClassAndCategory(
-                    $student->admission->class_id, $session->session_name, $student->admission->fee_category ?? 'general'
+                    $student->admission->class_id, $session->session_name, $resolvedCat
                 );
             }
-            $calc    = $this->calculateBalance($student, $feeStructure, $student->id);
+            $calc    = $this->calculateBalance($student, $feeStructure, $student->id, $discountPct);
             $balance = $calc['balance'];
         }
 

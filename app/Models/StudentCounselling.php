@@ -23,6 +23,11 @@ class StudentCounselling extends Model
         return $this->belongsTo(SchoolSession::class, 'session_id');
     }
 
+    public function remarkLogs()
+    {
+        return $this->hasMany(CounsellingRemark::class, 'counselling_id')->orderBy('remark_date')->orderBy('created_at');
+    }
+
     public function isActive()
     {
         return is_null($this->end_date);

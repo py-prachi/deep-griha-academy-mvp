@@ -81,10 +81,49 @@
                                                 <th>Gender:</th>
                                                 <td>{{$teacher->gender}}</td>
                                             </tr>
-                                            <tr>
-                                            </tr>
                                         </tbody>
                                     </table>
+                                </div>
+
+                                {{-- Class Assignments card --}}
+                                <div class="p-3 border rounded bg-white">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0"><i class="bi bi-person-badge me-1"></i> Current Class Assignments</h6>
+                                        @can('edit users')
+                                        <a href="{{ route('academics.teacher-assignments') }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil me-1"></i> Manage Assignments
+                                        </a>
+                                        @endcan
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="text-muted small fw-semibold mb-1">Class Teacher</div>
+                                        @if($classTeacher)
+                                            <span class="badge bg-success fs-6 fw-normal">
+                                                {{ optional($classTeacher->schoolClass)->class_name }} —
+                                                {{ optional($classTeacher->section)->section_name }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted small">Not assigned as class teacher</span>
+                                        @endif
+                                    </div>
+
+                                    <div>
+                                        <div class="text-muted small fw-semibold mb-1">Subject Teacher</div>
+                                        @if($subjectTeachers->isEmpty())
+                                            <span class="text-muted small">No subject assignments</span>
+                                        @else
+                                            <div class="d-flex flex-wrap gap-1">
+                                                @foreach($subjectTeachers as $st)
+                                                <span class="badge bg-light text-dark border" style="font-size:0.8rem;">
+                                                    {{ optional($st->subject)->name }}
+                                                    <span class="text-muted">·</span>
+                                                    {{ optional($st->schoolClass)->class_name }} {{ optional($st->section)->section_name }}
+                                                </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </div>

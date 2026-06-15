@@ -172,10 +172,20 @@ class UserController extends Controller
 
     public function showTeacherProfile($id) {
         $teacher = $this->userRepository->findTeacher($id);
-        $data = [
-            'teacher'   => $teacher,
-        ];
-        return view('teachers.profile', $data);
+        $session_id = $this->getSchoolCurrentSession();
+
+        $classTeacher = \App\Models\ClassTeacher::with(['schoolClass', 'section'])
+            ->where('teacher_id', $id)
+            ->where('session_id', $session_id)
+            ->first();
+
+        $subjectTeachers = \App\Models\SubjectTeacher::with(['subject', 'schoolClass', 'section'])
+            ->where('teacher_id', $id)
+            ->where('session_id', $session_id)
+            ->orderBy('class_id')
+            ->get();
+
+        return view('teachers.profile', compact('teacher', 'classTeacher', 'subjectTeachers'));
     }
 
 
@@ -287,5 +297,21 @@ class UserController extends Controller
         $user->password = Hash::make($default);
         $user->save();
         return back()->with('success', 'Password reset to default for ' . $user->first_name . ' ' . $user->last_name . '.');
+    }
+
+    public function deleteTeacher($id)
+    {
+        $teacher = User::where('id', $id)->where('role', 'teacher')->firstOrFail();
+        $name = $teacher->first_name . ' ' . $teacher->last_name;
+
+        // Clean up tables without cascade FK
+        \DB::table('assigned_teachers')->where('teacher_id', $id)->delete();
+        \DB::table('assignments')->where('teacher_id', $id)->delete();
+
+        // class_teachers and subject_teachers cascade automatically
+        $teacher->delete();
+
+        return redirect()->route('teacher.list.show')
+            ->with('status', $name . ' has been deleted.');
     }
 }

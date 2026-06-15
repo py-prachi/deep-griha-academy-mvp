@@ -16,6 +16,7 @@
                             <li class="breadcrumb-item active" aria-current="page">Teacher List</li>
                         </ol>
                     </nav>
+                    @include('session-messages')
                     <div class="mb-4 p-3 bg-white border shadow-sm">
                         <table class="table table-responsive">
                             <thead>
@@ -56,7 +57,35 @@
                                             @csrf
                                             <button class="btn btn-sm btn-outline-warning py-0 px-2 ms-1"><i class="bi bi-key"></i> Reset PW</button>
                                         </form>
+                                        <button class="btn btn-sm btn-outline-danger py-0 px-2 ms-1"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteTeacherModal{{ $teacher->id }}">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
                                         @endcan
+
+                                        {{-- Delete confirmation modal --}}
+                                        <div class="modal fade" id="deleteTeacherModal{{ $teacher->id }}" tabindex="-1">
+                                            <div class="modal-dialog modal-sm">
+                                                <form method="POST" action="{{ route('teacher.delete', $teacher->id) }}">
+                                                    @csrf @method('DELETE')
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-danger text-white">
+                                                            <h6 class="modal-title"><i class="bi bi-exclamation-triangle me-1"></i> Delete Teacher</h6>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p class="mb-1">Delete <strong>{{ $teacher->first_name }} {{ $teacher->last_name }}</strong>?</p>
+                                                            <p class="text-muted small mb-0">This will remove their class and subject assignments. This cannot be undone.</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                                 @endforeach

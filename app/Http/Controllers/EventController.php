@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Traits\SchoolSession;
 use App\Interfaces\SchoolSessionInterface;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class EventController extends Controller
 {
@@ -133,5 +134,64 @@ class EventController extends Controller
         return view('events.report', compact('events', 'teachers'));
     }
 
+    private function buildEventQuery(Request $request)
+    {
+        $session_id = $this->getSchoolCurrentSession();
+        $user = auth()->user();
 
+        $query = Event::where('session_id', $session_id)->with('creator');
+
+        if ($request->filled('activity_type')) {
+            $query->where('activity_type', 'like', '%' . $request->activity_type . '%');
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('start', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('start', '<=', $request->date_to);
+        }
+        if ($user->role !== 'admin') {
+            $query->where('created_by', $user->id);
+        } elseif ($request->filled('created_by')) {
+            $query->where('created_by', $request->created_by);
+        }
+
+        return $query->orderBy('start', 'desc');
+    }
+
+    public function reportPdf(Request $request)
+    {
+        $events   = $this->buildEventQuery($request)->get();
+        $user     = auth()->user();
+        $filters  = array_filter([
+            'Activity Type' => $request->activity_type,
+            'From'          => $request->date_from,
+            'To'            => $request->date_to,
+            'Teacher'       => $request->filled('created_by')
+                ? optional(User::find($request->created_by))->full_name
+                : null,
+        ]);
+
+        $pdf = Pdf::loadView('events.report-pdf', compact('events', 'user', 'filters'))
+            ->setPaper('a4', 'landscape');
+
+        $filename = 'event-report-' . now()->format('Y-m-d') . '.pdf';
+        return $pdf->download($filename);
+    }
+
+    public function eventPdf($id)
+    {
+        $event = Event::with('creator')->findOrFail($id);
+        $user  = auth()->user();
+
+        if ($user->role !== 'admin' && $event->created_by !== $user->id) {
+            abort(403);
+        }
+
+        $pdf = Pdf::loadView('events.event-pdf', compact('event', 'user'))
+            ->setPaper('a4', 'portrait');
+
+        $filename = 'event-' . \Str::slug($event->title) . '-' . \Carbon\Carbon::parse($event->start)->format('Y-m-d') . '.pdf';
+        return $pdf->download($filename);
+    }
 }

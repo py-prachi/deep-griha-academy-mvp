@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\StudentCounselling;
+use App\Models\CounsellingRemark;
 use App\Models\User;
 use App\Models\Promotion;
 use App\Traits\SchoolSession;
@@ -28,25 +29,25 @@ class CounsellingController extends Controller
     {
         $session_id = $this->getSchoolCurrentSession();
 
-        $active = StudentCounselling::with(['student'])
-            ->where('session_id', $session_id)
+        // No session filter — counselling records persist across academic years
+        $active = StudentCounselling::with(['student.admission', 'remarkLogs'])
             ->whereNull('end_date')
             ->orderBy('start_date', 'desc')
             ->get()
             ->map(fn($c) => $this->withClassInfo($c, $session_id));
 
-        $past = StudentCounselling::with(['student'])
-            ->where('session_id', $session_id)
+        $past = StudentCounselling::with(['student.admission', 'remarkLogs'])
             ->whereNotNull('end_date')
             ->orderBy('end_date', 'desc')
             ->get()
             ->map(fn($c) => $this->withClassInfo($c, $session_id));
 
-        // Students for the add dropdown — all active students in current session
-        $students = Promotion::with(['student', 'schoolClass', 'section'])
+        // Students for the add dropdown — all active students in current session, keyed by general_id
+        $students = Promotion::with(['student.admission', 'schoolClass', 'section'])
             ->where('session_id', $session_id)
             ->get()
-            ->sortBy(fn($p) => optional($p->student)->first_name)
+            ->filter(fn($p) => $p->student && $p->student->admission && $p->student->admission->general_id)
+            ->sortBy(fn($p) => $p->student->admission->general_id)
             ->values();
 
         return view('counselling.index', compact('active', 'past', 'students', 'session_id'));
@@ -78,14 +79,39 @@ class CounsellingController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'remarks' => 'nullable|string',
-            'reason'  => 'nullable|string|max:255',
+            'reason' => 'nullable|string|max:255',
         ]);
 
         $record = StudentCounselling::findOrFail($id);
-        $record->update($request->only('remarks', 'reason'));
+        $record->update($request->only('reason'));
 
-        return back()->with('status', 'Remarks updated.');
+        return back()->with('status', 'Reason updated.');
+    }
+
+    public function addRemark(Request $request, $id)
+    {
+        $request->validate([
+            'remark'      => 'required|string',
+            'remark_date' => 'required|date',
+        ]);
+
+        $counselling  = StudentCounselling::findOrFail($id);
+        $session_id   = $this->getSchoolCurrentSession();
+        $promotion    = Promotion::with(['schoolClass', 'section'])
+            ->where('student_id', $counselling->student_user_id)
+            ->where('session_id', $session_id)
+            ->first();
+
+        CounsellingRemark::create([
+            'counselling_id' => $id,
+            'remark'         => $request->remark,
+            'remark_date'    => $request->remark_date,
+            'class_name'     => $promotion ? optional($promotion->schoolClass)->class_name : null,
+            'section_name'   => $promotion ? optional($promotion->section)->section_name : null,
+            'created_by'     => auth()->id(),
+        ]);
+
+        return back()->with('status', 'Remark added.');
     }
 
     public function end(Request $request, $id)
@@ -97,7 +123,6 @@ class CounsellingController extends Controller
         return back()->with('status', 'Counselling session marked as ended.');
     }
 
-    // ── Helper: attach class/section info to a counselling record ────────────
     private function withClassInfo(StudentCounselling $c, $session_id)
     {
         $promotion = Promotion::with(['schoolClass', 'section'])
@@ -106,6 +131,7 @@ class CounsellingController extends Controller
             ->first();
         $c->class_name   = $promotion ? optional($promotion->schoolClass)->class_name : '—';
         $c->section_name = $promotion ? optional($promotion->section)->section_name : '—';
+        $c->general_id   = optional(optional($c->student)->admission)->general_id ?? '—';
         return $c;
     }
 }

@@ -52,6 +52,12 @@
                                 <a href="{{ route('events.report') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
                             </div>
                         </div>
+                        <div class="mt-2 text-end">
+                            <a href="{{ route('events.report.pdf') }}?{{ http_build_query(request()->only(['activity_type','date_from','date_to','created_by'])) }}"
+                               class="btn btn-sm btn-outline-danger" target="_blank">
+                                <i class="bi bi-file-earmark-pdf me-1"></i> Download PDF
+                            </a>
+                        </div>
                     </form>
 
                     @if($events->isEmpty())
@@ -98,11 +104,14 @@
                                             <span class="text-muted">—</span>
                                         @endif
                                     </td>
-                                    <td>
+                                    <td class="text-nowrap">
                                         <button type="button" class="btn btn-outline-secondary btn-sm"
                                             data-bs-toggle="modal" data-bs-target="#reportDetailModal{{ $event->id }}">
                                             View
                                         </button>
+                                        <a href="{{ route('events.pdf', $event->id) }}" class="btn btn-outline-danger btn-sm ms-1" title="Download PDF">
+                                            <i class="bi bi-file-earmark-pdf"></i>
+                                        </a>
                                     </td>
                                 </tr>
 

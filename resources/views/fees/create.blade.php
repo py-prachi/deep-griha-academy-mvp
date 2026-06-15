@@ -36,12 +36,12 @@
                 <div class="card-body py-2">
                     <div class="row text-center">
                         <div class="col border-end">
-                            <div class="text-muted small">Admission</div>
-                            <div class="fw-bold">₹{{ number_format($feeStructure->admission_fee, 0) }}</div>
-                        </div>
-                        <div class="col border-end">
-                            <div class="text-muted small">Tuition</div>
-                            <div class="fw-bold">₹{{ number_format($feeStructure->tuition_fee, 0) }}</div>
+                            <div class="text-muted small">Tuition
+                                @if(!empty($discountPct))
+                                <span class="badge bg-warning text-dark" style="font-size:0.65rem;">{{ $discountPct }}% off</span>
+                                @endif
+                            </div>
+                            <div class="fw-bold">₹{{ number_format($effectiveTuition ?? $feeStructure->tuitionFeeForGender($student->gender ?? 'Male'), 0) }}</div>
                         </div>
                         <div class="col border-end">
                             <div class="text-muted small">Transport</div>
@@ -53,7 +53,7 @@
                         </div>
                         <div class="col">
                             <div class="text-muted small">Total Due</div>
-                            <div class="fw-bold text-primary">₹{{ number_format($feeStructure->total_fee, 0) }}</div>
+                            <div class="fw-bold text-primary">₹{{ number_format($totalDue, 0) }}</div>
                         </div>
                         <div class="col">
                             <div class="text-muted small">Paid</div>

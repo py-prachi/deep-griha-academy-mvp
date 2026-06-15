@@ -105,6 +105,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/teachers/edit/{id}', [UserController::class, 'editTeacher'])->name('teacher.edit.show');
     Route::get('/teachers/view/list', [UserController::class, 'getTeacherList'])->name('teacher.list.show');
     Route::get('/teachers/view/profile/{id}', [UserController::class, 'showTeacherProfile'])->name('teacher.profile.show');
+    Route::delete('/teachers/{id}', [UserController::class, 'deleteTeacher'])->name('teacher.delete');
 
     //Students
     Route::get('/students/add', [UserController::class, 'createStudent'])->name('student.create.show');
@@ -199,6 +200,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('calendar-event', [EventController::class, 'index'])->name('events.show');
     Route::post('calendar-crud-ajax', [EventController::class, 'calendarEvents'])->name('events.crud');
     Route::get('events/report', [EventController::class, 'report'])->name('events.report');
+    Route::get('events/report/pdf', [EventController::class, 'reportPdf'])->name('events.report.pdf');
+    Route::get('events/{id}/pdf', [EventController::class, 'eventPdf'])->name('events.pdf');
 
     // Routines
     Route::get('/routine/create', [RoutineController::class, 'create'])->name('section.routine.create');
@@ -310,10 +313,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/timetable/period/reset-day',    [TimetableController::class, 'periodResetDay'])->name('timetable.period.reset-day');
 
     // ── COUNSELLING ───────────────────────────────────────────────
-    Route::get('/counselling',              [App\Http\Controllers\CounsellingController::class, 'index'])->name('counselling.index');
-    Route::post('/counselling',             [App\Http\Controllers\CounsellingController::class, 'store'])->name('counselling.store');
-    Route::put('/counselling/{id}',         [App\Http\Controllers\CounsellingController::class, 'update'])->name('counselling.update');
-    Route::post('/counselling/{id}/end',    [App\Http\Controllers\CounsellingController::class, 'end'])->name('counselling.end');
+    Route::get('/counselling',                    [App\Http\Controllers\CounsellingController::class, 'index'])->name('counselling.index');
+    Route::post('/counselling',                   [App\Http\Controllers\CounsellingController::class, 'store'])->name('counselling.store');
+    Route::put('/counselling/{id}',               [App\Http\Controllers\CounsellingController::class, 'update'])->name('counselling.update');
+    Route::post('/counselling/{id}/end',          [App\Http\Controllers\CounsellingController::class, 'end'])->name('counselling.end');
+    Route::post('/counselling/{id}/remark',       [App\Http\Controllers\CounsellingController::class, 'addRemark'])->name('counselling.remark');
 
     // ── STUDENT EXIT ──────────────────────────────────────────────
     Route::get('/exits',              [App\Http\Controllers\StudentExitController::class, 'index'])->name('exits.index');

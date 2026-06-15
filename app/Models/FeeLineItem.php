@@ -23,7 +23,6 @@ class FeeLineItem extends Model
     public static function feeLabels()
     {
         return [
-            'admission_fee'        => 'Admission Fee',
             'tuition_fee'          => 'Tuition Fees',
             'transport_charges'    => 'Transport Charges',
             'transfer_certificate' => 'Transfer Certificate',

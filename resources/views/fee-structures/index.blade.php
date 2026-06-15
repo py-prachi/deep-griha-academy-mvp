@@ -86,11 +86,6 @@
                                     <td class="text-end fw-bold">₹{{ number_format($fs->total_fee, 2) }}</td>
                                     <td class="text-center" rowspan="{{ $isGeneral ? 2 : 1 }}">
                                         <a href="{{ route('fee-structures.edit', $fs->id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
-                                        <form action="{{ route('fee-structures.destroy', $fs->id) }}" method="POST" class="d-inline"
-                                              onsubmit="return confirm('Delete this fee structure?')">
-                                            @csrf @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger">Delete</button>
-                                        </form>
                                     </td>
                                 </tr>
                                 {{-- Girls row — always shown for general category --}}
