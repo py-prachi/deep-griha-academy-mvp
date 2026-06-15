@@ -60,7 +60,7 @@
                                             @endif
                                             &nbsp;|&nbsp;
                                             Category: <strong>{{ ucfirst($student->fee_category ?? 'general') }}</strong> &nbsp;|&nbsp;
-                                            Admission No: <strong>{{ $student->dga_admission_no ?? $student->general_id ?? '—' }}</strong>
+                                            Admission No: <strong>{{ optional($student->admission)->dga_admission_no ?? optional($student->admission)->general_id ?? $student->dga_admission_no ?? $student->general_id ?? '—' }}</strong>
                                         </p>
                                     </div>
                                     <div class="col-md-4 text-end">

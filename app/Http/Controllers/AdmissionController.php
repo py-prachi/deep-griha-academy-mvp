@@ -147,10 +147,16 @@ class AdmissionController extends Controller
 
         try {
             $admission = $this->admissionRepository->update($id, $request->all());
-            // Keep promotion id_card_number in sync when general_id is updated
-            if ($request->filled('general_id') && $admission->student_user_id) {
-                \App\Models\Promotion::where('student_id', $admission->student_user_id)
-                    ->update(['id_card_number' => $request->general_id]);
+            // Sync denormalized copies in users + promotions tables
+            if ($admission->student_user_id) {
+                \App\Models\User::where('id', $admission->student_user_id)->update([
+                    'general_id'       => $admission->general_id,
+                    'dga_admission_no' => $admission->dga_admission_no,
+                ]);
+                if ($request->filled('general_id')) {
+                    \App\Models\Promotion::where('student_id', $admission->student_user_id)
+                        ->update(['id_card_number' => $request->general_id]);
+                }
             }
             return redirect()->route('admissions.show', $id)
                              ->with('status', 'Admission updated successfully!');

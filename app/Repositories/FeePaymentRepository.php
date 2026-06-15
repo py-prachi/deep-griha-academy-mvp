@@ -145,8 +145,8 @@ class FeePaymentRepository implements FeePaymentInterface
                 u.last_name,
                 u.fee_category,
                 u.admission_id,
-                u.dga_admission_no,
-                u.general_id,
+                COALESCE(a.dga_admission_no, u.dga_admission_no) AS dga_admission_no,
+                COALESCE(a.general_id, u.general_id) AS general_id,
                 sc.class_name,
                 s.section_name,
                 COALESCE(
@@ -182,7 +182,8 @@ class FeePaymentRepository implements FeePaymentInterface
                 AND fp.payment_category = 'fee'
             WHERE u.role = 'student'
             GROUP BY u.id, u.first_name, u.last_name, u.fee_category,
-                     u.admission_id, u.dga_admission_no, u.general_id, sc.class_name, s.section_name,
+                     u.admission_id, a.dga_admission_no, u.dga_admission_no,
+                     a.general_id, u.general_id, sc.class_name, s.section_name,
                      fs.total_fee, fs.tuition_fee, fs.girls_tuition_fee, fs.transport_fee, fs.other_fee,
                      a.discount_percentage, u.gender
             HAVING balance > 0
