@@ -76,6 +76,11 @@ class AcademicSettingController extends Controller
 
         $semesters = $this->semesterRepository->getAll($current_school_session_id);
 
+        $checklist = \App\Http\Controllers\YearEndController::checklistStatus(
+            $current_school_session_id,
+            $latest_school_session->id
+        );
+
         $data = [
             'current_school_session_id' => $current_school_session_id,
             'latest_school_session_id'  => $latest_school_session->id,
@@ -86,6 +91,7 @@ class AcademicSettingController extends Controller
             'teachers'                  => $teachers,
             'courses'                   => $courses,
             'semesters'                 => $semesters,
+            'checklist'                 => $checklist,
         ];
 
         return view('academics.settings', $data);

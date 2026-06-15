@@ -19,6 +19,35 @@
                     </h6>
                     <div class="row g-3 mb-4">
 
+                        {{-- Step 0: Settle Outstanding Fees --}}
+                        <div class="col-md-4">
+                            <div class="card h-100 border-{{ $checklist['fees_settled'] ? 'success' : 'danger' }}">
+                                <div class="card-header bg-{{ $checklist['fees_settled'] ? 'success' : 'danger' }} text-white py-2">
+                                    <strong>
+                                        <span class="badge bg-white text-{{ $checklist['fees_settled'] ? 'success' : 'danger' }} me-1">0</span>
+                                        Settle Outstanding Fees
+                                        @if($checklist['fees_settled'])
+                                            <i class="bi bi-check-circle ms-1"></i>
+                                        @endif
+                                    </strong>
+                                </div>
+                                <div class="card-body">
+                                    @if($checklist['fees_settled'])
+                                        <p class="text-success small mb-2"><i class="bi bi-check-circle me-1"></i> All outstanding balances have been resolved.</p>
+                                        <a href="{{ route('school.session.year-end') }}" class="btn btn-sm btn-outline-success w-100">View Settlement Records</a>
+                                    @else
+                                        <p class="text-muted small mb-2">
+                                            <strong class="text-danger">{{ $checklist['unsettled_count'] }} student(s)</strong> have outstanding fee balances.
+                                            Each must be marked as waived, paid offline, carried forward, or other before a new session can be created.
+                                        </p>
+                                        <a href="{{ route('school.session.year-end') }}" class="btn btn-sm btn-danger w-100">
+                                            <i class="bi bi-cash-coin me-1"></i> Settle Outstanding Fees
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Step 1: Create Session --}}
                         @php
                             $existingNames = $school_sessions->pluck('session_name')->map(fn($n) => trim($n))->toArray();
@@ -30,6 +59,7 @@
                                 $name = $y . '-' . ($y + 1);
                                 if (!in_array($name, $existingNames)) $upcomingSessions[] = $name;
                             }
+                            $canCreateSession = $checklist['fees_settled'];
                         @endphp
                         <div class="col-md-4">
                             <div class="card h-100 border-primary">
@@ -38,7 +68,14 @@
                                 </div>
                                 <div class="card-body">
                                     <p class="text-muted small">One session per academic year. Creates a new year (e.g. 2026-2027).</p>
-                                    @if ($latest_school_session_id == $current_school_session_id)
+                                    @if(!$canCreateSession)
+                                        <div class="alert alert-danger py-2 px-3 small mb-2">
+                                            <i class="bi bi-lock me-1"></i> Complete Step 0 first — settle all outstanding fees.
+                                        </div>
+                                        <button class="btn btn-sm btn-secondary w-100" disabled>
+                                            <i class="bi bi-lock me-1"></i> Locked
+                                        </button>
+                                    @elseif ($latest_school_session_id == $current_school_session_id)
                                         @if(count($upcomingSessions) > 0)
                                         <form action="{{ route('school.session.store') }}" method="POST">
                                             @csrf

@@ -6,9 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Interfaces\SchoolSessionInterface;
 use App\Http\Requests\SchoolSessionStoreRequest;
 use App\Http\Requests\SchoolSessionBrowseRequest;
+use App\Traits\SchoolSession;
+use App\Http\Controllers\YearEndController;
 
 class SchoolSessionController extends Controller
 {
+    use SchoolSession;
+
     protected $schoolSessionRepository;
 
     /**
@@ -29,14 +33,22 @@ class SchoolSessionController extends Controller
      */
     public function store(SchoolSessionStoreRequest $request)
     {
+        // Block if any students have unsettled outstanding balances
+        $session_id = $this->getSchoolCurrentSession();
+        $unsettled  = YearEndController::unsettledCount($session_id);
+        if ($unsettled > 0) {
+            return back()->withError(
+                $unsettled . ' student(s) have outstanding fee balances that have not been settled. ' .
+                'Please go to Year-End Settlement and resolve all balances before creating a new session.'
+            );
+        }
+
         try {
             $this->schoolSessionRepository->create($request->validated());
-
-            return back()->with('status', 'Session creation was successful!');
+            return back()->with('status', 'Session created successfully!');
         } catch (\Exception $e) {
             return back()->withError($e->getMessage());
         }
-        
     }
 
     /**

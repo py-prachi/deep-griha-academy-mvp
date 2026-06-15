@@ -55,6 +55,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('session/create', [SchoolSessionController::class, 'store'])->name('session.store');
         Route::post('session/browse', [SchoolSessionController::class, 'browse'])->name('session.browse');
         Route::post('session/clone-classes', [SessionSetupController::class, 'cloneClasses'])->name('session.clone-classes');
+        Route::get('session/year-end', [App\Http\Controllers\YearEndController::class, 'index'])->name('session.year-end');
+        Route::post('session/year-end/{student_id}/settle', [App\Http\Controllers\YearEndController::class, 'settle'])->name('session.year-end.settle');
+        Route::delete('session/year-end/{student_id}/unsettle', [App\Http\Controllers\YearEndController::class, 'unsettle'])->name('session.year-end.unsettle');
 
         Route::post('semester/create', [SemesterController::class, 'store'])->name('semester.create');
         Route::post('final-marks-submission-status/update', [AcademicSettingController::class, 'updateFinalMarksSubmissionStatus'])->name('final.marks.submission.status.update');
