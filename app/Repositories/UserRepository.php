@@ -339,7 +339,7 @@ class UserRepository implements UserInterface {
 
         try {
             $promotionRepository = new PromotionRepository();
-            return $promotionRepository->getAll($session_id, $class_id, $section_id);
+            return $promotionRepository->getAllActive($session_id, $class_id, $section_id);
         } catch (\Exception $e) {
             throw new \Exception('Failed to get all Students. ' . $e->getMessage());
         }
