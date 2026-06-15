@@ -194,7 +194,7 @@ class FeePaymentRepository implements FeePaymentInterface
                      a.general_id, u.general_id, sc.class_name, s.section_name,
                      fs.total_fee, fs.tuition_fee, fs.girls_tuition_fee, fs.transport_fee, fs.other_fee,
                      a.discount_percentage, u.gender
-            HAVING balance > 0
+            HAVING ROUND(balance, 0) >= 1
             ORDER BY sc.class_name, s.section_name, u.first_name
         ", [$session_id, $session_id]);
     }
