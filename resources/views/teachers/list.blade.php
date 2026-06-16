@@ -44,25 +44,31 @@
                                     <td>{{$teacher->email}}</td>
                                     <td>{{$teacher->phone}}</td>
                                     <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{{url('teachers/view/profile/'.$teacher->id)}}" role="button" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> Profile</a>
-                                            <a href="{{ route('timetable.teacher', ['teacher_id' => $teacher->id]) }}" role="button" class="btn btn-sm btn-outline-secondary"><i class="bi bi-calendar4-week"></i> Timetable</a>
-                                            @can('edit users')
-                                            <a href="{{route('teacher.edit.show', ['id' => $teacher->id])}}" role="button" class="btn btn-sm btn-outline-primary"><i class="bi bi-pen"></i> Edit</a>
-                                            @endcan
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="{{url('teachers/view/profile/'.$teacher->id)}}"><i class="bi bi-eye me-2"></i>Profile</a></li>
+                                                <li><a class="dropdown-item" href="{{ route('timetable.teacher', ['teacher_id' => $teacher->id]) }}"><i class="bi bi-calendar4-week me-2"></i>Timetable</a></li>
+                                                @can('edit users')
+                                                <li><a class="dropdown-item" href="{{route('teacher.edit.show', ['id' => $teacher->id])}}"><i class="bi bi-pen me-2"></i>Edit</a></li>
+                                                <li>
+                                                    <form method="POST" action="{{ route('admin.resetPassword', $teacher->id) }}"
+                                                        onsubmit="return confirm('Reset password to default for {{ $teacher->first_name }}?')">
+                                                        @csrf
+                                                        <button type="submit" class="dropdown-item"><i class="bi bi-key me-2"></i>Reset Password</button>
+                                                    </form>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteTeacherModal{{ $teacher->id }}">
+                                                        <i class="bi bi-trash me-2"></i>Delete
+                                                    </button>
+                                                </li>
+                                                @endcan
+                                            </ul>
                                         </div>
-                                        @can('edit users')
-                                        <form method="POST" action="{{ route('admin.resetPassword', $teacher->id) }}" class="d-inline"
-                                            onsubmit="return confirm('Reset password to default for {{ $teacher->first_name }}?')">
-                                            @csrf
-                                            <button class="btn btn-sm btn-outline-warning py-0 px-2 ms-1"><i class="bi bi-key"></i> Reset PW</button>
-                                        </form>
-                                        <button class="btn btn-sm btn-outline-danger py-0 px-2 ms-1"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#deleteTeacherModal{{ $teacher->id }}">
-                                            <i class="bi bi-trash"></i> Delete
-                                        </button>
-                                        @endcan
 
                                         {{-- Delete confirmation modal --}}
                                         <div class="modal fade" id="deleteTeacherModal{{ $teacher->id }}" tabindex="-1">

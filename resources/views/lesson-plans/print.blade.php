@@ -152,7 +152,7 @@
                 <th style="width:40px;">Days</th>
                 <th style="width:55px;">Ch. No.</th>
                 <th style="width:28%;">Chapter Name</th>
-                <th>Learning Standards / Outcome</th>
+                <th>Learning Standard</th>
                 <th style="width:70px;">Status</th>
             </tr>
         </thead>
