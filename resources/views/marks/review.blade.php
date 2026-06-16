@@ -150,9 +150,10 @@
                                         @else
                                             <i class="bi bi-circle text-danger"></i>
                                         @endif
+                                        @php $canEnter = in_array($subject->id, $mySubjectIds ?? []); @endphp
                                         <a href="{{ route('marks.entry', ['subject_id'=>$subject->id,'class_id'=>$class_id,'section_id'=>$section_id,'term'=>$term]) }}"
-                                            class="btn btn-xs btn-outline-secondary py-0 px-1 ms-2" style="font-size:0.7rem;">
-                                            Enter
+                                            class="btn btn-xs {{ $canEnter ? 'btn-outline-primary' : 'btn-outline-secondary' }} py-0 px-1 ms-2" style="font-size:0.7rem;">
+                                            {{ $canEnter ? 'Enter' : 'View' }}
                                         </a>
                                     </td>
                                     @endforeach

@@ -70,10 +70,13 @@ class FeeStructureController extends Controller
 
         try {
             $current_school_session_id = $this->getSchoolCurrentSession();
-            $this->feeStructureRepository->store(array_merge(
-                $request->all(),
-                ['session_id' => $current_school_session_id]
-            ));
+            $this->feeStructureRepository->store(array_merge($request->all(), [
+                'session_id'        => $current_school_session_id,
+                'tuition_fee'       => $request->input('tuition_fee', 0) ?? 0,
+                'girls_tuition_fee' => $request->input('girls_tuition_fee') ?? null,
+                'transport_fee'     => $request->input('transport_fee', 0) ?? 0,
+                'other_fee'         => $request->input('other_fee', 0) ?? 0,
+            ]));
             return redirect()->route('fee-structures.index')
                 ->with('status', 'Fee structure saved successfully!');
         } catch (\Exception $e) {
@@ -105,9 +108,12 @@ class FeeStructureController extends Controller
         ]);
 
         try {
-            $this->feeStructureRepository->update($id, $request->only([
-                'tuition_fee', 'girls_tuition_fee', 'transport_fee', 'other_fee'
-            ]));
+            $this->feeStructureRepository->update($id, [
+                'tuition_fee'       => $request->input('tuition_fee', 0) ?? 0,
+                'girls_tuition_fee' => $request->input('girls_tuition_fee') ?? null,
+                'transport_fee'     => $request->input('transport_fee', 0) ?? 0,
+                'other_fee'         => $request->input('other_fee', 0) ?? 0,
+            ]);
             return redirect()->route('fee-structures.index')
                 ->with('status', 'Fee structure updated successfully!');
         } catch (\Exception $e) {

@@ -219,6 +219,23 @@ class SubjectController extends Controller
             // Remove any existing subject_teacher rows for this teacher+class+section+session
             // then re-create with the checked subjects
             if ($request->has('subject_ids')) {
+                // Check for conflicts: subjects already assigned to a different teacher
+                $conflicts = SubjectTeacher::with('teacher', 'subject')
+                    ->whereIn('subject_id', $request->subject_ids)
+                    ->where('class_id',    $request->class_id)
+                    ->where('section_id',  $request->section_id)
+                    ->where('session_id',  $request->session_id)
+                    ->where('teacher_id',  '!=', $request->teacher_id)
+                    ->get();
+
+                if ($conflicts->isNotEmpty()) {
+                    $messages = $conflicts->map(fn($c) =>
+                        $c->subject->name . ' is already assigned to ' .
+                        $c->teacher->first_name . ' ' . $c->teacher->last_name
+                    )->join('; ');
+                    throw new \Exception('Cannot assign — conflict(s): ' . $messages . '. Remove existing assignments first.');
+                }
+
                 SubjectTeacher::where('teacher_id', $request->teacher_id)
                     ->where('class_id',   $request->class_id)
                     ->where('section_id', $request->section_id)
@@ -261,6 +278,25 @@ class SubjectController extends Controller
             'section_id' => 'required|exists:sections,id',
             'session_id' => 'required|exists:school_sessions,id',
         ]);
+
+        // Check if another teacher is already assigned to this subject+class+section
+        $existing = SubjectTeacher::with('teacher')
+            ->where('subject_id',  $request->subject_id)
+            ->where('class_id',    $request->class_id)
+            ->where('section_id',  $request->section_id)
+            ->where('session_id',  $request->session_id)
+            ->where('teacher_id',  '!=', $request->teacher_id)
+            ->first();
+
+        if ($existing) {
+            $existingTeacher = $existing->teacher;
+            $subject = Subject::find($request->subject_id);
+            return back()->withErrors([
+                'teacher_id' => $subject->name . ' for this class is already assigned to ' .
+                    $existingTeacher->first_name . ' ' . $existingTeacher->last_name .
+                    '. Remove that assignment first before reassigning.',
+            ])->withInput();
+        }
 
         SubjectTeacher::firstOrCreate([
             'teacher_id' => $request->teacher_id,

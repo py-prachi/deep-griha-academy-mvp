@@ -23,6 +23,13 @@
 
                     @include('session-messages')
 
+                    @if($readOnly ?? false)
+                    <div class="alert alert-warning py-2 mb-3" style="max-width:960px;">
+                        <i class="bi bi-eye me-1"></i>
+                        <strong>View only.</strong> Only the assigned subject teacher can enter or edit marks for this subject.
+                    </div>
+                    @endif
+
                     @if($subject->mark_type === 'marks')
                     <div class="alert alert-light py-2 small border mb-3" style="max-width:960px;">
                         <div class="mb-1">
@@ -40,6 +47,7 @@
 
                     <form method="POST" action="{{ route('marks.store') }}">
                         @csrf
+                        @if($readOnly ?? false)<fieldset disabled style="border:none;padding:0;margin:0;">@endif
                         <input type="hidden" name="subject_id" value="{{ $subject->id }}">
                         <input type="hidden" name="class_id" value="{{ $schoolClass->id }}">
                         <input type="hidden" name="section_id" value="{{ $section->id }}">
@@ -281,12 +289,15 @@
                         </div>
 
                         <div class="mt-3">
+                            @if(!($readOnly ?? false))
                             <button type="submit" class="btn btn-success">
                                 <i class="bi bi-save me-1"></i> Save Marks
                             </button>
+                            @endif
                             <a href="{{ route('marks.review', ['class_id'=>$schoolClass->id,'section_id'=>$section->id]) }}"
-                                class="btn btn-outline-secondary ms-2">Cancel</a>
+                                class="btn btn-outline-secondary ms-2">{{ ($readOnly ?? false) ? 'Back' : 'Cancel' }}</a>
                         </div>
+                        @if($readOnly ?? false)</fieldset>@endif
                     </form>
                 </div>
             </div>

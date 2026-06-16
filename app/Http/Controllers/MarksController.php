@@ -210,14 +210,24 @@ class MarksController extends Controller
             return PrePrimaryController::getPrePrimaryType($c->class_name) === null;
         })->values();
 
+        // Subject IDs the CT is also assigned to teach in their own class (can enter, not just view)
+        $ctEditableSubjectIds = [];
+        if ($ct && isset($subjectRows)) {
+            $ctEditableSubjectIds = $subjectRows
+                ->filter(fn($r) => $r->class_id == $ct->class_id)
+                ->pluck('subject_id')
+                ->toArray();
+        }
+
         return view('marks.index', [
-            'subjects'           => $assignedSubjects,
-            'classes'            => $classes,
-            'session_id'         => $session_id,
-            'ct'                 => $ct,
-            'subjectAssignments' => $subjectAssignments,
-            'otherSubjects'      => $otherSubjects ?? collect(),
-            'userRole'           => $user->role,
+            'subjects'              => $assignedSubjects,
+            'classes'               => $classes,
+            'session_id'            => $session_id,
+            'ct'                    => $ct,
+            'subjectAssignments'    => $subjectAssignments,
+            'otherSubjects'         => $otherSubjects ?? collect(),
+            'userRole'              => $user->role,
+            'ctEditableSubjectIds'  => $ctEditableSubjectIds,
         ]);
     }
 
@@ -248,24 +258,28 @@ class MarksController extends Controller
             ]);
         }
 
-        // Authorization: teacher must be CT for this class/section OR assigned as subject teacher
-        if ($user->role === 'teacher') {
-            $isCT = ClassTeacher::where('teacher_id', $user->id)
+        // Only the assigned subject teacher can edit; admin and CT are view-only
+        $readOnly = false;
+        if ($user->role === 'admin') {
+            $readOnly = true;
+        } elseif ($user->role === 'teacher') {
+            $isSubjectTeacher = SubjectTeacher::where('teacher_id', $user->id)
+                ->where('subject_id', $subject_id)
                 ->where('class_id', $class_id)
                 ->where('section_id', $section_id)
                 ->where('session_id', $session_id)
                 ->exists();
 
-            if (!$isCT) {
-                $isSubjectTeacher = SubjectTeacher::where('teacher_id', $user->id)
-                    ->where('subject_id', $subject_id)
+            if (!$isSubjectTeacher) {
+                $isCT = ClassTeacher::where('teacher_id', $user->id)
                     ->where('class_id', $class_id)
                     ->where('section_id', $section_id)
                     ->where('session_id', $session_id)
                     ->exists();
-                if (!$isSubjectTeacher) {
+                if (!$isCT) {
                     abort(403, 'You are not assigned to this subject for this class.');
                 }
+                $readOnly = true; // CT can view but not edit
             }
         }
 
@@ -307,6 +321,7 @@ class MarksController extends Controller
             'promotions'    => $promotions,
             'existingMarks' => $existingMarks,
             'existingDates' => $existingDates,
+            'readOnly'      => $readOnly,
         ]);
     }
 
@@ -322,6 +337,17 @@ class MarksController extends Controller
         $class_id   = $request->input('class_id');
         $section_id = $request->input('section_id');
         $term       = $request->input('term');
+
+        // Only the assigned subject teacher can save marks — admin and CT are view-only
+        $isSubjectTeacher = SubjectTeacher::where('teacher_id', $user->id)
+            ->where('subject_id', $subject_id)
+            ->where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('session_id', $session_id)
+            ->exists();
+        if (!$isSubjectTeacher) {
+            abort(403, 'Only the assigned subject teacher can save marks.');
+        }
 
         $subject     = Subject::findOrFail($subject_id);
         $schoolClass = $this->schoolClassRepository->findById($class_id);
@@ -569,6 +595,16 @@ class MarksController extends Controller
             ->pluck('term')
             ->toArray();
 
+        // Subject IDs this user is assigned to teach for this class/section — used to show Enter vs View
+        $mySubjectIds = $user->role === 'teacher'
+            ? SubjectTeacher::where('teacher_id', $user->id)
+                ->where('class_id',   $class_id)
+                ->where('section_id', $section_id)
+                ->where('session_id', $session_id)
+                ->pluck('subject_id')
+                ->toArray()
+            : [];
+
         return view('marks.review', [
             'schoolClass'    => $schoolClass,
             'section'        => $section,
@@ -581,6 +617,7 @@ class MarksController extends Controller
             'promotions'     => $promotions,
             'publishedTerms' => $publishedTerms,
             'userRole'       => $user->role,
+            'mySubjectIds'   => $mySubjectIds,
             'classes'        => $user->role === 'admin'
                 ? $this->schoolClassRepository->getAllBySession($session_id)
                 : collect(),

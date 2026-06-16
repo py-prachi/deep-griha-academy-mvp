@@ -14,6 +14,7 @@ use App\Http\Controllers\SectionController;
 use App\Http\Controllers\ExamRuleController;
 use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\SyllabusController;
+use App\Http\Controllers\LessonPlanController;
 use App\Http\Controllers\GradeRuleController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\AssignmentController;
@@ -212,6 +213,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/routine/store', [RoutineController::class, 'store'])->name('section.routine.store');
 
     // Syllabus
+    // Lesson Plans
+    Route::get('/lesson-plans',                          [LessonPlanController::class, 'index'])->name('lesson-plans.index');
+    Route::get('/lesson-plans/create',                   [LessonPlanController::class, 'create'])->name('lesson-plans.create');
+    Route::post('/lesson-plans',                         [LessonPlanController::class, 'store'])->name('lesson-plans.store');
+    Route::get('/lesson-plans/{id}/edit',                [LessonPlanController::class, 'edit'])->name('lesson-plans.edit');
+    Route::put('/lesson-plans/{id}',                     [LessonPlanController::class, 'update'])->name('lesson-plans.update');
+    Route::delete('/lesson-plans/{id}',                  [LessonPlanController::class, 'destroy'])->name('lesson-plans.destroy');
+    Route::get('/lesson-plans/print',                    [LessonPlanController::class, 'printView'])->name('lesson-plans.print');
+
     Route::get('/syllabus/create', [SyllabusController::class, 'create'])->name('class.syllabus.create');
     Route::post('/syllabus/create', [SyllabusController::class, 'store'])->name('syllabus.store');
     Route::get('/syllabus/index', [SyllabusController::class, 'index'])->name('course.syllabus.index');

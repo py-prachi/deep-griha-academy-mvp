@@ -35,6 +35,14 @@
                         </a>
                     </li>
 
+                    {{-- Lesson Plans --}}
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('lesson-plans*') ? 'active' : '' }}" href="{{ route('lesson-plans.index') }}">
+                            <i class="bi bi-journal-text"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Lesson Plans</span>
+                        </a>
+                    </li>
+
                     {{-- Timetable --}}
                     <li class="nav-item">
                         <a type="button" href="#teacher-timetable-submenu" data-bs-toggle="collapse"
@@ -64,6 +72,7 @@
                             ->where('teacher_id', Auth::user()->id)
                             ->where('session_id', $menuSession)
                             ->first();
+                        $menuIsAnySubjectTeacher = \App\Models\SubjectTeacher::where('teacher_id', Auth::user()->id)->where('session_id', $menuSession)->exists();
                         $menuIsPP = $menuCT
                             ? \App\Http\Controllers\PrePrimaryController::getPrePrimaryType(optional($menuCT->schoolClass)->class_name ?? '')
                             : null;
@@ -94,13 +103,15 @@
                                 </a>
                             </li>
                             @else
-                            {{-- Class 1-8 CT or subject teacher: marks entry only --}}
+                            {{-- Class 1-8: Enter Marks only for subject teachers; CT-only gets View only --}}
+                            @if($menuIsAnySubjectTeacher)
                             <li class="nav-item w-100">
-                                <a class="nav-link {{ request()->is('marks2') ? 'active' : '' }}" href="{{ route('marks.index') }}">
+                                <a class="nav-link {{ request()->is('marks2') && !request()->is('marks2/review*') ? 'active' : '' }}" href="{{ route('marks.index') }}">
                                     <i class="bi bi-pencil me-2"></i> Enter Marks
                                 </a>
                             </li>
-                            @if($menuIs18)
+                            @endif
+                            @if($menuIs18 || $menuIsAnySubjectTeacher)
                             <li class="nav-item w-100">
                                 <a class="nav-link {{ request()->is('marks2/review*') ? 'active' : '' }}" href="{{ route('marks.review') }}">
                                     <i class="bi bi-grid-3x3-gap me-2"></i> Marks Review
@@ -318,6 +329,14 @@
                     </li>
                     @endcan
 
+                    {{-- Lesson Plans (admin: view only) --}}
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('lesson-plans*') ? 'active' : '' }}" href="{{ route('lesson-plans.index') }}">
+                            <i class="bi bi-journal-text"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Lesson Plans</span>
+                        </a>
+                    </li>
+
                     {{-- Marks & Assessment --}}
                     <li class="nav-item">
                         <a type="button" href="#academic-submenu" data-bs-toggle="collapse"
@@ -328,7 +347,6 @@
                         </a>
                         <ul class="nav collapse {{ request()->is('marks2*') || request()->is('preprimary*') || request()->is('subjects*') ? 'show' : 'hide' }} bg-white" id="academic-submenu">
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('subjects*') ? 'active' : '' }}" href="{{ route('subjects.index') }}"><i class="bi bi-book me-2"></i> Subjects</a></li>
-                            <li class="nav-item w-100"><a class="nav-link {{ request()->is('marks2') && !request()->is('marks2/review*') ? 'active' : '' }}" href="{{ route('marks.index') }}"><i class="bi bi-pencil me-2"></i> Enter Marks (Cl. 1–8)</a></li>
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('marks2/review*') ? 'active' : '' }}" href="{{ route('marks.review') }}"><i class="bi bi-grid-3x3-gap me-2"></i> Marks Review</a></li>
                             <li class="nav-item w-100"><a class="nav-link {{ request()->is('preprimary*') ? 'active' : '' }}" href="{{ route('preprimary.entry') }}"><i class="bi bi-check2-square me-2"></i> Pre-Primary Entry</a></li>
                         </ul>
