@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClassSubject;
+use App\Models\ClassTeacher;
 use App\Models\Promotion;
 use App\Models\Routine;
 use App\Models\SubjectTeacher;
@@ -34,7 +35,8 @@ class TimetableController extends Controller
      */
     public function edit(Request $request)
     {
-        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) {
+        $user = auth()->user();
+        if (!in_array($user->role, ['admin', 'teacher'])) {
             abort(403);
         }
 
@@ -43,6 +45,22 @@ class TimetableController extends Controller
 
         $class_id   = $request->query('class_id');
         $section_id = $request->query('section_id');
+
+        // Teachers can only edit the timetable for their assigned CT class
+        if ($user->role === 'teacher') {
+            $ct = ClassTeacher::with(['schoolClass', 'section'])
+                ->where('teacher_id', $user->id)
+                ->where('session_id', $session_id)
+                ->first();
+            if (!$ct) {
+                abort(403, 'Only a Class Teacher can edit the timetable.');
+            }
+            // Restrict class list to only their class
+            $school_classes = $school_classes->filter(fn($c) => $c->id == $ct->class_id)->values();
+            // Auto-select their class/section if not specified
+            $class_id   = $class_id   ?: $ct->class_id;
+            $section_id = $section_id ?: $ct->section_id;
+        }
 
         $classSubjects = collect();
         // grid[$weekday][$period_id] = course_id
@@ -113,6 +131,16 @@ class TimetableController extends Controller
         $session_id = $request->input('session_id') ?: $this->getSchoolCurrentSession();
         $weekday    = $request->input('weekday');
 
+        // Teachers can only save timetable for their assigned CT class
+        if (auth()->user()->role === 'teacher') {
+            $ct = ClassTeacher::where('teacher_id', auth()->id())
+                ->where('session_id', $session_id)
+                ->first();
+            if (!$ct || $ct->class_id != $class_id || $ct->section_id != $section_id) {
+                abort(403, 'You can only edit the timetable for your assigned class.');
+            }
+        }
+
         // Delete only this day's existing slots
         Routine::where('class_id', $class_id)
             ->where('section_id', $section_id)
@@ -148,11 +176,23 @@ class TimetableController extends Controller
      */
     public function show(Request $request)
     {
-        if (!in_array(auth()->user()->role, ['admin', 'teacher'])) abort(403);
+        $user = auth()->user();
+        if (!in_array($user->role, ['admin', 'teacher'])) abort(403);
 
+        $session_id = $this->getSchoolCurrentSession();
         $class_id   = $request->query('class_id');
         $section_id = $request->query('section_id');
-        $session_id = $this->getSchoolCurrentSession();
+
+        // For teachers, auto-select their CT class if no params provided
+        if ($user->role === 'teacher' && (!$class_id || !$section_id)) {
+            $ct = ClassTeacher::where('teacher_id', $user->id)
+                ->where('session_id', $session_id)
+                ->first();
+            if ($ct) {
+                $class_id   = $class_id   ?: $ct->class_id;
+                $section_id = $section_id ?: $ct->section_id;
+            }
+        }
 
         $routines = Routine::with(['period', 'course.subject', 'schoolClass', 'section'])
             ->where('class_id', $class_id)

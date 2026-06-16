@@ -21,11 +21,16 @@
 
                     @elseif($userRole === 'teacher' && $ct)
                     {{-- ── CT VIEW ── --}}
+                    @php $hasEditableSubjects = !empty($ctEditableSubjectIds ?? []); @endphp
                     <div class="alert alert-info py-2 small mb-3">
                         <i class="bi bi-person-badge me-1"></i>
                         You are the <strong>Class Teacher</strong> for
                         <strong>{{ $ct->schoolClass->class_name ?? 'your class' }} — {{ $ct->section->section_name ?? '' }}</strong>.
-                        You can enter marks for all subjects.
+                        @if($hasEditableSubjects)
+                            You can <strong>enter marks</strong> for subjects you are assigned to teach, and <strong>view marks</strong> for all other subjects.
+                        @else
+                            You can <strong>view marks</strong> for all subjects. Only the assigned subject teacher can enter marks.
+                        @endif
                     </div>
 
                     <div class="card mb-3" style="max-width:500px;">
@@ -41,9 +46,14 @@
                                     <select name="subject_id" class="form-select form-select-sm" required>
                                         <option value="" disabled selected>Select subject</option>
                                         @foreach($subjects as $s)
-                                            <option value="{{ $s->id }}">{{ $s->name }}@if($s->mark_type === 'grade_only') (Grade only)@endif</option>
+                                            @php $canEdit = in_array($s->id, $ctEditableSubjectIds ?? []); @endphp
+                                            <option value="{{ $s->id }}">
+                                                {{ $s->name }}@if($s->mark_type === 'grade_only') (Grade only)@endif
+                                                @if($canEdit) ✏@else 👁@endif
+                                            </option>
                                         @endforeach
                                     </select>
+                                    <div class="form-text">✏ = you can enter marks &nbsp; 👁 = view only</div>
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label">Term <span class="text-danger">*</span></label>
@@ -53,7 +63,7 @@
                                     </select>
                                 </div>
                                 <div class="col-12">
-                                    <button class="btn btn-sm btn-primary"><i class="bi bi-arrow-right me-1"></i> Go to Mark Entry</button>
+                                    <button class="btn btn-sm btn-primary"><i class="bi bi-arrow-right me-1"></i> Open Marks</button>
                                 </div>
                             </form>
                         </div>
