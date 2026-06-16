@@ -290,9 +290,9 @@ class MarksController extends Controller
         $classGroup = self::getClassGroup($schoolClass->class_name);
         $config     = self::CLASS_GROUP_CONFIG[$classGroup];
 
-        // Students in this class/section
+        // Students in this class/section, sorted by roll number ascending
         $promotionRepository = new PromotionRepository();
-        $promotions = $promotionRepository->getAll($session_id, $class_id, $section_id);
+        $promotions = $promotionRepository->getAll($session_id, $class_id, $section_id)->sortBy('roll_number')->values();
 
         // Existing marks keyed by student_id
         $existingMarks = StudentTermMark::where('subject_id', $subject_id)
