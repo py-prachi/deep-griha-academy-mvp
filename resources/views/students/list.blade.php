@@ -52,14 +52,24 @@
                         Showing <strong>{{ $studentList->count() }}</strong> student(s) —
                         {{ $classLabel }}{{ $sectionLabel ? ' — ' . $sectionLabel : '' }}
                     </p>
+                    @if(auth()->user()->role === 'teacher' && !($isCTClass ?? false))
+                    <div class="alert alert-info py-2 small mb-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        You are viewing this class as a <strong>Subject Teacher</strong>. Student profile is available. Attendance is managed by the Class Teacher.
+                    </div>
+                    @endif
                     <div class="bg-white border shadow-sm p-3">
                         <table class="table table-sm table-hover">
+                                @php
+                                    $isAdmin     = auth()->user()->role === 'admin';
+                                    $showFull    = $isAdmin || ($isCTClass ?? false);
+                                @endphp
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width:50px;">Roll</th>
                                         <th>Name</th>
-                                        <th>Phone</th>
-                                        @if(auth()->user()->role === 'admin')
+                                        @if($showFull)<th>Phone</th>@endif
+                                        @if($isAdmin)
                                         <th>Email</th>
                                         <th>ID Card</th>
                                         @endif
@@ -71,15 +81,17 @@
                                     <tr>
                                         <td class="text-muted">{{ $student->roll_number ?? '—' }}</td>
                                         <td>{{ $student->student->first_name }} {{ $student->student->last_name }}</td>
-                                        <td>{{ $student->student->phone }}</td>
-                                        @if(auth()->user()->role === 'admin')
+                                        @if($showFull)<td>{{ $student->student->phone }}</td>@endif
+                                        @if($isAdmin)
                                         <td class="text-muted small" style="font-size:0.82rem;">{{ $student->student->email }}</td>
                                         <td class="text-muted small">{{ $student->id_card_number }}</td>
                                         @endif
                                         <td>
+                                            @if($showFull)
                                             <a href="{{route('student.attendance.show', ['id' => $student->student->id])}}" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-calendar2-week"></i> Attendance</a>
+                                            @endif
                                             <a href="{{url('students/view/profile/'.$student->student->id)}}" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-person"></i> Profile</a>
-                                            @if(auth()->user()->role === 'admin')
+                                            @if($isAdmin)
                                             <form method="POST" action="{{ route('admin.resetPassword', $student->student->id) }}" class="d-inline"
                                                 onsubmit="return confirm('Reset password to default for {{ $student->student->first_name }}?')">
                                                 @csrf

@@ -127,10 +127,17 @@ class UserController extends Controller
                     $studentList = collect();
                 }
 
+                // Is the currently viewed class the teacher's own CT class?
+                $isCTClass = $ctAssignment
+                    && (int)$class_id === (int)$ctAssignment->class_id
+                    && (int)$section_id === (int)$ctAssignment->section_id;
+
                 return view('students.list', [
                     'studentList'    => $studentList,
                     'school_classes' => $school_classes,
                     'teacher_scoped' => true,
+                    'isCTClass'      => $isCTClass,
+                    'ctAssignment'   => $ctAssignment,
                 ]);
             }
 
@@ -147,6 +154,7 @@ class UserController extends Controller
                 'studentList'    => $studentList,
                 'school_classes' => $school_classes,
                 'teacher_scoped' => false,
+                'isCTClass'      => true,
             ]);
 
         } catch (\Exception $e) {
