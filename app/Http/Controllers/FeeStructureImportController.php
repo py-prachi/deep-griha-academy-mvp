@@ -33,6 +33,18 @@ class FeeStructureImportController extends Controller
 
     public function downloadTemplate()
     {
+        // Load all classes for the current session, ordered by id
+        $session = SchoolSession::orderBy('id', 'desc')->first();
+        $classes = $session
+            ? SchoolClass::where('session_id', $session->id)->orderBy('id')->pluck('class_name')->toArray()
+            : [];
+
+        $categories = [
+            'general' => 16200,
+            'rte'     => 16200,
+            'coc'     => 16000,
+        ];
+
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Fee Structure');
@@ -42,7 +54,6 @@ class FeeStructureImportController extends Controller
         $sheet->setCellValue('B1', 'Fee Category');
         $sheet->setCellValue('C1', 'Tuition Fee');
 
-        // Style header
         $headerStyle = [
             'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2563EB']],
@@ -50,24 +61,19 @@ class FeeStructureImportController extends Controller
         ];
         $sheet->getStyle('A1:C1')->applyFromArray($headerStyle);
 
-        // Sample rows — one per category showing correct amounts
-        $samples = [
-            ['Nursery', 'general', 16200],
-            ['Nursery', 'rte',     16200],
-            ['Nursery', 'coc',     16000],
-            ['Class 1', 'general', 16200],
-            ['Class 1', 'rte',     16200],
-            ['Class 1', 'coc',     16000],
-        ];
-        foreach ($samples as $i => $row) {
-            $r = $i + 2;
-            $sheet->setCellValue("A{$r}", $row[0]);
-            $sheet->setCellValue("B{$r}", $row[1]);
-            $sheet->setCellValue("C{$r}", $row[2]);
+        // One row per class × category
+        $row = 2;
+        foreach ($classes as $className) {
+            foreach ($categories as $cat => $fee) {
+                $sheet->setCellValue("A{$row}", $className);
+                $sheet->setCellValue("B{$row}", $cat);
+                $sheet->setCellValue("C{$row}", $fee);
+                $row++;
+            }
         }
 
-        // Note row
-        $noteRow = count($samples) + 3;
+        // Note row (one blank row gap)
+        $noteRow = $row + 1;
         $sheet->setCellValue("A{$noteRow}", 'Fee categories: general / rte / coc   |   Girls tuition fee is auto-calculated (75% of general + Rs.50)   |   Transport and other fees default to 0');
         $sheet->getStyle("A{$noteRow}")->getFont()->setItalic(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF888888'));
         $sheet->mergeCells("A{$noteRow}:C{$noteRow}");
