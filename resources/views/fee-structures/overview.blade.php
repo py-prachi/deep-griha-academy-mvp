@@ -110,7 +110,7 @@
                                             {{-- COC --}}
                                             <td class="text-center">
                                                 @if($coc)
-                                                    <span class="badge bg-info text-dark">Internal</span>
+                                                    <span class="badge bg-info text-dark">₹{{ number_format($coc->tuition_fee, 0) }}</span>
                                                 @else
                                                     <span class="text-muted">—</span>
                                                 @endif
@@ -126,7 +126,7 @@
                     <p class="text-muted small no-print">
                         <i class="bi bi-info-circle me-1"></i>
                         Totals shown are annual. Girls total uses girls_tuition_fee where set, otherwise same as boys.
-                        RTE fees are government-reimbursed. COC is Internal Transfer.
+                        RTE fees are government-reimbursed.
                     </p>
                     @endif
 

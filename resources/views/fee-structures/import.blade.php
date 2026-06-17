@@ -64,13 +64,12 @@
                             <strong>Columns in the template:</strong>
                             <code>class_name</code> &nbsp;|&nbsp;
                             <code>fee_category</code> &nbsp;|&nbsp;
-                            <code>tuition_fee (boys)</code> &nbsp;|&nbsp;
-                            <code>transport_fee</code> &nbsp;|&nbsp;
-                            <code>other_fee</code>
+                            <code>tuition_fee</code>
                             <br class="mt-1">
-                            Total is auto-calculated. Academic year is taken from the current session.
+                            Academic year is taken from the current session.
                             Fee categories: <code>general</code>, <code>rte</code>, <code>coc</code>.
-                            Girls tuition fee is auto-calculated at 75% + ₹50 of boys rate for general category.
+                            Girls tuition fee is auto-calculated (75% of boys + ₹50) for general category.
+                            Transport and other fees are always saved as 0.
                         </div>
                     </div>
                     @endif
@@ -108,9 +107,7 @@
                                             <th>Row</th>
                                             <th>Class</th>
                                             <th>Category</th>
-                                            <th class="text-end">Tuition (Boys)</th>
-                                            <th class="text-end">Transport</th>
-                                            <th class="text-end">Other</th>
+                                            <th class="text-end">Tuition Fee</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
@@ -132,11 +129,10 @@
                                                 <span class="badge bg-{{ $catColour }}">{{ $d['fee_category'] }}</span>
                                             </td>
 
-                                            @foreach(['tuition_fee','transport_fee','other_fee'] as $field)
                                             @php
-                                                $newVal  = $d[$field] !== '' ? (float)$d[$field] : null;
-                                                $changed = isset($diff[$field]);
-                                                $oldVal  = $changed ? $diff[$field]['old'] : null;
+                                                $newVal  = $d['tuition_fee'] !== '' ? (float)$d['tuition_fee'] : null;
+                                                $changed = isset($diff['tuition_fee']);
+                                                $oldVal  = $changed ? $diff['tuition_fee']['old'] : null;
                                             @endphp
                                             <td class="text-end" @if($changed) style="background:#fff3cd" @endif>
                                                 @if($changed)
@@ -148,7 +144,6 @@
                                                     <span class="{{ $unchanged ? 'text-muted' : '' }}">{{ $newVal !== null ? '₹'.number_format($newVal,0) : '—' }}</span>
                                                 @endif
                                             </td>
-                                            @endforeach
 
                                             <td>
                                                 @if($isError)

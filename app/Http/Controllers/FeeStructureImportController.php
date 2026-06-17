@@ -8,6 +8,10 @@ use App\Models\SchoolClass;
 use App\Models\SchoolSession;
 use App\Repositories\FeeStructureRepository;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class FeeStructureImportController extends Controller
 {
@@ -29,11 +33,65 @@ class FeeStructureImportController extends Controller
 
     public function downloadTemplate()
     {
-        $templatePath = base_path('FeeStructureTemplate.xlsx');
-        if (!file_exists($templatePath)) {
-            return back()->withErrors(['file' => 'Template file not found on server.']);
+        // Load all classes for the current session, ordered by id
+        $session = SchoolSession::orderBy('id', 'desc')->first();
+        $classes = $session
+            ? SchoolClass::where('session_id', $session->id)->orderBy('id')->pluck('class_name')->toArray()
+            : [];
+
+        $categories = [
+            'general' => 16200,
+            'rte'     => 16200,
+            'coc'     => 16000,
+        ];
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Fee Structure');
+
+        // Header row
+        $sheet->setCellValue('A1', 'Class Name');
+        $sheet->setCellValue('B1', 'Fee Category');
+        $sheet->setCellValue('C1', 'Tuition Fee');
+
+        $headerStyle = [
+            'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2563EB']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        ];
+        $sheet->getStyle('A1:C1')->applyFromArray($headerStyle);
+
+        // One row per class × category
+        $row = 2;
+        foreach ($classes as $className) {
+            foreach ($categories as $cat => $fee) {
+                $sheet->setCellValue("A{$row}", $className);
+                $sheet->setCellValue("B{$row}", $cat);
+                $sheet->setCellValue("C{$row}", $fee);
+                $row++;
+            }
         }
-        return response()->download($templatePath, 'FeeStructureTemplate.xlsx');
+
+        // Note row (one blank row gap)
+        $noteRow = $row + 1;
+        $sheet->setCellValue("A{$noteRow}", 'Fee categories: general / rte / coc   |   Girls tuition fee is auto-calculated (75% of general + Rs.50)   |   Transport and other fees default to 0');
+        $sheet->getStyle("A{$noteRow}")->getFont()->setItalic(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF888888'));
+        $sheet->mergeCells("A{$noteRow}:C{$noteRow}");
+
+        // Column widths
+        $sheet->getColumnDimension('A')->setWidth(18);
+        $sheet->getColumnDimension('B')->setWidth(16);
+        $sheet->getColumnDimension('C')->setWidth(16);
+
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'FeeStructureTemplate.xlsx';
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 
     public function preview(Request $request)
@@ -62,19 +120,18 @@ class FeeStructureImportController extends Controller
         foreach ($rawRows as $rowIndex => $row) {
             $lineNo = $rowIndex + 2;
 
-            // Skip blank rows
+            // Skip blank rows and note/comment rows (no fee_category = not a data row)
             $empty = true;
             foreach ($row as $cell) {
                 if (trim((string) $cell) !== '') { $empty = false; break; }
             }
             if ($empty) continue;
+            if (trim((string) ($row[1] ?? '')) === '') continue;
 
             $d = [
-                'class_name'    => trim((string) ($row[0] ?? '')),
-                'fee_category'  => strtolower(trim((string) ($row[1] ?? ''))),
-                'tuition_fee'   => trim((string) ($row[2] ?? '')),
-                'transport_fee' => trim((string) ($row[3] ?? '')),
-                'other_fee'     => trim((string) ($row[4] ?? '')),
+                'class_name'   => trim((string) ($row[0] ?? '')),
+                'fee_category' => strtolower(trim((string) ($row[1] ?? ''))),
+                'tuition_fee'  => trim((string) ($row[2] ?? '')),
             ];
 
             $errors = [];
@@ -93,10 +150,8 @@ class FeeStructureImportController extends Controller
                 $errors[] = 'fee_category must be general / rte / coc';
             }
 
-            foreach (['tuition_fee', 'transport_fee', 'other_fee'] as $field) {
-                if ($d[$field] !== '' && !is_numeric($d[$field])) {
-                    $errors[] = $field . ' must be a number';
-                }
+            if ($d['tuition_fee'] !== '' && !is_numeric($d['tuition_fee'])) {
+                $errors[] = 'tuition_fee must be a number';
             }
 
             // Fetch existing record for diff comparison
@@ -115,16 +170,10 @@ class FeeStructureImportController extends Controller
             // Build field-level diff for update rows
             $diff = [];
             if ($existing) {
-                $compareFields = [
-                    'tuition_fee'   => (float) ($d['tuition_fee']   !== '' ? $d['tuition_fee']   : 0),
-                    'transport_fee' => (float) ($d['transport_fee'] !== '' ? $d['transport_fee'] : 0),
-                    'other_fee'     => (float) ($d['other_fee']     !== '' ? $d['other_fee']     : 0),
-                ];
-                foreach ($compareFields as $field => $newVal) {
-                    $oldVal = (float) $existing->{$field};
-                    if ($oldVal !== $newVal) {
-                        $diff[$field] = ['old' => $oldVal, 'new' => $newVal];
-                    }
+                $newTuition = (float) ($d['tuition_fee'] !== '' ? $d['tuition_fee'] : 0);
+                $oldTuition = (float) $existing->tuition_fee;
+                if ($oldTuition !== $newTuition) {
+                    $diff['tuition_fee'] = ['old' => $oldTuition, 'new' => $newTuition];
                 }
             }
             $d['diff'] = $diff;
@@ -175,8 +224,8 @@ class FeeStructureImportController extends Controller
                     'fee_category'      => $d['fee_category'],
                     'tuition_fee'       => $tuitionFee,
                     'girls_tuition_fee' => $d['fee_category'] === 'general' ? round($tuitionFee * 0.75) + 50 : null,
-                    'transport_fee'     => $d['transport_fee'] !== '' ? $d['transport_fee'] : 0,
-                    'other_fee'         => $d['other_fee']     !== '' ? $d['other_fee']     : 0,
+                    'transport_fee'     => 0,
+                    'other_fee'         => 0,
                 ]);
                 $d['is_update'] ? $updated++ : $imported++;
             } catch (\Exception $e) {

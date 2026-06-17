@@ -44,7 +44,7 @@ use App\Http\Controllers\TimetableController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return Auth::check() ? redirect('/home') : redirect('/login');
 });
 Route::get('/health', function () { return response('OK', 200); });
 
@@ -213,14 +213,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/routine/store', [RoutineController::class, 'store'])->name('section.routine.store');
 
     // Syllabus
-    // Lesson Plans
-    Route::get('/lesson-plans',                          [LessonPlanController::class, 'index'])->name('lesson-plans.index');
-    Route::get('/lesson-plans/create',                   [LessonPlanController::class, 'create'])->name('lesson-plans.create');
-    Route::post('/lesson-plans',                         [LessonPlanController::class, 'store'])->name('lesson-plans.store');
-    Route::get('/lesson-plans/{id}/edit',                [LessonPlanController::class, 'edit'])->name('lesson-plans.edit');
-    Route::put('/lesson-plans/{id}',                     [LessonPlanController::class, 'update'])->name('lesson-plans.update');
-    Route::delete('/lesson-plans/{id}',                  [LessonPlanController::class, 'destroy'])->name('lesson-plans.destroy');
-    Route::get('/lesson-plans/print',                    [LessonPlanController::class, 'printView'])->name('lesson-plans.print');
+    // Learning Standard (formerly Lesson Plans)
+    Route::get('/learning-standard',                     [LessonPlanController::class, 'index'])->name('lesson-plans.index');
+    Route::get('/learning-standard/create',              [LessonPlanController::class, 'create'])->name('lesson-plans.create');
+    Route::post('/learning-standard',                    [LessonPlanController::class, 'store'])->name('lesson-plans.store');
+    Route::get('/learning-standard/{id}/edit',           [LessonPlanController::class, 'edit'])->name('lesson-plans.edit');
+    Route::put('/learning-standard/{id}',                [LessonPlanController::class, 'update'])->name('lesson-plans.update');
+    Route::delete('/learning-standard/{id}',             [LessonPlanController::class, 'destroy'])->name('lesson-plans.destroy');
+    Route::get('/learning-standard/print',               [LessonPlanController::class, 'printView'])->name('lesson-plans.print');
 
     Route::get('/syllabus/create', [SyllabusController::class, 'create'])->name('class.syllabus.create');
     Route::post('/syllabus/create', [SyllabusController::class, 'store'])->name('syllabus.store');

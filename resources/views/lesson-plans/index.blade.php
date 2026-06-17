@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Lesson Plans')
+@section('title', 'Learning Standard')
 @section('content')
 <div class="container">
     <div class="row justify-content-start">
@@ -8,7 +8,7 @@
             <div class="row pt-2">
                 <div class="col ps-4">
 
-                    <h4 class="mb-1"><i class="bi bi-journal-text me-1"></i> Lesson Plans</h4>
+                    <h4 class="mb-1"><i class="bi bi-journal-text me-1"></i> Learning Standard</h4>
                     <p class="text-muted small mb-3">Month-wise syllabus plan for the current academic session.</p>
 
                     @include('session-messages')

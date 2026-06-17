@@ -38,6 +38,10 @@
         document.getElementById('create_activity_date').value = today;
         new bootstrap.Modal(document.getElementById('createEventModal')).show();
     });
+
+    if (new URLSearchParams(window.location.search).get('open') === '1') {
+        document.getElementById('btn_log_activity').click();
+    }
 </script>
 @endpush
 @endsection

@@ -6,6 +6,25 @@
   src: URL('fonts/Ubuntu/Ubuntu-Regular.ttf') format('truetype');
 }
 
+/* ── DGA Brand Colors ── */
+:root {
+  --dga-navy:  #1B3A6B;
+  --dga-gold:  #F2C067;
+  --dga-dark:  #1a1a1a;
+}
+
+/* ── DGA utility classes (hex values for reliable rendering) ── */
+.text-dga-navy       { color: #1B3A6B !important; }
+.text-dga-gold       { color: #F2C067 !important; }
+.dga-navy-bg         { background-color: #1B3A6B !important; }
+.dga-gold-bg         { background-color: #F2C067 !important; }
+.border-l-dga-navy   { border-left: 4px solid #1B3A6B !important; }
+.border-l-dga-gold   { border-left: 4px solid #F2C067 !important; }
+.dga-stat-icon {
+  width: 48px; height: 48px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
 body {
   background-color: #f8f9fa;
   font-family: 'Ubuntu', sans-serif;
@@ -25,7 +44,7 @@ body {
 }
 
 .nav-item > .nav.collapse {
-  border: 1px solid #1693e3;
+  border: 1px solid var(--dga-gold);
 }
 
 /* .dashboard .card {
@@ -33,21 +52,73 @@ body {
 } */
 
 .bg-dark {
-  background-image: linear-gradient(-45deg,#1054a9,#179ceb);
+  background-color: var(--dga-navy) !important;
+  background-image: none;
 }
 
+/* ── Sidebar ── */
+.dga-sidebar {
+  background-color: var(--dga-navy);
+  min-height: calc(100vh - 56px);
+}
+
+.dga-sidebar .nav-link {
+  color: rgba(255,255,255,0.85);
+}
+
+.dga-sidebar .nav-link:hover {
+  color: #fff;
+  background-color: rgba(255,255,255,0.08);
+}
+
+.dga-sidebar .nav-link.active {
+  color: var(--dga-dark) !important;
+  background-color: var(--dga-gold);
+  background-image: none;
+  border: none;
+  box-shadow: none !important;
+  font-weight: 600;
+}
+
+.dga-sidebar .nav.collapse,
+.dga-sidebar .bg-white {
+  background-color: rgba(0,0,0,0.2) !important;
+  border: 1px solid rgba(242,192,103,0.3);
+}
+
+/* Keep top navbar nav-links dark (on white bg) */
 .nav-link {
   color: #212529;
 }
 
 .nav-link.active {
-  color: #fff !important;/*#212529;*/
-  border-top: 1px solid #dee2e6;
-  border-left: 1px solid #dee2e6;
-  border-bottom: 1px solid #dee2e6;
-  /*background-color: #ffffff;#f8f9fa;#0d6efd;*/
-  background-image: linear-gradient(-45deg,#1054a9,#179ceb);
-  box-shadow: 0 .125rem .25rem rgba(0,0,0,.075)!important;
+  color: var(--dga-dark) !important;
+  border: none;
+  background-color: var(--dga-gold);
+  background-image: none;
+  box-shadow: 0 .125rem .25rem rgba(0,0,0,.1) !important;
+  font-weight: 600;
+}
+
+/* ── Override Bootstrap primary with DGA navy ── */
+.btn-primary {
+  background-color: var(--dga-navy);
+  border-color: var(--dga-navy);
+  color: #fff;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  background-color: #142d55;
+  border-color: #142d55;
+  color: #fff;
+}
+.btn-outline-primary {
+  color: var(--dga-navy);
+  border-color: var(--dga-navy);
+}
+.btn-outline-primary:hover {
+  background-color: var(--dga-navy);
+  border-color: var(--dga-navy);
+  color: #fff;
 }
 
 .navbar-pad {

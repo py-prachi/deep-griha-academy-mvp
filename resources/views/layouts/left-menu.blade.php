@@ -1,5 +1,5 @@
-<div class="col-xs-1 col-sm-1 col-md-1 col-lg-2 col-xl-2 col-xxl-2 border-rt-e6 px-0">
-    <div class="d-flex flex-column align-items-center align-items-sm-start ">
+<div class="col-xs-1 col-sm-1 col-md-1 col-lg-2 col-xl-2 col-xxl-2 px-0 dga-sidebar">
+    <div class="d-flex flex-column align-items-center align-items-sm-start">
                 <ul class="nav flex-column pt-2 w-100">
 
                     {{-- ── DASHBOARD (all roles) ── --}}
@@ -35,11 +35,11 @@
                         </a>
                     </li>
 
-                    {{-- Lesson Plans --}}
+                    {{-- Learning Standard --}}
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('lesson-plans*') ? 'active' : '' }}" href="{{ route('lesson-plans.index') }}">
+                        <a class="nav-link {{ request()->is('learning-standard*') ? 'active' : '' }}" href="{{ route('lesson-plans.index') }}">
                             <i class="bi bi-journal-text"></i>
-                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Lesson Plans</span>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Learning Standard</span>
                         </a>
                     </li>
 
@@ -329,11 +329,11 @@
                     </li>
                     @endcan
 
-                    {{-- Lesson Plans (admin: view only) --}}
+                    {{-- Learning Standard (admin: view only) --}}
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('lesson-plans*') ? 'active' : '' }}" href="{{ route('lesson-plans.index') }}">
+                        <a class="nav-link {{ request()->is('learning-standard*') ? 'active' : '' }}" href="{{ route('lesson-plans.index') }}">
                             <i class="bi bi-journal-text"></i>
-                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Lesson Plans</span>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Learning Standard</span>
                         </a>
                     </li>
 

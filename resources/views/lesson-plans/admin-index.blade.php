@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Lesson Plans')
+@section('title', 'Learning Standard')
 @section('content')
 <div class="container">
     <div class="row justify-content-start">
@@ -9,7 +9,7 @@
                 <div class="col ps-4">
 
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <h4 class="mb-0"><i class="bi bi-journal-text me-1"></i> Lesson Plans</h4>
+                        <h4 class="mb-0"><i class="bi bi-journal-text me-1"></i> Learning Standard</h4>
                     </div>
                     <p class="text-muted small mb-3">Month-wise syllabus plans entered by subject teachers.</p>
 

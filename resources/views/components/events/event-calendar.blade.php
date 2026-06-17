@@ -254,7 +254,7 @@
                 center: 'title',
                 right: 'month,agendaWeek,agendaDay'
             },
-            height: {{($editable == 'true') ? 500 : "parent"}},
+            height: {{($editable == 'true') ? 500 : 450}},
             defaultView: 'month',
             editable: {{$editable}},
             eventLimit: true,
@@ -327,7 +327,12 @@
                 @endif
 
                 new bootstrap.Modal(document.getElementById('eventDetailModal')).show();
-            }
+            }@if($selectable == 'false'),
+
+            dayClick: function (date) {
+                calendar.fullCalendar('changeView', 'agendaDay');
+                calendar.fullCalendar('gotoDate', date);
+            }@endif
         });
 
         function setDetRow(rowId, fieldId, value) {
