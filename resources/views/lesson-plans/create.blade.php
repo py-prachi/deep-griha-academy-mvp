@@ -66,7 +66,7 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label">Learning Standard</label>
+                                    <label class="form-label">Learning Standards / Outcome</label>
                                     <textarea name="learning_standards" class="form-control @error('learning_standards') is-invalid @enderror"
                                               rows="3" placeholder="Can be in English, Hindi or Marathi">{{ old('learning_standards') }}</textarea>
                                     @error('learning_standards')<div class="invalid-feedback">{{ $message }}</div>@enderror

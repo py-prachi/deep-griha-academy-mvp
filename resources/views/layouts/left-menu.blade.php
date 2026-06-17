@@ -37,7 +37,7 @@
 
                     {{-- Learning Standard --}}
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('lesson-plans*') ? 'active' : '' }}" href="{{ route('lesson-plans.index') }}">
+                        <a class="nav-link {{ request()->is('learning-standard*') ? 'active' : '' }}" href="{{ route('lesson-plans.index') }}">
                             <i class="bi bi-journal-text"></i>
                             <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Learning Standard</span>
                         </a>
@@ -331,7 +331,7 @@
 
                     {{-- Learning Standard (admin: view only) --}}
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('lesson-plans*') ? 'active' : '' }}" href="{{ route('lesson-plans.index') }}">
+                        <a class="nav-link {{ request()->is('learning-standard*') ? 'active' : '' }}" href="{{ route('lesson-plans.index') }}">
                             <i class="bi bi-journal-text"></i>
                             <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Learning Standard</span>
                         </a>
