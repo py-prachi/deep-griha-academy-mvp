@@ -68,9 +68,10 @@ body {
   font-weight: 600;
 }
 
-.dga-sidebar .nav-item > .nav.collapse {
-  border: 1px solid rgba(242,192,103,0.4);
-  background-color: rgba(0,0,0,0.15);
+.dga-sidebar .nav.collapse,
+.dga-sidebar .bg-white {
+  background-color: rgba(0,0,0,0.2) !important;
+  border: 1px solid rgba(242,192,103,0.3);
 }
 
 /* Keep top navbar nav-links dark (on white bg) */

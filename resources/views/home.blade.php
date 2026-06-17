@@ -362,104 +362,124 @@
 
                 @else
                 {{-- ── ADMIN DASHBOARD ── --}}
-                <div class="row dashboard">
-                    <div class="col">
-                        <div class="card rounded-pill">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="ms-2 me-auto"><div class="fw-bold"><i class="bi bi-person-lines-fill me-3"></i> Total Students</div></div>
-                                    <span class="badge bg-dark rounded-pill">{{$studentCount}}</span>
+
+                {{-- Header --}}
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <h5 class="mb-0 fw-bold" style="color: var(--dga-navy);">
+                            Good {{ \Carbon\Carbon::now()->format('G') < 12 ? 'morning' : (\Carbon\Carbon::now()->format('G') < 17 ? 'afternoon' : 'evening') }}, {{ auth()->user()->first_name }}!
+                        </h5>
+                        <div class="text-muted small">{{ \Carbon\Carbon::today()->format('l, d F Y') }}</div>
+                    </div>
+                    <img src="{{ asset('images/dgs-logo.png') }}" height="48" alt="DGS">
+                </div>
+
+                {{-- Stat cards --}}
+                @php
+                    $femaleCount = $studentCount - $maleStudentsBySession;
+                @endphp
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid var(--dga-navy) !important;">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white flex-shrink-0"
+                                     style="width:48px;height:48px;background-color:var(--dga-navy);">
+                                    <i class="bi bi-people-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="fs-3 fw-bold lh-1" style="color:var(--dga-navy);">{{ $studentCount }}</div>
+                                    <div class="text-muted small">Students
+                                        @if($studentCount > 0)
+                                        <span class="ms-1">· {{ $maleStudentsBySession }}B / {{ $femaleCount }}G</span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <div class="card rounded-pill">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="ms-2 me-auto"><div class="fw-bold"><i class="bi bi-person-lines-fill me-3"></i> Total Teachers</div></div>
-                                    <span class="badge bg-dark rounded-pill">{{$teacherCount}}</span>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid var(--dga-gold) !important;">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                     style="width:48px;height:48px;background-color:var(--dga-gold);">
+                                    <i class="bi bi-person-video3 fs-5" style="color:var(--dga-navy);"></i>
+                                </div>
+                                <div>
+                                    <div class="fs-3 fw-bold lh-1" style="color:var(--dga-navy);">{{ $teacherCount }}</div>
+                                    <div class="text-muted small">Teachers</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <div class="card rounded-pill">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="ms-2 me-auto"><div class="fw-bold"><i class="bi bi-diagram-3 me-3"></i> Total Classes</div></div>
-                                    <span class="badge bg-dark rounded-pill">{{ $classCount }}</span>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #6c757d !important;">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white flex-shrink-0"
+                                     style="width:48px;height:48px;background-color:#6c757d;">
+                                    <i class="bi bi-diagram-3-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="fs-3 fw-bold lh-1" style="color:var(--dga-navy);">{{ $classCount }}</div>
+                                    <div class="text-muted small">Classes</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                @if($studentCount > 0)
-                <div class="mt-3 d-flex align-items-center">
-                    <div class="col-3">
-                        <span class="ps-2 me-2">Students %</span>
-                        <span class="badge rounded-pill border" style="background-color: #0678c8;">Male</span>
-                        <span class="badge rounded-pill border" style="background-color: #49a4fe;">Female</span>
+                {{-- Quick Actions --}}
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header py-2 small fw-semibold border-0" style="background-color: var(--dga-navy); color:#fff;">
+                        <i class="bi bi-lightning-charge-fill me-1" style="color:var(--dga-gold);"></i> Quick Actions
                     </div>
-                    @php
-                    $maleStudentPercentage = round(($maleStudentsBySession/$studentCount), 2) * 100;
-                    $maleStudentPercentageStyle = "style='background-color: #0678c8; width: $maleStudentPercentage%'";
-                    $femaleStudentPercentage = round((($studentCount - $maleStudentsBySession)/$studentCount), 2) * 100;
-                    $femaleStudentPercentageStyle = "style='background-color: #49a4fe; width: $femaleStudentPercentage%'";
-                    @endphp
-                    <div class="col-9 progress">
-                        <div class="progress-bar progress-bar-striped" role="progressbar" {!!$maleStudentPercentageStyle!!} aria-valuenow="{{$maleStudentPercentage}}" aria-valuemin="0" aria-valuemax="100">{{$maleStudentPercentage}}%</div>
-                        <div class="progress-bar progress-bar-striped" role="progressbar" {!!$femaleStudentPercentageStyle!!} aria-valuenow="{{$femaleStudentPercentage}}" aria-valuemin="0" aria-valuemax="100">{{$femaleStudentPercentage}}%</div>
-                    </div>
-                </div>
-                @endif
-
-                <div class="row align-items-md-stretch mt-4">
-                    <div class="col">
-                        <div class="p-3 text-white bg-dark rounded-3">
-                            <h3>Welcome to Deep Griha Academy!</h3>
-                            <p><i class="bi bi-emoji-heart-eyes"></i> Thanks for your love and support.</p>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="p-3 bg-white border rounded-3" style="height: 100%;">
-                            <h3>School Management System</h3>
-                            <p class="text-end">for <i class="bi bi-lightning"></i> <a href="https://deepgriha.org/programmes/cbse-english-academy-pune/" target="_blank" style="text-decoration: none;">Deep Griha Academy</a> <i class="bi bi-lightning"></i>.</p>
+                    <div class="card-body py-3">
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{{ route('admission.create') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-person-plus me-1"></i> New Admission</a>
+                            <a href="{{ route('student.list.show') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-people me-1"></i> Students</a>
+                            <a href="{{ route('teacher.list.show') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-person-video3 me-1"></i> Teachers</a>
+                            <a href="{{ route('fee-structures.overview') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-cash-stack me-1"></i> Fee Overview</a>
+                            <a href="{{ route('fee.payments.index') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-receipt me-1"></i> Fee Payments</a>
+                            <a href="{{ route('marks.review') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-grid-3x3-gap me-1"></i> Marks Review</a>
+                            <a href="{{ route('lesson-plans.index') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-journal-text me-1"></i> Lesson Plans</a>
                         </div>
                     </div>
                 </div>
 
-                <div class="row mt-4">
+                {{-- Events + Notices --}}
+                <div class="row g-3">
                     <div class="col-lg-6">
-                        <div class="card mb-3">
-                            <div class="card-header bg-transparent"><i class="bi bi-calendar-event me-2"></i> Events</div>
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header py-2 small fw-semibold border-0" style="background-color: var(--dga-navy); color:#fff;">
+                                <i class="bi bi-calendar-event me-1" style="color:var(--dga-gold);"></i> Events
+                            </div>
                             <div class="card-body text-dark">
                                 @include('components.events.event-calendar', ['editable' => 'false', 'selectable' => 'false'])
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-6">
-                        <div class="card mb-3">
-                            <div class="card-header bg-transparent d-flex justify-content-between">
-                                <span><i class="bi bi-megaphone me-2"></i> Notices</span> {{ $notices->links() }}
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header py-2 small fw-semibold border-0 d-flex justify-content-between align-items-center" style="background-color: var(--dga-navy); color:#fff;">
+                                <span><i class="bi bi-megaphone me-1" style="color:var(--dga-gold);"></i> Notices</span>
+                                <span style="color:rgba(255,255,255,0.7)">{{ $notices->links() }}</span>
                             </div>
                             <div class="card-body p-0 text-dark">
                                 <div class="accordion accordion-flush" id="noticeAccordion">
                                     @foreach ($notices as $notice)
                                     <div class="accordion-item">
-                                        <h2 class="accordion-header" id="flush-heading{{$notice->id}}">
-                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse{{$notice->id}}" aria-expanded="{{$loop->first ? 'true' : 'false'}}" aria-controls="flush-collapse{{$notice->id}}">
-                                                Published at: {{$notice->created_at}}
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed py-2 small" type="button"
+                                                data-bs-toggle="collapse" data-bs-target="#flush-collapse{{$notice->id}}">
+                                                {{ \Carbon\Carbon::parse($notice->created_at)->format('d M Y') }}
                                             </button>
                                         </h2>
-                                        <div id="flush-collapse{{$notice->id}}" class="accordion-collapse collapse {{$loop->first ? 'show' : ''}}" aria-labelledby="flush-heading{{$notice->id}}" data-bs-parent="#noticeAccordion">
-                                            <div class="accordion-body overflow-auto">{!!Purify::clean($notice->notice)!!}</div>
+                                        <div id="flush-collapse{{$notice->id}}" class="accordion-collapse collapse {{ $loop->first ? 'show' : '' }}">
+                                            <div class="accordion-body small overflow-auto">{!! Purify::clean($notice->notice) !!}</div>
                                         </div>
                                     </div>
                                     @endforeach
                                     @if(count($notices) < 1)
-                                        <div class="p-3">No notices</div>
+                                    <div class="p-3 text-muted small">No notices yet.</div>
                                     @endif
                                 </div>
                             </div>
