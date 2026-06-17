@@ -434,11 +434,11 @@
                     </div>
                     <div class="card-body py-3">
                         <div class="d-flex flex-wrap gap-2">
-                            <a href="{{ route('admission.create') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-person-plus me-1"></i> New Admission</a>
+                            <a href="{{ route('admissions.create') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-person-plus me-1"></i> New Admission</a>
                             <a href="{{ route('student.list.show') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-people me-1"></i> Students</a>
                             <a href="{{ route('teacher.list.show') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-person-video3 me-1"></i> Teachers</a>
                             <a href="{{ route('fee-structures.overview') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-cash-stack me-1"></i> Fee Overview</a>
-                            <a href="{{ route('fee.payments.index') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-receipt me-1"></i> Fee Payments</a>
+                            <a href="{{ route('fees.collect') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-receipt me-1"></i> Collect Fee</a>
                             <a href="{{ route('marks.review') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-grid-3x3-gap me-1"></i> Marks Review</a>
                             <a href="{{ route('lesson-plans.index') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-journal-text me-1"></i> Lesson Plans</a>
                         </div>
