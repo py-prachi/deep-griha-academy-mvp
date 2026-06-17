@@ -120,12 +120,13 @@ class FeeStructureImportController extends Controller
         foreach ($rawRows as $rowIndex => $row) {
             $lineNo = $rowIndex + 2;
 
-            // Skip blank rows
+            // Skip blank rows and note/comment rows (no fee_category = not a data row)
             $empty = true;
             foreach ($row as $cell) {
                 if (trim((string) $cell) !== '') { $empty = false; break; }
             }
             if ($empty) continue;
+            if (trim((string) ($row[1] ?? '')) === '') continue;
 
             $d = [
                 'class_name'   => trim((string) ($row[0] ?? '')),
