@@ -44,7 +44,7 @@ use App\Http\Controllers\TimetableController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return Auth::check() ? redirect('/home') : redirect('/login');
 });
 Route::get('/health', function () { return response('OK', 200); });
 
