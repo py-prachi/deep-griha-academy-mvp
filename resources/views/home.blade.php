@@ -138,16 +138,20 @@
 
                 @elseif(!empty($isTeacher))
                 {{-- ── TEACHER DASHBOARD ── --}}
-                <h5 class="mb-0">Good {{ \Carbon\Carbon::now()->format('G') < 12 ? 'morning' : (\Carbon\Carbon::now()->format('G') < 17 ? 'afternoon' : 'evening') }}, {{ auth()->user()->first_name }}!</h5>
+                @php
+                    $tHour = (int)\Carbon\Carbon::now()->format('G');
+                    $tGreeting = $tHour < 12 ? 'morning' : ($tHour < 17 ? 'afternoon' : 'evening');
+                @endphp
+                <h5 class="mb-0 fw-bold fw-bold" style="color:#1B3A6B;">Good {{ $tGreeting }}, {{ auth()->user()->first_name }}!</h5>
                 @if($ct)
-                <p class="text-muted small mb-3">
+                <p class="text-muted small mb-2">
                     Class Teacher &mdash;
                     <strong>{{ $ct->schoolClass->class_name ?? '' }}</strong>
                     @if($ct->section) &mdash; {{ $ct->section->section_name }} @endif
                     &nbsp;|&nbsp; {{ \Carbon\Carbon::today()->format('l, d M Y') }}
                 </p>
                 @else
-                <p class="text-muted small mb-3">You are not assigned as Class Teacher this session.</p>
+                <p class="text-muted small mb-2">{{ \Carbon\Carbon::today()->format('l, d M Y') }} &nbsp;|&nbsp; Subject Teacher</p>
                 @endif
 
                 @if($ct)
@@ -305,13 +309,16 @@
                     </div>
                 </div>
 
-                {{-- Row 3: Events --}}
+                {{-- Row 3: Log & View Activities --}}
                 <div class="card mb-4">
-                    <div class="card-header py-2 small fw-semibold">
-                        <i class="bi bi-calendar-event me-1"></i> Events
+                    <div class="card-header py-2 small fw-semibold d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-calendar-event me-1"></i> Log Activity</span>
+                        <a href="{{ route('events.report') }}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:0.75rem;">
+                            <i class="bi bi-list-ul me-1"></i> My Activities
+                        </a>
                     </div>
                     <div class="card-body text-dark">
-                        @include('components.events.event-calendar', ['editable' => 'false', 'selectable' => 'false'])
+                        @include('components.events.event-calendar', ['editable' => 'false', 'selectable' => 'true'])
                     </div>
                 </div>
 
@@ -351,9 +358,14 @@
                     </div>
                     <div class="col-md-6">
                         <div class="card">
-                            <div class="card-header py-2 small fw-semibold"><i class="bi bi-calendar-event me-1"></i> Events</div>
+                            <div class="card-header py-2 small fw-semibold d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-calendar-event me-1"></i> Log Activity</span>
+                                <a href="{{ route('events.report') }}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:0.75rem;">
+                                    <i class="bi bi-list-ul me-1"></i> My Activities
+                                </a>
+                            </div>
                             <div class="card-body text-dark">
-                                @include('components.events.event-calendar', ['editable' => 'false', 'selectable' => 'false'])
+                                @include('components.events.event-calendar', ['editable' => 'false', 'selectable' => 'true'])
                             </div>
                         </div>
                     </div>
@@ -362,64 +374,56 @@
 
                 @else
                 {{-- ── ADMIN DASHBOARD ── --}}
+                @php
+                    $femaleCount = $studentCount - $maleStudentsBySession;
+                    $boysPct     = $studentCount > 0 ? round($maleStudentsBySession / $studentCount * 100) : 50;
+                    $girlsPct    = 100 - $boysPct;
+                    $hour        = (int)\Carbon\Carbon::now()->format('G');
+                    $greeting    = $hour < 12 ? 'morning' : ($hour < 17 ? 'afternoon' : 'evening');
+                @endphp
 
                 {{-- Header --}}
-                <div class="d-flex align-items-center justify-content-between mb-4">
-                    <div>
-                        <h5 class="mb-0 fw-bold" style="color: var(--dga-navy);">
-                            Good {{ \Carbon\Carbon::now()->format('G') < 12 ? 'morning' : (\Carbon\Carbon::now()->format('G') < 17 ? 'afternoon' : 'evening') }}, {{ auth()->user()->first_name }}!
-                        </h5>
-                        <div class="text-muted small">{{ \Carbon\Carbon::today()->format('l, d F Y') }}</div>
-                    </div>
-                    <img src="{{ asset('images/dgs-logo.png') }}" height="48" alt="DGS">
+                <div class="mb-3">
+                    <h5 class="mb-0 fw-bold fw-bold" style="color:#1B3A6B;">Good {{ $greeting }}, {{ auth()->user()->first_name }}!</h5>
+                    <div class="text-muted small">{{ \Carbon\Carbon::today()->format('l, d F Y') }}</div>
                 </div>
 
                 {{-- Stat cards --}}
-                @php
-                    $femaleCount = $studentCount - $maleStudentsBySession;
-                @endphp
-                <div class="row g-3 mb-4">
+                <div class="row g-3 mb-2">
                     <div class="col-md-4">
-                        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid var(--dga-navy) !important;">
-                            <div class="card-body d-flex align-items-center gap-3">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white flex-shrink-0"
-                                     style="width:48px;height:48px;background-color:var(--dga-navy);">
+                        <div class="card border-0 shadow-sm h-100" style="border-left:4px solid #1B3A6B;">
+                            <div class="card-body d-flex align-items-center gap-3 py-3">
+                                <div style="width:48px;height:48px;border-radius:50%;background-color:#1B3A6B;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;">
                                     <i class="bi bi-people-fill fs-5"></i>
                                 </div>
                                 <div>
-                                    <div class="fs-3 fw-bold lh-1" style="color:var(--dga-navy);">{{ $studentCount }}</div>
-                                    <div class="text-muted small">Students
-                                        @if($studentCount > 0)
-                                        <span class="ms-1">· {{ $maleStudentsBySession }}B / {{ $femaleCount }}G</span>
-                                        @endif
-                                    </div>
+                                    <div class="fs-3 fw-bold lh-1 fw-bold" style="color:#1B3A6B;">{{ $studentCount }}</div>
+                                    <div class="text-muted small">Students</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid var(--dga-gold) !important;">
-                            <div class="card-body d-flex align-items-center gap-3">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                                     style="width:48px;height:48px;background-color:var(--dga-gold);">
-                                    <i class="bi bi-person-video3 fs-5" style="color:var(--dga-navy);"></i>
+                        <div class="card border-0 shadow-sm h-100" style="border-left:4px solid #F2C067;">
+                            <div class="card-body d-flex align-items-center gap-3 py-3">
+                                <div style="width:48px;height:48px;border-radius:50%;background-color:#F2C067;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <i class="bi bi-person-video3 fs-5" style="color:#1B3A6B;"></i>
                                 </div>
                                 <div>
-                                    <div class="fs-3 fw-bold lh-1" style="color:var(--dga-navy);">{{ $teacherCount }}</div>
+                                    <div class="fs-3 fw-bold lh-1 fw-bold" style="color:#1B3A6B;">{{ $teacherCount }}</div>
                                     <div class="text-muted small">Teachers</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #6c757d !important;">
-                            <div class="card-body d-flex align-items-center gap-3">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white flex-shrink-0"
-                                     style="width:48px;height:48px;background-color:#6c757d;">
+                        <div class="card border-0 shadow-sm h-100" style="border-left:4px solid #6c757d;">
+                            <div class="card-body d-flex align-items-center gap-3 py-3">
+                                <div style="width:48px;height:48px;border-radius:50%;background-color:#6c757d;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;">
                                     <i class="bi bi-diagram-3-fill fs-5"></i>
                                 </div>
                                 <div>
-                                    <div class="fs-3 fw-bold lh-1" style="color:var(--dga-navy);">{{ $classCount }}</div>
+                                    <div class="fs-3 fw-bold lh-1 fw-bold" style="color:#1B3A6B;">{{ $classCount }}</div>
                                     <div class="text-muted small">Classes</div>
                                 </div>
                             </div>
@@ -427,41 +431,60 @@
                     </div>
                 </div>
 
-                {{-- Quick Actions --}}
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header py-2 small fw-semibold border-0" style="background-color: var(--dga-navy); color:#fff;">
-                        <i class="bi bi-lightning-charge-fill me-1" style="color:var(--dga-gold);"></i> Quick Actions
+                {{-- Boys / Girls bar --}}
+                @if($studentCount > 0)
+                <div class="mb-4 px-1">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="fw-semibold" style="color:#1B3A6B;"><i class="bi bi-person-fill me-1"></i>Boys — {{ $maleStudentsBySession }}</span>
+                        <span class="fw-semibold" style="color:#c0973a;"><i class="bi bi-person-fill me-1"></i>Girls — {{ $femaleCount }}</span>
                     </div>
-                    <div class="card-body py-3">
-                        <div class="d-flex flex-wrap gap-2">
-                            <a href="{{ route('admissions.create') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-person-plus me-1"></i> New Admission</a>
-                            <a href="{{ route('student.list.show') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-people me-1"></i> Students</a>
-                            <a href="{{ route('teacher.list.show') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-person-video3 me-1"></i> Teachers</a>
-                            <a href="{{ route('fee-structures.overview') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-cash-stack me-1"></i> Fee Overview</a>
-                            <a href="{{ route('fees.collect') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-receipt me-1"></i> Collect Fee</a>
-                            <a href="{{ route('marks.review') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-grid-3x3-gap me-1"></i> Marks Review</a>
-                            <a href="{{ route('lesson-plans.index') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-journal-text me-1"></i> Lesson Plans</a>
-                        </div>
+                    <div class="progress" style="height: 8px; border-radius: 4px; background-color:#e9ecef;">
+                        <div class="progress-bar" style="width:{{ $boysPct }}%; background-color:#1B3A6B;" title="Boys {{ $boysPct }}%"></div>
+                        <div class="progress-bar" style="width:{{ $girlsPct }}%; background-color:#F2C067;" title="Girls {{ $girlsPct }}%"></div>
                     </div>
                 </div>
+                @endif
 
-                {{-- Events + Notices --}}
+                {{-- Main: Calendar (left) + Quick Actions + Notices (right) --}}
                 <div class="row g-3">
-                    <div class="col-lg-6">
-                        <div class="card border-0 shadow-sm mb-3">
-                            <div class="card-header py-2 small fw-semibold border-0" style="background-color: var(--dga-navy); color:#fff;">
-                                <i class="bi bi-calendar-event me-1" style="color:var(--dga-gold);"></i> Events
+                    {{-- Calendar --}}
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header py-2 border-0 d-flex justify-content-between align-items-center" style="background-color:#1B3A6B; color:#fff;">
+                                <span class="fw-semibold small"><i class="bi bi-calendar3 me-1" style="color:#F2C067;"></i> Events Calendar</span>
+                                <span class="fst-italic" style="font-size:0.72rem; color:rgba(255,255,255,0.6);">Click a date or event for details</span>
                             </div>
-                            <div class="card-body text-dark">
+                            <div class="card-body text-dark p-2">
                                 @include('components.events.event-calendar', ['editable' => 'false', 'selectable' => 'false'])
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-6">
-                        <div class="card border-0 shadow-sm mb-3">
-                            <div class="card-header py-2 small fw-semibold border-0 d-flex justify-content-between align-items-center" style="background-color: var(--dga-navy); color:#fff;">
-                                <span><i class="bi bi-megaphone me-1" style="color:var(--dga-gold);"></i> Notices</span>
-                                <span style="color:rgba(255,255,255,0.7)">{{ $notices->links() }}</span>
+
+                    {{-- Right panel: Quick Actions + Notices --}}
+                    <div class="col-lg-4 d-flex flex-column gap-3">
+
+                        {{-- Quick Actions --}}
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header py-2 border-0" style="background-color:#1B3A6B; color:#fff;">
+                                <span class="fw-semibold small"><i class="bi bi-grid-3x3-gap me-1" style="color:#F2C067;"></i> Quick Links</span>
+                            </div>
+                            <div class="card-body py-2 px-3">
+                                <div class="d-flex flex-column gap-2">
+                                    <a href="{{ route('admissions.index') }}"        class="btn btn-sm btn-outline-primary text-start"><i class="bi bi-people me-2"></i> All Students</a>
+                                    <a href="{{ route('fee-structures.overview') }}" class="btn btn-sm btn-outline-primary text-start"><i class="bi bi-cash-stack me-2"></i> Fee Overview</a>
+                                    <a href="{{ route('fees.collect') }}"            class="btn btn-sm btn-outline-primary text-start"><i class="bi bi-receipt me-2"></i> Collect Fee</a>
+                                    <a href="{{ route('events.show') }}"             class="btn btn-sm btn-outline-primary text-start"><i class="bi bi-calendar-event me-2"></i> Events</a>
+                                    <a href="{{ route('lesson-plans.index') }}"      class="btn btn-sm btn-outline-primary text-start"><i class="bi bi-journal-text me-2"></i> Lesson Plans</a>
+                                    <a href="{{ route('teacher.list.show') }}"       class="btn btn-sm btn-outline-primary text-start"><i class="bi bi-person-video3 me-2"></i> Teachers</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Notices --}}
+                        <div class="card border-0 shadow-sm flex-grow-1">
+                            <div class="card-header py-2 border-0 d-flex justify-content-between align-items-center" style="background-color:#1B3A6B; color:#fff;">
+                                <span class="fw-semibold small"><i class="bi bi-megaphone me-1" style="color:#F2C067;"></i> Notices</span>
+                                <span style="color:rgba(255,255,255,0.7);">{{ $notices->links() }}</span>
                             </div>
                             <div class="card-body p-0 text-dark">
                                 <div class="accordion accordion-flush" id="noticeAccordion">
@@ -484,6 +507,7 @@
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
 

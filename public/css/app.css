@@ -13,6 +13,18 @@
   --dga-dark:  #1a1a1a;
 }
 
+/* ── DGA utility classes (hex values for reliable rendering) ── */
+.text-dga-navy       { color: #1B3A6B !important; }
+.text-dga-gold       { color: #F2C067 !important; }
+.dga-navy-bg         { background-color: #1B3A6B !important; }
+.dga-gold-bg         { background-color: #F2C067 !important; }
+.border-l-dga-navy   { border-left: 4px solid #1B3A6B !important; }
+.border-l-dga-gold   { border-left: 4px solid #F2C067 !important; }
+.dga-stat-icon {
+  width: 48px; height: 48px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
 body {
   background-color: #f8f9fa;
   font-family: 'Ubuntu', sans-serif;

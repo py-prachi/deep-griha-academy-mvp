@@ -11,7 +11,7 @@
                         <h1 class="display-6 mb-0"><i class="bi bi-table me-2"></i>
                             {{ auth()->user()->role === 'admin' ? 'Event Report' : 'My Activities' }}
                         </h1>
-                        <a href="{{ route('events.show') }}" class="btn btn-sm btn-primary">
+                        <a href="{{ route('events.show') }}?open=1" class="btn btn-sm btn-primary">
                             <i class="bi bi-calendar-plus me-1"></i> Log Activity
                         </a>
                     </div>
