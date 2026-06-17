@@ -474,7 +474,7 @@
                                     <a href="{{ route('fee-structures.overview') }}" class="btn btn-sm btn-outline-primary text-start"><i class="bi bi-cash-stack me-2"></i> Fee Overview</a>
                                     <a href="{{ route('fees.collect') }}"            class="btn btn-sm btn-outline-primary text-start"><i class="bi bi-receipt me-2"></i> Collect Fee</a>
                                     <a href="{{ route('events.show') }}"             class="btn btn-sm btn-outline-primary text-start"><i class="bi bi-calendar-event me-2"></i> Events</a>
-                                    <a href="{{ route('lesson-plans.index') }}"      class="btn btn-sm btn-outline-primary text-start"><i class="bi bi-journal-text me-2"></i> Lesson Plans</a>
+                                    <a href="{{ route('lesson-plans.index') }}"      class="btn btn-sm btn-outline-primary text-start"><i class="bi bi-journal-text me-2"></i> Learning Standard</a>
                                     <a href="{{ route('teacher.list.show') }}"       class="btn btn-sm btn-outline-primary text-start"><i class="bi bi-person-video3 me-2"></i> Teachers</a>
                                 </div>
                             </div>
