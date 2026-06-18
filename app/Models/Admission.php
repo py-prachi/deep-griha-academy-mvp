@@ -59,6 +59,7 @@ class Admission extends Model
         'blood_type',
         'previous_school',
         'aadhaar_no',
+        'pen_id',
         'inquiry_date',
         'confirmed_date',
         'exit_date',
@@ -135,6 +136,38 @@ class Admission extends Model
     }
 
     // ── HELPER METHODS ────────────────────────────────────────────────────
+
+    public function missingProfileFields(): array
+    {
+        $missing = [];
+        $prePrimary = ['Nursery', 'Lower KG', 'Upper KG'];
+        $className  = $this->schoolClass->class_name ?? '';
+
+        if (empty($this->aadhaar_no))
+            $missing[] = 'Aadhaar No.';
+
+        if (empty($this->pen_id))
+            $missing[] = 'PEN ID';
+
+        if (empty($this->blood_type))
+            $missing[] = 'Blood Group';
+
+        if (!in_array($className, $prePrimary) && empty($this->general_id))
+            $missing[] = 'General Register ID';
+
+        if (!empty($this->father_name) && empty($this->father_occupation))
+            $missing[] = "Father's Occupation";
+
+        if (!empty($this->mother_name) && empty($this->mother_occupation))
+            $missing[] = "Mother's Occupation";
+
+        return $missing;
+    }
+
+    public function hasIncompleteProfile(): bool
+    {
+        return $this->status === self::STATUS_CONFIRMED && count($this->missingProfileFields()) > 0;
+    }
 
     public function hasIncompleteDocuments()
     {

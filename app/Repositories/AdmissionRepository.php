@@ -86,6 +86,8 @@ class AdmissionRepository implements AdmissionInterface
                 'blood_type'              => $data['blood_type'] ?? null,
                 'doctor_name_phone'       => $data['doctor_name_phone'] ?? null,
                 'previous_school'         => $data['previous_school'] ?? null,
+                'aadhaar_no'              => $data['aadhaar_no'] ?? null,
+                'pen_id'                  => $data['pen_id'] ?? null,
                 'session_id'              => $data['session_id'] ?? null,
                 'class_id'                => $data['class_id'] ?? null,
                 'section_id'              => $data['section_id'] ?? null,

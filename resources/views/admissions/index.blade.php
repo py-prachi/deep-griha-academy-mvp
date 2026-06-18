@@ -90,6 +90,13 @@
                                                 <i class="bi bi-exclamation-triangle"></i>
                                             </span>
                                         @endif
+                                        {{-- Incomplete profile warning --}}
+                                        @if($admission->hasIncompleteProfile())
+                                            <span class="badge bg-danger ms-1"
+                                                  title="Profile incomplete: {{ implode(', ', $admission->missingProfileFields()) }}">
+                                                <i class="bi bi-person-exclamation"></i>
+                                            </span>
+                                        @endif
                                     </td>
                                     <td>
                                         <a href="{{ route('admissions.show', $admission->id) }}" class="btn btn-sm btn-outline-primary">

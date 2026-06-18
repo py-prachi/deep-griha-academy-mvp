@@ -109,6 +109,7 @@
                                     <div class="col-md-6"><strong>Language at Home:</strong> {{ $admission->language_spoken_at_home ?? '-' }}</div>
                                     <div class="col-md-6"><strong>Previous School:</strong> {{ $admission->previous_school ?? '-' }}</div>
                                     <div class="col-md-6"><strong>Aadhaar No.:</strong> {{ $admission->aadhaar_no ?? '-' }}</div>
+                                    <div class="col-md-6"><strong>PEN ID:</strong> {{ $admission->pen_id ?? '-' }}</div>
                                     <div class="col-md-6"><strong>Class:</strong> {{ $admission->schoolClass->class_name ?? '-' }}</div>
                                     <div class="col-md-6"><strong>Section:</strong> {{ $admission->section->section_name ?? 'Not assigned' }}</div>
                                     <div class="col-md-6"><strong>Academic Year:</strong> {{ $admission->academic_year }}</div>
@@ -169,8 +170,27 @@
 
                         </div>
 
-                        {{-- RIGHT COLUMN — Document Checklist --}}
+                        {{-- RIGHT COLUMN — Profile Gaps + Document Checklist --}}
                         <div class="col-md-4">
+
+                            {{-- Profile incomplete alert --}}
+                            @if($admission->hasIncompleteProfile())
+                            <div class="bg-white border border-danger shadow-sm p-4 mb-4">
+                                <h5 class="border-bottom pb-2 text-danger">
+                                    <i class="bi bi-person-exclamation"></i> Profile Incomplete
+                                </h5>
+                                <p class="small text-muted mb-2">The following fields are missing — please fill them in when available:</p>
+                                <ul class="mb-0 ps-3">
+                                    @foreach($admission->missingProfileFields() as $field)
+                                        <li class="small text-danger fw-semibold">{{ $field }}</li>
+                                    @endforeach
+                                </ul>
+                                <a href="{{ route('admissions.edit', $admission->id) }}" class="btn btn-sm btn-outline-danger mt-3">
+                                    <i class="bi bi-pencil"></i> Fill in missing info
+                                </a>
+                            </div>
+                            @endif
+
                             <div class="bg-white border shadow-sm p-4 mb-4">
                                 <h5 class="border-bottom pb-2">
                                     <i class="bi bi-folder-check"></i> Documents
