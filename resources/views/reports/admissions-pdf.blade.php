@@ -19,7 +19,13 @@
 <body>
     <div class="header">
         <h2>Deep Griha Academy</h2>
-        <h4>Admissions Report — {{ $academic_year }}</h4>
+        <h4>Admissions Report — {{ $academic_year }}
+            @if($statusFilter) — {{ ucfirst($statusFilter) }} only @endif
+            @if($classFilter && isset($schoolClasses))
+                @php $cls = $schoolClasses->firstWhere('id', $classFilter); @endphp
+                @if($cls) — {{ $cls->class_name }} @endif
+            @endif
+        </h4>
     </div>
     <div class="summary-boxes">
         <div class="box"><div class="label">Inquiry</div><div class="value">{{ $summary['inquiry'] }}</div></div>

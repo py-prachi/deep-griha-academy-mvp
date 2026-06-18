@@ -137,8 +137,18 @@ class FeeReportController extends Controller
                 ->when($statusFilter, fn($q) => $q->where('status', $statusFilter))
                 ->when($classFilter,  fn($q) => $q->where('class_id', $classFilter))
                 ->orderBy('status')->orderBy('created_at', 'desc')->get();
-            $pdf = Pdf::loadView('reports.admissions-pdf', ['summary' => $summary, 'admissions' => $allForPdf, 'academic_year' => $academic_year])->setPaper('a4', 'portrait');
-            return $pdf->download('admissions-report.pdf');
+            $pdf = Pdf::loadView('reports.admissions-pdf', [
+                'summary'      => $summary,
+                'admissions'   => $allForPdf,
+                'academic_year'=> $academic_year,
+                'statusFilter' => $statusFilter,
+                'classFilter'  => $classFilter,
+                'schoolClasses'=> $schoolClasses,
+            ])->setPaper('a4', 'portrait');
+            $filename = 'admissions-' . $academic_year
+                . ($statusFilter ? '-' . $statusFilter : '')
+                . '.pdf';
+            return $pdf->download($filename);
         }
         return view('reports.admissions', compact('summary', 'admissions', 'academic_year', 'statusFilter', 'classFilter', 'schoolClasses', 'sessions', 'selectedSessionId', 'selectedSession'));
     }
