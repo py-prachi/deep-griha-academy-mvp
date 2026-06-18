@@ -256,6 +256,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admissions',                           [App\Http\Controllers\AdmissionController::class, 'index'])->name('admissions.index');
     Route::get('/admissions/create',                    [App\Http\Controllers\AdmissionController::class, 'create'])->name('admissions.create');
     Route::get('/admissions/search/sibling',            [App\Http\Controllers\AdmissionController::class, 'siblingSearch'])->name('admissions.siblingSearch');
+    Route::get('/admissions/inquiry-form/download',     [App\Http\Controllers\AdmissionController::class, 'downloadInquiryForm'])->name('admissions.downloadInquiryForm');
     Route::get('/admissions-cancelled',                 [App\Http\Controllers\AdmissionController::class, 'cancelled'])->name('admissions.cancelled');
     Route::post('/admissions',                          [App\Http\Controllers\AdmissionController::class, 'store'])->name('admissions.store');
     Route::get('/admissions/{id}',                      [App\Http\Controllers\AdmissionController::class, 'show'])->name('admissions.show');

@@ -317,4 +317,23 @@ class AdmissionController extends Controller
 
         return response()->json($results);
     }
+
+    // ── DOWNLOAD BLANK INQUIRY FORM PDF ──────────────────────────────────
+    public function downloadInquiryForm()
+    {
+        $session = $this->schoolSessionRepository->getLatestSession();
+        $academicYear = $session->session_name ?? date('Y') . '-' . (date('Y') + 1);
+
+        $logoPath = public_path('images/dgs-logo.png');
+        $logoData = file_exists($logoPath)
+            ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
+            : null;
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admissions.inquiry-form-pdf', [
+            'academicYear' => $academicYear,
+            'logoData'     => $logoData,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->download('DGA-Admission-Inquiry-Form.pdf');
+    }
 }

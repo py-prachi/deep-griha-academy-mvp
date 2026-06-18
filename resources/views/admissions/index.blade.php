@@ -48,9 +48,14 @@
                     {{-- New Inquiry Button --}}
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="text-muted">{{ $admissions->total() }} record(s) found</span>
-                        <a href="{{ route('admissions.create') }}" class="btn btn-success">
-                            <i class="bi bi-person-plus"></i> New Inquiry
-                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('admissions.downloadInquiryForm') }}" class="btn btn-outline-secondary" target="_blank">
+                                <i class="bi bi-download"></i> Download Inquiry Form
+                            </a>
+                            <a href="{{ route('admissions.create') }}" class="btn btn-success">
+                                <i class="bi bi-person-plus"></i> New Inquiry
+                            </a>
+                        </div>
                     </div>
 
                     {{-- Admissions Table --}}
