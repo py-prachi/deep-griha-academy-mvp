@@ -15,11 +15,14 @@
 </head>
 <body>
     @php
-        $categoryLabel = match($category ?? 'rte') {
-            'discount' => 'Discount',
-            'coc'      => 'COC (Child of Christ)',
-            default    => 'RTE',
-        };
+        $cat = $category ?? 'rte';
+        if ($cat === 'discount') {
+            $categoryLabel = 'Discount';
+        } elseif ($cat === 'coc') {
+            $categoryLabel = 'COC (Child of Christ)';
+        } else {
+            $categoryLabel = 'RTE';
+        }
         $sessionName = $selectedSession->session_name ?? '';
     @endphp
 
@@ -39,10 +42,10 @@
                 <th>Student Name</th>
                 <th>Class / Div</th>
                 <th>Admission No</th>
-                @if(($category ?? 'rte') === 'rte')
+                @if($cat === 'rte')
                     <th>RTE Doc No</th>
                     <th>Date of Birth</th>
-                @elseif(($category ?? 'rte') === 'discount')
+                @elseif($cat === 'discount')
                     <th>Gender</th>
                     <th>Discount %</th>
                 @else
@@ -58,10 +61,10 @@
                 <td>{{ $student->first_name }} {{ $student->last_name }}</td>
                 <td>{{ $student->class_name }} {{ $student->section_name }}</td>
                 <td>{{ $student->dga_admission_no ?? $student->general_id ?? '—' }}</td>
-                @if(($category ?? 'rte') === 'rte')
+                @if($cat === 'rte')
                     <td>{{ $student->admission->rte_doc_no ?? '—' }}</td>
                     <td>{{ $student->birthday ? \Carbon\Carbon::parse($student->birthday)->format('d M Y') : '—' }}</td>
-                @elseif(($category ?? 'rte') === 'discount')
+                @elseif($cat === 'discount')
                     <td>{{ $student->gender ?? '—' }}</td>
                     <td>{{ $student->admission->discount_percentage !== null ? $student->admission->discount_percentage . '%' : '—' }}</td>
                 @else
