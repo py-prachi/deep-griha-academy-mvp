@@ -50,12 +50,16 @@ class Admission extends Model
         'guardian_occupation',
         'guardian_address',
         'sibling_name_age',
+        'sibling_admission_id',
+        'custom_tuition_fee',
+        'fee_note',
         'transport_required',
         'allergies_medical',
         'doctor_name_phone',
         'blood_type',
         'previous_school',
         'aadhaar_no',
+        'pen_id',
         'inquiry_date',
         'confirmed_date',
         'exit_date',
@@ -67,8 +71,9 @@ class Admission extends Model
         'confirmed_date'     => 'date',
         'exit_date'          => 'date',
         'transport_required' => 'boolean',
-        'discounted_amount'   => 'decimal:2',
-        'discount_percentage' => 'decimal:2',
+        'discounted_amount'    => 'decimal:2',
+        'discount_percentage'  => 'decimal:2',
+        'custom_tuition_fee'   => 'decimal:2',
     ];
 
     // ── STATUS CONSTANTS ──────────────────────────────────────────────────
@@ -111,6 +116,11 @@ class Admission extends Model
         return $this->hasOne(StudentExit::class, 'admission_id');
     }
 
+    public function siblingAdmission()
+    {
+        return $this->belongsTo(Admission::class, 'sibling_admission_id');
+    }
+
     // ── ACCESSORS ─────────────────────────────────────────────────────────
 
     public function getChildFirstNameAttribute()
@@ -126,6 +136,38 @@ class Admission extends Model
     }
 
     // ── HELPER METHODS ────────────────────────────────────────────────────
+
+    public function missingProfileFields(): array
+    {
+        $missing = [];
+        $prePrimary = ['Nursery', 'Lower KG', 'Upper KG'];
+        $className  = $this->schoolClass->class_name ?? '';
+
+        if (empty($this->aadhaar_no))
+            $missing[] = 'Aadhaar No.';
+
+        if (empty($this->pen_id))
+            $missing[] = 'PEN ID';
+
+        if (empty($this->blood_type))
+            $missing[] = 'Blood Group';
+
+        if (!in_array($className, $prePrimary) && empty($this->general_id))
+            $missing[] = 'General Register ID';
+
+        if (!empty($this->father_name) && empty($this->father_occupation))
+            $missing[] = "Father's Occupation";
+
+        if (!empty($this->mother_name) && empty($this->mother_occupation))
+            $missing[] = "Mother's Occupation";
+
+        return $missing;
+    }
+
+    public function hasIncompleteProfile(): bool
+    {
+        return $this->status === self::STATUS_CONFIRMED && count($this->missingProfileFields()) > 0;
+    }
 
     public function hasIncompleteDocuments()
     {

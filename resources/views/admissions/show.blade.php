@@ -109,6 +109,7 @@
                                     <div class="col-md-6"><strong>Language at Home:</strong> {{ $admission->language_spoken_at_home ?? '-' }}</div>
                                     <div class="col-md-6"><strong>Previous School:</strong> {{ $admission->previous_school ?? '-' }}</div>
                                     <div class="col-md-6"><strong>Aadhaar No.:</strong> {{ $admission->aadhaar_no ?? '-' }}</div>
+                                    <div class="col-md-6"><strong>PEN ID:</strong> {{ $admission->pen_id ?? '-' }}</div>
                                     <div class="col-md-6"><strong>Class:</strong> {{ $admission->schoolClass->class_name ?? '-' }}</div>
                                     <div class="col-md-6"><strong>Section:</strong> {{ $admission->section->section_name ?? 'Not assigned' }}</div>
                                     <div class="col-md-6"><strong>Academic Year:</strong> {{ $admission->academic_year }}</div>
@@ -169,8 +170,27 @@
 
                         </div>
 
-                        {{-- RIGHT COLUMN — Document Checklist --}}
+                        {{-- RIGHT COLUMN — Profile Gaps + Document Checklist --}}
                         <div class="col-md-4">
+
+                            {{-- Profile incomplete alert --}}
+                            @if($admission->hasIncompleteProfile())
+                            <div class="bg-white border border-danger shadow-sm p-4 mb-4">
+                                <h5 class="border-bottom pb-2 text-danger">
+                                    <i class="bi bi-person-exclamation"></i> Profile Incomplete
+                                </h5>
+                                <p class="small text-muted mb-2">The following fields are missing — please fill them in when available:</p>
+                                <ul class="mb-0 ps-3">
+                                    @foreach($admission->missingProfileFields() as $field)
+                                        <li class="small text-danger fw-semibold">{{ $field }}</li>
+                                    @endforeach
+                                </ul>
+                                <a href="{{ route('admissions.edit', $admission->id) }}" class="btn btn-sm btn-outline-danger mt-3">
+                                    <i class="bi bi-pencil"></i> Fill in missing info
+                                </a>
+                            </div>
+                            @endif
+
                             <div class="bg-white border shadow-sm p-4 mb-4">
                                 <h5 class="border-bottom pb-2">
                                     <i class="bi bi-folder-check"></i> Documents
@@ -223,7 +243,9 @@
                             <option value="">Select category</option>
                             <option value="general">General</option>
                             <option value="rte">RTE (₹0 tuition)</option>
-                            <option value="coc">COC (DGA Internal)</option>
+                            @if(strtolower($admission->gender ?? '') === 'male')
+                            <option value="coc">CoC (Boys only)</option>
+                            @endif
                             <option value="discount">Discount</option>
                         </select>
                     </div>
@@ -235,6 +257,34 @@
                             <span class="input-group-text">%</span>
                         </div>
                         <div class="form-text">Applied on General category tuition fee for this student's class.</div>
+                    </div>
+
+                    {{-- Sibling section --}}
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="hasSiblingCheck">
+                            <label class="form-check-label" for="hasSiblingCheck">
+                                This student has an elder sibling studying at DGA
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="siblingSection" style="display:none;" class="border rounded p-3 mb-3 bg-light">
+                        <label class="form-label fw-semibold">Search Elder Sibling</label>
+                        <input type="text" id="siblingSearchInput" class="form-control mb-2" placeholder="Type sibling's name...">
+                        <div id="siblingResults" class="list-group mb-2"></div>
+
+                        <div id="siblingSelected" style="display:none;">
+                            <div class="alert alert-info py-2 mb-2 small" id="siblingInfo"></div>
+                            <input type="hidden" name="sibling_admission_id" id="siblingAdmissionId">
+                            <label class="form-label fw-semibold">Tuition Fee for This Student (₹) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" name="custom_tuition_fee" id="customTuitionFee"
+                                       class="form-control" step="1" min="0" placeholder="e.g. 12200">
+                            </div>
+                            <div class="form-text">This overrides the standard fee for this student only. Transport &amp; other fees remain the same.</div>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -350,6 +400,58 @@ document.getElementById('feeCategorySelect').addEventListener('change', function
 document.getElementById('paymentModeSelect').addEventListener('change', function() {
     document.getElementById('chequeFields').style.display = this.value === 'cheque' ? 'flex' : 'none';
     document.getElementById('qrFields').style.display    = this.value === 'qr'     ? 'block' : 'none';
+});
+
+// Sibling search
+document.getElementById('hasSiblingCheck').addEventListener('change', function() {
+    document.getElementById('siblingSection').style.display = this.checked ? 'block' : 'none';
+    if (!this.checked) {
+        document.getElementById('siblingAdmissionId').value = '';
+        document.getElementById('customTuitionFee').value = '';
+        document.getElementById('siblingSelected').style.display = 'none';
+        document.getElementById('siblingResults').innerHTML = '';
+        document.getElementById('siblingSearchInput').value = '';
+    }
+});
+
+let siblingTimer;
+document.getElementById('siblingSearchInput').addEventListener('input', function() {
+    clearTimeout(siblingTimer);
+    const q = this.value.trim();
+    if (q.length < 2) {
+        document.getElementById('siblingResults').innerHTML = '';
+        return;
+    }
+    siblingTimer = setTimeout(function() {
+        fetch('{{ route('admissions.siblingSearch') }}?q=' + encodeURIComponent(q), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const box = document.getElementById('siblingResults');
+            box.innerHTML = '';
+            if (!data.length) {
+                box.innerHTML = '<div class="list-group-item text-muted small">No students found</div>';
+                return;
+            }
+            data.forEach(s => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'list-group-item list-group-item-action small';
+                item.textContent = s.name + ' — ' + s.class + ' (' + s.category + ')';
+                item.addEventListener('click', function() {
+                    document.getElementById('siblingAdmissionId').value = s.id;
+                    document.getElementById('siblingInfo').textContent =
+                        'Elder sibling: ' + s.name + ' | ' + s.class + ' | ' + s.category
+                        + (s.effective_fee !== null ? ' | Tuition: ₹' + parseInt(s.effective_fee).toLocaleString('en-IN') : '');
+                    document.getElementById('siblingSelected').style.display = 'block';
+                    document.getElementById('siblingResults').innerHTML = '';
+                    document.getElementById('siblingSearchInput').value = s.name;
+                });
+                box.appendChild(item);
+            });
+        });
+    }, 300);
 });
 </script>
 @endsection

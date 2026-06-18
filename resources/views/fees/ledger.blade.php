@@ -108,15 +108,25 @@
                         <div class="card mb-3">
                             <div class="card-header d-flex align-items-center justify-content-between">
                                 <strong>Fee Structure Breakdown</strong>
-                                @if(($discountPct ?? 0) > 0)
+                                @if($student->admission && $student->admission->custom_tuition_fee !== null)
+                                    <span class="badge bg-info text-dark">Custom Fee Applied</span>
+                                @elseif(($discountPct ?? 0) > 0)
                                     <span class="badge bg-warning text-dark">{{ $discountPct }}% Discount Applied</span>
                                 @endif
                             </div>
                             <div class="card-body">
+                                @if($student->admission && $student->admission->fee_note)
+                                <div class="alert alert-light border-start border-4 border-warning py-2 mb-3 small">
+                                    <i class="bi bi-info-circle me-1"></i> <strong>Fee Note:</strong> {{ $student->admission->fee_note }}
+                                </div>
+                                @endif
                                 <div class="row">
                                     <div class="col-md-4 text-center border-end">
                                         <div class="text-muted small">Tuition Fee</div>
-                                        @if(($discountPct ?? 0) > 0)
+                                        @if($student->admission && $student->admission->custom_tuition_fee !== null)
+                                            <div class="text-muted text-decoration-line-through small">Standard rate</div>
+                                            <div class="fw-bold text-info">₹{{ number_format($effectiveTuition ?? 0, 2) }}</div>
+                                        @elseif(($discountPct ?? 0) > 0)
                                             <div class="text-muted text-decoration-line-through small">₹{{ number_format($feeStructure->tuitionFeeForGender($student->gender ?? 'Male'), 2) }}</div>
                                             <div class="fw-bold text-success">₹{{ number_format($effectiveTuition ?? 0, 2) }}</div>
                                         @else

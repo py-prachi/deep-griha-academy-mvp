@@ -71,7 +71,7 @@
                         <div class="card">
                             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Defaulters List</h5>
-                                <a href="?pdf=1" class="btn btn-sm btn-light"><i class="fas fa-download me-1"></i> Download PDF</a>
+                                <a href="?pdf=1&session_id={{ $selectedSessionId }}" class="btn btn-sm btn-light"><i class="fas fa-download me-1"></i> Download PDF</a>
                             </div>
                             <div class="card-body">
                                 @if(empty($defaulters))

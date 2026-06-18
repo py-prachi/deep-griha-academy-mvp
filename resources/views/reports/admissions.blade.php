@@ -39,7 +39,7 @@
                         <div class="card mb-3">
                             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-user-graduate me-2"></i>Admissions Report — {{ $academic_year }}</h5>
-                                <a href="?pdf=1&session_id={{ $selectedSessionId }}" class="btn btn-sm btn-light"><i class="fas fa-download me-1"></i> Download PDF</a>
+                                <a href="{{ route('reports.admissions', array_filter(['pdf' => 1, 'session_id' => $selectedSessionId, 'status' => $statusFilter, 'class_id' => $classFilter])) }}" class="btn btn-sm btn-light"><i class="fas fa-download me-1"></i> Download PDF</a>
                             </div>
                         </div>
 

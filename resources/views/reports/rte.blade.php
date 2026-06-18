@@ -94,7 +94,7 @@
                             {{-- RTE Tab --}}
                             <div class="tab-pane fade show active" id="rte-pane" role="tabpanel">
                                 <div class="d-flex justify-content-end mb-2">
-                                    <a href="?pdf=1&session_id={{ $selectedSessionId }}" class="btn btn-sm btn-outline-dark">
+                                    <a href="{{ route('reports.rte', ['pdf' => 1, 'category' => 'rte', 'session_id' => $selectedSessionId]) }}" class="btn btn-sm btn-outline-success">
                                         <i class="fas fa-download me-1"></i> Download RTE PDF
                                     </a>
                                 </div>
@@ -142,6 +142,11 @@
 
                             {{-- Discount Tab --}}
                             <div class="tab-pane fade" id="discount-pane" role="tabpanel">
+                                <div class="d-flex justify-content-end mb-2">
+                                    <a href="{{ route('reports.rte', ['pdf' => 1, 'category' => 'discount', 'session_id' => $selectedSessionId]) }}" class="btn btn-sm btn-outline-warning">
+                                        <i class="fas fa-download me-1"></i> Download Discount PDF
+                                    </a>
+                                </div>
                                 @if($discountStudents->isEmpty())
                                     <p class="text-center text-muted py-4">No discount students found for this session.</p>
                                 @else
@@ -192,6 +197,11 @@
 
                             {{-- COC Tab --}}
                             <div class="tab-pane fade" id="coc-pane" role="tabpanel">
+                                <div class="d-flex justify-content-end mb-2">
+                                    <a href="{{ route('reports.rte', ['pdf' => 1, 'category' => 'coc', 'session_id' => $selectedSessionId]) }}" class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-download me-1"></i> Download COC PDF
+                                    </a>
+                                </div>
                                 @if($cocStudents->isEmpty())
                                     <p class="text-center text-muted py-4">No COC students found for this session.</p>
                                 @else

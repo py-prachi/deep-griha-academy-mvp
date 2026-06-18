@@ -83,6 +83,10 @@
                                     <label class="form-label">Aadhaar No.</label>
                                     <input type="text" name="aadhaar_no" class="form-control" maxlength="12" pattern="\d{12}" placeholder="12-digit number" value="{{ old('aadhaar_no') }}">
                                 </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">PEN ID</label>
+                                    <input type="text" name="pen_id" class="form-control" placeholder="Permanent Education Number" value="{{ old('pen_id') }}">
+                                </div>
                             </div>
                         </div>
 

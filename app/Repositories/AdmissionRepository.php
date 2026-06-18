@@ -86,6 +86,8 @@ class AdmissionRepository implements AdmissionInterface
                 'blood_type'              => $data['blood_type'] ?? null,
                 'doctor_name_phone'       => $data['doctor_name_phone'] ?? null,
                 'previous_school'         => $data['previous_school'] ?? null,
+                'aadhaar_no'              => $data['aadhaar_no'] ?? null,
+                'pen_id'                  => $data['pen_id'] ?? null,
                 'session_id'              => $data['session_id'] ?? null,
                 'class_id'                => $data['class_id'] ?? null,
                 'section_id'              => $data['section_id'] ?? null,
@@ -145,11 +147,15 @@ class AdmissionRepository implements AdmissionInterface
                 $admission->general_id = $data['general_id'] ?? null;
             }
 
-            // Set fee category
-            $admission->fee_category      = $data['fee_category'];
+            // Set fee category and sibling/custom fee overrides
+            $admission->fee_category        = $data['fee_category'];
             $admission->discount_percentage = isset($data['discount_percentage']) && $data['discount_percentage'] !== ''
                 ? $data['discount_percentage'] : null;
-            $admission->section_id        = $data['section_id'] ?? $admission->section_id;
+            $admission->section_id          = $data['section_id'] ?? $admission->section_id;
+            $admission->sibling_admission_id = isset($data['sibling_admission_id']) && $data['sibling_admission_id'] !== ''
+                ? $data['sibling_admission_id'] : null;
+            $admission->custom_tuition_fee  = isset($data['custom_tuition_fee']) && $data['custom_tuition_fee'] !== ''
+                ? $data['custom_tuition_fee'] : null;
 
             // If already confirmed, bail out early
             if ($admission->status === 'confirmed') {

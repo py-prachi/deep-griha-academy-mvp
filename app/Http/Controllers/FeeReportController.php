@@ -137,8 +137,18 @@ class FeeReportController extends Controller
                 ->when($statusFilter, fn($q) => $q->where('status', $statusFilter))
                 ->when($classFilter,  fn($q) => $q->where('class_id', $classFilter))
                 ->orderBy('status')->orderBy('created_at', 'desc')->get();
-            $pdf = Pdf::loadView('reports.admissions-pdf', ['summary' => $summary, 'admissions' => $allForPdf, 'academic_year' => $academic_year])->setPaper('a4', 'portrait');
-            return $pdf->download('admissions-report.pdf');
+            $pdf = Pdf::loadView('reports.admissions-pdf', [
+                'summary'      => $summary,
+                'admissions'   => $allForPdf,
+                'academic_year'=> $academic_year,
+                'statusFilter' => $statusFilter,
+                'classFilter'  => $classFilter,
+                'schoolClasses'=> $schoolClasses,
+            ])->setPaper('a4', 'portrait');
+            $filename = 'admissions-' . $academic_year
+                . ($statusFilter ? '-' . $statusFilter : '')
+                . '.pdf';
+            return $pdf->download($filename);
         }
         return view('reports.admissions', compact('summary', 'admissions', 'academic_year', 'statusFilter', 'classFilter', 'schoolClasses', 'sessions', 'selectedSessionId', 'selectedSession'));
     }
@@ -192,14 +202,96 @@ class FeeReportController extends Controller
         $cocStudents      = $baseQuery('coc');
 
         if ($request->get('pdf')) {
-            $students = $rteStudents;
-            $pdf = Pdf::loadView('reports.rte-pdf', compact('students'))->setPaper('a4', 'portrait');
-            return $pdf->download('rte-students.pdf');
+            $category = $request->get('category', 'rte');
+            if ($category === 'discount') {
+                $students = $discountStudents;
+            } elseif ($category === 'coc') {
+                $students = $cocStudents;
+            } else {
+                $students = $rteStudents;
+            }
+            $pdf = Pdf::loadView('reports.rte-pdf', compact('students', 'category', 'selectedSession'))
+                ->setPaper('a4', 'portrait');
+            return $pdf->download($category . '-students-' . ($selectedSession->session_name ?? '') . '.pdf');
         }
 
         return view('reports.rte', compact(
             'rteStudents', 'discountStudents', 'cocStudents',
             'sessions', 'selectedSessionId', 'selectedSession'
+        ));
+    }
+
+    public function studentInfo(Request $request)
+    {
+        $sessions          = $this->schoolSessionRepository->getAll();
+        $latestSession     = $this->schoolSessionRepository->getLatestSession();
+        $selectedSessionId = $request->get('session_id', $latestSession->id);
+        $selectedSession   = $sessions->firstWhere('id', $selectedSessionId);
+        $schoolClasses     = \App\Models\SchoolClass::where('session_id', $selectedSessionId)->orderBy('id')->get();
+
+        $availableFields = [
+            'student_name'         => ['label' => 'Student Name',          'group' => 'Student'],
+            'class_div'            => ['label' => 'Class / Division',       'group' => 'Student'],
+            'admission_reg_id'     => ['label' => 'DGA / General ID',           'group' => 'Student'],
+            'aadhaar_no'           => ['label' => 'Aadhaar No.',             'group' => 'Student'],
+            'pen_id'               => ['label' => 'PEN ID',                  'group' => 'Student'],
+            'date_of_birth'        => ['label' => 'Date of Birth',           'group' => 'Student'],
+            'gender'               => ['label' => 'Gender',                  'group' => 'Student'],
+            'blood_type'           => ['label' => 'Blood Group',             'group' => 'Student'],
+            'caste'                => ['label' => 'Caste',                   'group' => 'Student'],
+            'religion'             => ['label' => 'Religion',                'group' => 'Student'],
+            'fee_category'         => ['label' => 'Fee Category',            'group' => 'Student'],
+            'father_name'          => ['label' => "Father's Name",           'group' => 'Family'],
+            'father_occupation'    => ['label' => "Father's Occupation",     'group' => 'Family'],
+            'father_phone'         => ['label' => "Father's Phone",          'group' => 'Family'],
+            'mother_name'          => ['label' => "Mother's Name",           'group' => 'Family'],
+            'mother_occupation'    => ['label' => "Mother's Occupation",     'group' => 'Family'],
+            'mother_phone'         => ['label' => "Mother's Phone",          'group' => 'Family'],
+            'contact_emergency'    => ['label' => 'Emergency Contact',       'group' => 'Family'],
+            'full_address'         => ['label' => 'Full Address',            'group' => 'Address'],
+            'village'              => ['label' => 'Village / Area',          'group' => 'Address'],
+            'city'                 => ['label' => 'City',                    'group' => 'Address'],
+            'zip'                  => ['label' => 'PIN Code',                'group' => 'Address'],
+            'distance_from_school' => ['label' => 'Distance from School',    'group' => 'Address'],
+            'transport_required'   => ['label' => 'Transport Required',      'group' => 'Address'],
+            'previous_school'      => ['label' => 'Previous School',         'group' => 'Other'],
+        ];
+
+        $formSubmitted  = $request->has('generate');
+        $selectedFields = $request->get('fields', $formSubmitted ? [] : ['student_name', 'class_div']);
+        $classFilter    = $request->get('class_id');
+        $categoryFilter = $request->get('fee_category');
+
+        $students = null;
+        if ($formSubmitted || $request->get('pdf')) {
+            $query = User::with(['admission'])
+                ->join('promotions',    'promotions.student_id', '=', 'users.id')
+                ->join('school_classes','school_classes.id',     '=', 'promotions.class_id')
+                ->join('sections',      'sections.id',           '=', 'promotions.section_id')
+                ->where('promotions.session_id', $selectedSessionId)
+                ->where('users.role', 'student')
+                ->select('users.*', 'school_classes.class_name', 'sections.section_name');
+
+            if ($classFilter) {
+                $query->where('promotions.class_id', $classFilter);
+            }
+            if ($categoryFilter) {
+                $query->where('users.fee_category', $categoryFilter);
+            }
+
+            $students = $query->orderBy('school_classes.id')->orderBy('users.first_name')->get();
+        }
+
+        if ($request->get('pdf') && $students !== null) {
+            $pdfData = compact('students', 'selectedFields', 'availableFields', 'selectedSession');
+            $pdf = Pdf::loadView('reports.student-info-pdf', $pdfData)->setPaper('a4', 'landscape');
+            return $pdf->download('student-info-' . ($selectedSession->session_name ?? '') . '.pdf');
+        }
+
+        return view('reports.student-info', compact(
+            'sessions', 'selectedSessionId', 'selectedSession',
+            'availableFields', 'selectedFields', 'students',
+            'schoolClasses', 'classFilter', 'categoryFilter', 'formSubmitted'
         ));
     }
 
