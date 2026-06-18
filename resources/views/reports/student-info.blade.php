@@ -144,6 +144,8 @@
                                                 {{ $student->first_name }} {{ $student->last_name }}
                                             @elseif($fieldKey === 'class_div')
                                                 {{ $student->class_name }} {{ $student->section_name }}
+                                            @elseif($fieldKey === 'admission_reg_id')
+                                                {{ $student->admission ? ($student->admission->dga_admission_no ?? $student->admission->general_id ?? '—') : '—' }}
                                             @elseif($fieldKey === 'date_of_birth')
                                                 {{ $student->birthday ? \Carbon\Carbon::parse($student->birthday)->format('d M Y') : '—' }}
                                             @elseif($fieldKey === 'fee_category')

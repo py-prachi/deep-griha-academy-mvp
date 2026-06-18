@@ -232,8 +232,7 @@ class FeeReportController extends Controller
         $availableFields = [
             'student_name'         => ['label' => 'Student Name',          'group' => 'Student'],
             'class_div'            => ['label' => 'Class / Division',       'group' => 'Student'],
-            'general_id'           => ['label' => 'General Register ID',    'group' => 'Student'],
-            'dga_admission_no'     => ['label' => 'DGA Admission No.',       'group' => 'Student'],
+            'admission_reg_id'     => ['label' => 'Admission / Register ID',   'group' => 'Student'],
             'aadhaar_no'           => ['label' => 'Aadhaar No.',             'group' => 'Student'],
             'pen_id'               => ['label' => 'PEN ID',                  'group' => 'Student'],
             'date_of_birth'        => ['label' => 'Date of Birth',           'group' => 'Student'],
