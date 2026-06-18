@@ -180,19 +180,27 @@ class AdmissionController extends Controller
     // ── CONFIRM ADMISSION ─────────────────────────────────────────────────
     public function confirm(Request $request, $id)
     {
+        $admission = $this->admissionRepository->findById($id);
+
         $request->validate([
-            'fee_category'   => 'required|in:general,rte,coc,discount',
-            'section_id'     => 'required|exists:sections,id',
+            'fee_category'        => 'required|in:general,rte,coc,discount',
+            'section_id'          => 'required|exists:sections,id',
             'general_id'          => 'nullable|digits:11|unique:admissions,general_id',
             'discount_percentage' => 'nullable|numeric|min:0|max:100|required_if:fee_category,discount',
-            'payment_date'   => 'nullable|date',
-            'amount_paid'    => 'nullable|numeric|min:1',
-            'payment_mode'   => 'nullable|in:cash,cheque,qr',
-            'cheque_no'      => 'nullable|required_if:payment_mode,cheque',
-            'cheque_date'    => 'nullable|required_if:payment_mode,cheque|date',
-            'bank_name'      => 'nullable|required_if:payment_mode,cheque',
-            'transaction_ref'=> 'nullable|required_if:payment_mode,qr',
+            'sibling_admission_id'=> 'nullable|exists:admissions,id',
+            'custom_tuition_fee'  => 'nullable|numeric|min:0',
+            'payment_date'        => 'nullable|date',
+            'amount_paid'         => 'nullable|numeric|min:1',
+            'payment_mode'        => 'nullable|in:cash,cheque,qr',
+            'cheque_no'           => 'nullable|required_if:payment_mode,cheque',
+            'cheque_date'         => 'nullable|required_if:payment_mode,cheque|date',
+            'bank_name'           => 'nullable|required_if:payment_mode,cheque',
+            'transaction_ref'     => 'nullable|required_if:payment_mode,qr',
         ]);
+
+        if ($request->fee_category === 'coc' && strtolower($admission->gender ?? '') !== 'male') {
+            return back()->withErrors(['fee_category' => 'CoC fee category is only available for male students.']);
+        }
 
         try {
             $admission = $this->admissionRepository->confirm($id, $request->all());
@@ -261,5 +269,52 @@ class AdmissionController extends Controller
         return view('admissions.cancelled', [
             'admissions' => $admissions,
         ]);
+    }
+
+    // ── AJAX: SIBLING SEARCH ──────────────────────────────────────────────
+    public function siblingSearch(Request $request)
+    {
+        $q = trim($request->query('q', ''));
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $session = $this->schoolSessionRepository->getLatestSession();
+
+        $results = Admission::with(['schoolClass', 'section'])
+            ->whereIn('status', ['confirmed', 'pending'])
+            ->where('student_name', 'like', '%' . $q . '%')
+            ->limit(10)
+            ->get()
+            ->map(function ($admission) use ($session) {
+                $categoryLabels = ['general' => 'General', 'rte' => 'RTE', 'coc' => 'CoC', 'discount' => 'Discount'];
+
+                // Resolve effective tuition: custom override first, then fee structure lookup
+                $effectiveFee = null;
+                if ($admission->custom_tuition_fee !== null) {
+                    $effectiveFee = (float) $admission->custom_tuition_fee;
+                } elseif ($admission->class_id && $session) {
+                    $resolvedCat  = $admission->fee_category === 'discount' ? 'general' : ($admission->fee_category ?? 'general');
+                    $feeStructure = \App\Models\FeeStructure::where('class_id', $admission->class_id)
+                        ->where('session_id', $session->id)
+                        ->where('fee_category', $resolvedCat)
+                        ->first();
+                    if ($feeStructure) {
+                        $effectiveFee = $feeStructure->tuitionFeeForGender($admission->gender ?? 'male');
+                    }
+                }
+
+                return [
+                    'id'            => $admission->id,
+                    'name'          => $admission->student_name,
+                    'class'         => optional($admission->schoolClass)->class_name . ' ' . optional($admission->section)->section_name,
+                    'category'      => $categoryLabels[$admission->fee_category] ?? $admission->fee_category,
+                    'effective_fee' => $effectiveFee,
+                    'fee_category'  => $admission->fee_category,
+                    'gender'        => $admission->gender,
+                ];
+            });
+
+        return response()->json($results);
     }
 }

@@ -255,6 +255,9 @@ class StudentImportController extends Controller
                 if (!in_array($d['fee_category'], ['general', 'rte', 'coc', 'discount'])) {
                     $errors[] = 'Fee category must be general, rte, coc, or discount';
                 }
+                if ($d['fee_category'] === 'coc' && ($d['gender'] ?? '') === 'female') {
+                    $errors[] = 'CoC fee category is only for male students';
+                }
             }
 
             // Class lookup

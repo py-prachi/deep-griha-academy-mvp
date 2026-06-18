@@ -50,6 +50,9 @@ class Admission extends Model
         'guardian_occupation',
         'guardian_address',
         'sibling_name_age',
+        'sibling_admission_id',
+        'custom_tuition_fee',
+        'fee_note',
         'transport_required',
         'allergies_medical',
         'doctor_name_phone',
@@ -67,8 +70,9 @@ class Admission extends Model
         'confirmed_date'     => 'date',
         'exit_date'          => 'date',
         'transport_required' => 'boolean',
-        'discounted_amount'   => 'decimal:2',
-        'discount_percentage' => 'decimal:2',
+        'discounted_amount'    => 'decimal:2',
+        'discount_percentage'  => 'decimal:2',
+        'custom_tuition_fee'   => 'decimal:2',
     ];
 
     // ── STATUS CONSTANTS ──────────────────────────────────────────────────
@@ -109,6 +113,11 @@ class Admission extends Model
     public function exitForm()
     {
         return $this->hasOne(StudentExit::class, 'admission_id');
+    }
+
+    public function siblingAdmission()
+    {
+        return $this->belongsTo(Admission::class, 'sibling_admission_id');
     }
 
     // ── ACCESSORS ─────────────────────────────────────────────────────────

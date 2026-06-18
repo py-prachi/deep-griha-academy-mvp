@@ -59,10 +59,18 @@ class FeePaymentController extends Controller
         $feePayments = $this->feePaymentRepository->getFeePaymentsByStudent($student_id, $session_id);
         $totalPaid        = $feePayments->sum('amount_paid');
         $effectiveTuition = 0;
+        $customFee        = $student->admission->custom_tuition_fee ?? null;
+
         if ($feeStructure) {
-            $effectiveTuition = $feeStructure->tuitionFeeForGender($student->gender ?? 'Male');
-            if ($discountPct > 0) {
-                $effectiveTuition = round($effectiveTuition * (1 - $discountPct / 100), 2);
+            if ($customFee !== null) {
+                // Admin-set custom fee overrides fee structure tuition.
+                // Past payments are untouched; remaining balance recalculates against this amount.
+                $effectiveTuition = (float) $customFee;
+            } else {
+                $effectiveTuition = $feeStructure->tuitionFeeForGender($student->gender ?? 'Male');
+                if ($discountPct > 0) {
+                    $effectiveTuition = round($effectiveTuition * (1 - $discountPct / 100), 2);
+                }
             }
             $totalDue = $effectiveTuition
                       + $feeStructure->transport_fee

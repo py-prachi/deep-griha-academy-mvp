@@ -255,6 +255,8 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/admissions',                           [App\Http\Controllers\AdmissionController::class, 'index'])->name('admissions.index');
     Route::get('/admissions/create',                    [App\Http\Controllers\AdmissionController::class, 'create'])->name('admissions.create');
+    Route::get('/admissions/search/sibling',            [App\Http\Controllers\AdmissionController::class, 'siblingSearch'])->name('admissions.siblingSearch');
+    Route::get('/admissions-cancelled',                 [App\Http\Controllers\AdmissionController::class, 'cancelled'])->name('admissions.cancelled');
     Route::post('/admissions',                          [App\Http\Controllers\AdmissionController::class, 'store'])->name('admissions.store');
     Route::get('/admissions/{id}',                      [App\Http\Controllers\AdmissionController::class, 'show'])->name('admissions.show');
     Route::get('/admissions/{id}/edit',                 [App\Http\Controllers\AdmissionController::class, 'edit'])->name('admissions.edit');
@@ -263,7 +265,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admissions/{id}/confirm',             [App\Http\Controllers\AdmissionController::class, 'confirm'])->name('admissions.confirm');
     Route::post('/admissions/{id}/cancel',              [App\Http\Controllers\AdmissionController::class, 'cancel'])->name('admissions.cancel');
     Route::post('/admissions/{id}/document/{doc_id}',   [App\Http\Controllers\AdmissionController::class, 'updateDocument'])->name('admissions.updateDocument');
-    Route::get('/admissions-cancelled',                 [App\Http\Controllers\AdmissionController::class, 'cancelled'])->name('admissions.cancelled');
 
     // ── BULK IMPORT ───────────────────────────────────────────────────────
     Route::get('/import/students',          [App\Http\Controllers\StudentImportController::class, 'showForm'])->name('import.students');

@@ -231,6 +231,39 @@
                         </div>
                         @endif
 
+                        {{-- Fee Override (admin only, confirmed students) --}}
+                        @if($admission->status === 'confirmed')
+                        <div class="bg-white border shadow-sm p-4 mb-4">
+                            <h5 class="mb-3 border-bottom pb-2"><i class="bi bi-cash-coin"></i> Fee Override <span class="badge bg-warning text-dark fw-normal ms-1" style="font-size:0.75rem;">Admin only</span></h5>
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <label class="form-label">Custom Tuition Fee (₹)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+                                        <input type="number" name="custom_tuition_fee" class="form-control"
+                                               step="1" min="0"
+                                               value="{{ old('custom_tuition_fee', $admission->custom_tuition_fee) }}"
+                                               placeholder="Leave blank to use fee structure">
+                                    </div>
+                                    <div class="form-text">
+                                        @if($admission->custom_tuition_fee)
+                                            Currently set to <strong>₹{{ number_format($admission->custom_tuition_fee, 0) }}</strong> (overriding fee structure). Clear to revert to standard fee.
+                                        @else
+                                            Leave blank to use the standard fee structure for this student's category and class.
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="col-md-7">
+                                    <label class="form-label">Reason for Fee Change</label>
+                                    <input type="text" name="fee_note" class="form-control"
+                                           value="{{ old('fee_note', $admission->fee_note) }}"
+                                           placeholder="e.g. Sibling discount applied — elder sibling Raj in Class 4">
+                                    <div class="form-text">This note appears on the student's fee ledger.</div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
                         <div class="d-flex gap-2 mb-5">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="bi bi-save"></i> Save Changes

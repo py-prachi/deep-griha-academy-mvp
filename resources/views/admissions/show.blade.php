@@ -223,7 +223,9 @@
                             <option value="">Select category</option>
                             <option value="general">General</option>
                             <option value="rte">RTE (₹0 tuition)</option>
-                            <option value="coc">COC (DGA Internal)</option>
+                            @if(strtolower($admission->gender ?? '') === 'male')
+                            <option value="coc">CoC (Boys only)</option>
+                            @endif
                             <option value="discount">Discount</option>
                         </select>
                     </div>
@@ -235,6 +237,34 @@
                             <span class="input-group-text">%</span>
                         </div>
                         <div class="form-text">Applied on General category tuition fee for this student's class.</div>
+                    </div>
+
+                    {{-- Sibling section --}}
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="hasSiblingCheck">
+                            <label class="form-check-label" for="hasSiblingCheck">
+                                This student has an elder sibling studying at DGA
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="siblingSection" style="display:none;" class="border rounded p-3 mb-3 bg-light">
+                        <label class="form-label fw-semibold">Search Elder Sibling</label>
+                        <input type="text" id="siblingSearchInput" class="form-control mb-2" placeholder="Type sibling's name...">
+                        <div id="siblingResults" class="list-group mb-2"></div>
+
+                        <div id="siblingSelected" style="display:none;">
+                            <div class="alert alert-info py-2 mb-2 small" id="siblingInfo"></div>
+                            <input type="hidden" name="sibling_admission_id" id="siblingAdmissionId">
+                            <label class="form-label fw-semibold">Tuition Fee for This Student (₹) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" name="custom_tuition_fee" id="customTuitionFee"
+                                       class="form-control" step="1" min="0" placeholder="e.g. 12200">
+                            </div>
+                            <div class="form-text">This overrides the standard fee for this student only. Transport &amp; other fees remain the same.</div>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -350,6 +380,58 @@ document.getElementById('feeCategorySelect').addEventListener('change', function
 document.getElementById('paymentModeSelect').addEventListener('change', function() {
     document.getElementById('chequeFields').style.display = this.value === 'cheque' ? 'flex' : 'none';
     document.getElementById('qrFields').style.display    = this.value === 'qr'     ? 'block' : 'none';
+});
+
+// Sibling search
+document.getElementById('hasSiblingCheck').addEventListener('change', function() {
+    document.getElementById('siblingSection').style.display = this.checked ? 'block' : 'none';
+    if (!this.checked) {
+        document.getElementById('siblingAdmissionId').value = '';
+        document.getElementById('customTuitionFee').value = '';
+        document.getElementById('siblingSelected').style.display = 'none';
+        document.getElementById('siblingResults').innerHTML = '';
+        document.getElementById('siblingSearchInput').value = '';
+    }
+});
+
+let siblingTimer;
+document.getElementById('siblingSearchInput').addEventListener('input', function() {
+    clearTimeout(siblingTimer);
+    const q = this.value.trim();
+    if (q.length < 2) {
+        document.getElementById('siblingResults').innerHTML = '';
+        return;
+    }
+    siblingTimer = setTimeout(function() {
+        fetch('{{ route('admissions.siblingSearch') }}?q=' + encodeURIComponent(q), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const box = document.getElementById('siblingResults');
+            box.innerHTML = '';
+            if (!data.length) {
+                box.innerHTML = '<div class="list-group-item text-muted small">No students found</div>';
+                return;
+            }
+            data.forEach(s => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'list-group-item list-group-item-action small';
+                item.textContent = s.name + ' — ' + s.class + ' (' + s.category + ')';
+                item.addEventListener('click', function() {
+                    document.getElementById('siblingAdmissionId').value = s.id;
+                    document.getElementById('siblingInfo').textContent =
+                        'Elder sibling: ' + s.name + ' | ' + s.class + ' | ' + s.category
+                        + (s.effective_fee !== null ? ' | Tuition: ₹' + parseInt(s.effective_fee).toLocaleString('en-IN') : '');
+                    document.getElementById('siblingSelected').style.display = 'block';
+                    document.getElementById('siblingResults').innerHTML = '';
+                    document.getElementById('siblingSearchInput').value = s.name;
+                });
+                box.appendChild(item);
+            });
+        });
+    }, 300);
 });
 </script>
 @endsection
