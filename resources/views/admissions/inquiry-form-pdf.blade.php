@@ -15,8 +15,9 @@
   /* ── PAGE BREAK ── */
   .page-break { page-break-after: always; }
 
-  /* ── OUTER BORDER ── */
+  /* ── OUTER BORDER — table wrapper so right border renders in DomPDF ── */
   .form-outer { border: 2px solid #000; width: 100%; border-collapse: collapse; }
+  .form-outer-td { padding: 0; border: none; }
 
   /* ── HEADER ── */
   .header-wrap { border-bottom: 2px solid #000; padding: 8px 10px 6px 10px; }
@@ -118,7 +119,7 @@
 {{-- ║                        PAGE  1                              ║ --}}
 {{-- ╚══════════════════════════════════════════════════════════════╝ --}}
 <div class="page-break">
-<div class="form-outer">
+<table class="form-outer"><tr><td class="form-outer-td">
 
   {{-- ── HEADER ── --}}
   <div class="header-wrap">
@@ -307,14 +308,15 @@
     </tr>
   </table>
 
-</div>
+</td></tr>
+</table>
 </div>{{-- end page 1 --}}
 
 
 {{-- ╔══════════════════════════════════════════════════════════════╗ --}}
 {{-- ║                        PAGE  2                              ║ --}}
 {{-- ╚══════════════════════════════════════════════════════════════╝ --}}
-<div class="form-outer">
+<table class="form-outer"><tr><td class="form-outer-td">
 
   {{-- ── MINI HEADER ── --}}
   <div class="mini-header">
@@ -479,7 +481,8 @@
     </tr>
   </table>
 
-</div>{{-- end page 2 --}}
+</td></tr>
+</table>{{-- end page 2 --}}
 
 </body>
 </html>
