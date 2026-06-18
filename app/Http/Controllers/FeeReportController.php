@@ -202,9 +202,15 @@ class FeeReportController extends Controller
         $cocStudents      = $baseQuery('coc');
 
         if ($request->get('pdf')) {
-            $students = $rteStudents;
-            $pdf = Pdf::loadView('reports.rte-pdf', compact('students'))->setPaper('a4', 'portrait');
-            return $pdf->download('rte-students.pdf');
+            $category = $request->get('category', 'rte');
+            $students = match($category) {
+                'discount' => $discountStudents,
+                'coc'      => $cocStudents,
+                default    => $rteStudents,
+            };
+            $pdf = Pdf::loadView('reports.rte-pdf', compact('students', 'category', 'selectedSession'))
+                ->setPaper('a4', 'portrait');
+            return $pdf->download($category . '-students-' . ($selectedSession->session_name ?? '') . '.pdf');
         }
 
         return view('reports.rte', compact(
