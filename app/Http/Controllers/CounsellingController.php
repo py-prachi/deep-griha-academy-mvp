@@ -123,6 +123,121 @@ class CounsellingController extends Controller
         return back()->with('status', 'Counselling session marked as ended.');
     }
 
+    public function report(Request $request)
+    {
+        $session_id = $this->getSchoolCurrentSession();
+        $activeTab  = $request->get('tab', 'active');
+        $threshold  = max(1, (int) $request->get('threshold', 60));
+        $month      = $request->get('month', now()->format('Y-m'));
+
+        try {
+            $monthStart = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+        } catch (\Exception $e) {
+            $month = now()->format('Y-m');
+            $monthStart = now()->startOfMonth();
+        }
+        $monthEnd = $monthStart->copy()->endOfMonth();
+
+        // ── 1. ACTIVE CASES ──────────────────────────────────────────
+        $activeCases = StudentCounselling::with(['student.admission', 'remarkLogs'])
+            ->whereNull('end_date')
+            ->orderBy('start_date')
+            ->get()
+            ->map(function ($c) use ($session_id) {
+                $c = $this->withClassInfo($c, $session_id);
+                $c->days_active = \Carbon\Carbon::parse($c->start_date)->diffInDays(now());
+                return $c;
+            });
+
+        // ── 2. CLASS-WISE SUMMARY ────────────────────────────────────
+        $allRecords = StudentCounselling::with(['student.admission'])
+            ->get()
+            ->map(function ($c) use ($session_id) { return $this->withClassInfo($c, $session_id); });
+
+        $classwise = $allRecords
+            ->groupBy('class_name')
+            ->map(function ($items, $class) {
+                return [
+                    'class'  => $class,
+                    'active' => $items->filter(function ($i) { return is_null($i->end_date); })->count(),
+                    'closed' => $items->filter(function ($i) { return !is_null($i->end_date); })->count(),
+                    'total'  => $items->count(),
+                ];
+            })
+            ->filter(function ($r) { return $r['class'] !== '—'; })
+            ->sortBy('class')
+            ->values();
+
+        // ── 3. REASON-WISE SUMMARY ───────────────────────────────────
+        $reasonwise = StudentCounselling::selectRaw(
+            "COALESCE(NULLIF(TRIM(reason), ''), 'Not Specified') as reason,
+             COUNT(*) as total,
+             SUM(CASE WHEN end_date IS NULL THEN 1 ELSE 0 END) as active,
+             SUM(CASE WHEN end_date IS NOT NULL THEN 1 ELSE 0 END) as closed"
+        )->groupBy('reason')->orderByDesc('total')->get();
+
+        // ── 4. LONG-DURATION CASES ───────────────────────────────────
+        $longDuration = StudentCounselling::with(['student.admission', 'remarkLogs'])
+            ->whereNull('end_date')
+            ->whereRaw('DATEDIFF(NOW(), start_date) >= ?', [$threshold])
+            ->orderBy('start_date')
+            ->get()
+            ->map(function ($c) use ($session_id) {
+                $c = $this->withClassInfo($c, $session_id);
+                $c->days_active = \Carbon\Carbon::parse($c->start_date)->diffInDays(now());
+                return $c;
+            });
+
+        // ── 5. MONTHLY ACTIVITY ──────────────────────────────────────
+        $monthlyOpened  = StudentCounselling::whereBetween('start_date', [$monthStart, $monthEnd])->count();
+        $monthlyClosed  = StudentCounselling::whereNotNull('end_date')
+                            ->whereBetween('end_date', [$monthStart, $monthEnd])->count();
+        $monthlyRemarks = CounsellingRemark::whereBetween('remark_date', [$monthStart, $monthEnd])->count();
+
+        $monthlyCases = StudentCounselling::with(['student.admission', 'remarkLogs'])
+            ->where('start_date', '<=', $monthEnd)
+            ->where(function ($q) use ($monthStart) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', $monthStart);
+            })
+            ->orderBy('start_date')
+            ->get()
+            ->map(function ($c) use ($session_id) { return $this->withClassInfo($c, $session_id); });
+
+        // ── 6. CLOSED CASES ─────────────────────────────────────────
+        $closedCases = StudentCounselling::with(['student.admission', 'remarkLogs'])
+            ->whereNotNull('end_date')
+            ->orderBy('end_date', 'desc')
+            ->get()
+            ->map(function ($c) use ($session_id) {
+                $c = $this->withClassInfo($c, $session_id);
+                $c->duration_days = \Carbon\Carbon::parse($c->start_date)
+                    ->diffInDays(\Carbon\Carbon::parse($c->end_date));
+                return $c;
+            });
+
+        // ── PDF DOWNLOAD ─────────────────────────────────────────────
+        if ($request->get('pdf')) {
+            $type = $activeTab;
+            $pdf  = \Barryvdh\DomPDF\Facade\Pdf::loadView('counselling.report-pdf', compact(
+                'type', 'activeCases', 'classwise', 'reasonwise',
+                'longDuration', 'threshold',
+                'monthlyCases', 'monthlyOpened', 'monthlyClosed', 'monthlyRemarks',
+                'month', 'monthStart',
+                'closedCases'
+            ))->setPaper('a4', 'portrait');
+            return $pdf->download('counselling-' . $type . '-' . now()->format('Y-m-d') . '.pdf');
+        }
+
+        return view('counselling.report', compact(
+            'activeCases', 'classwise', 'reasonwise',
+            'longDuration', 'threshold',
+            'monthlyCases', 'monthlyOpened', 'monthlyClosed', 'monthlyRemarks',
+            'month', 'monthStart',
+            'closedCases',
+            'activeTab'
+        ));
+    }
+
     private function withClassInfo(StudentCounselling $c, $session_id)
     {
         $promotion = Promotion::with(['schoolClass', 'section'])
