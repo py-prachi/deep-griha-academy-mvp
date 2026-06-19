@@ -152,6 +152,18 @@
                                                 {{ ucfirst($student->fee_category ?? '—') }}
                                             @elseif($fieldKey === 'transport_required')
                                                 {{ $student->admission && $student->admission->transport_required ? 'Yes' : 'No' }}
+                                            @elseif($fieldKey === 'years_at_dga')
+                                                @php
+                                                    $cd = optional($student->admission)->confirmed_date;
+                                                    if ($cd) {
+                                                        $diff  = \Carbon\Carbon::parse($cd)->diff(now());
+                                                        $parts = [];
+                                                        if ($diff->y > 0) $parts[] = $diff->y . ' yr' . ($diff->y !== 1 ? 's' : '');
+                                                        if ($diff->m > 0) $parts[] = $diff->m . ' mo';
+                                                        if (empty($parts)) $parts[] = max(1, $diff->d) . ' day' . ($diff->d !== 1 ? 's' : '');
+                                                        echo implode(' ', $parts);
+                                                    } else { echo '—'; }
+                                                @endphp
                                             @else
                                                 {{ $student->admission ? ($student->admission->$fieldKey ?? '—') : '—' }}
                                             @endif

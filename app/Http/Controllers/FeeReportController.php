@@ -241,6 +241,7 @@ class FeeReportController extends Controller
             'caste'                => ['label' => 'Caste',                   'group' => 'Student'],
             'religion'             => ['label' => 'Religion',                'group' => 'Student'],
             'fee_category'         => ['label' => 'Fee Category',            'group' => 'Student'],
+            'years_at_dga'         => ['label' => 'Years at DGA',            'group' => 'Student'],
             'father_name'          => ['label' => "Father's Name",           'group' => 'Family'],
             'father_occupation'    => ['label' => "Father's Occupation",     'group' => 'Family'],
             'father_phone'         => ['label' => "Father's Phone",          'group' => 'Family'],
