@@ -122,7 +122,20 @@
                                     </div>
                                     <div class="col-md-6"><strong>Inquiry Date:</strong> {{ $admission->inquiry_date ? $admission->inquiry_date->format('d M Y') : '-' }}</div>
                                     @if($admission->confirmed_date)
-                                    <div class="col-md-6"><strong>Confirmed Date:</strong> {{ $admission->confirmed_date->format('d M Y') }}</div>
+                                    <div class="col-md-6">
+                                        <strong>Confirmed Date:</strong> {{ $admission->confirmed_date->format('d M Y') }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>At DGA since:</strong>
+                                        @php
+                                            $diff  = $admission->confirmed_date->diff(now());
+                                            $parts = [];
+                                            if ($diff->y > 0) $parts[] = $diff->y . ' year' . ($diff->y !== 1 ? 's' : '');
+                                            if ($diff->m > 0) $parts[] = $diff->m . ' month' . ($diff->m !== 1 ? 's' : '');
+                                            if (empty($parts)) $parts[] = max(1, $diff->d) . ' day' . ($diff->d !== 1 ? 's' : '');
+                                        @endphp
+                                        <span class="badge bg-primary">{{ implode(' ', $parts) }}</span>
+                                    </div>
                                     @endif
                                 </div>
                             </div>
