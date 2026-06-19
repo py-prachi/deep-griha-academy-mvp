@@ -51,6 +51,23 @@
                                             <option value="discount" {{ $categoryFilter === 'discount' ? 'selected' : '' }}>Discount</option>
                                         </select>
                                     </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold mb-1">Years at DGA</label>
+                                        <div class="d-flex gap-1 align-items-center">
+                                            <select name="dga_op" class="form-select form-select-sm" style="width:auto; flex-shrink:0;">
+                                                <option value="">Any</option>
+                                                <option value="gt" {{ ($dgaOp ?? '') === 'gt' ? 'selected' : '' }}>More than</option>
+                                                <option value="lt" {{ ($dgaOp ?? '') === 'lt' ? 'selected' : '' }}>Less than</option>
+                                            </select>
+                                            <input type="number" name="dga_value" value="{{ ($dgaValue ?? 0) > 0 ? $dgaValue : '' }}"
+                                                   min="1" max="99" placeholder="—"
+                                                   class="form-control form-control-sm" style="width:58px; flex-shrink:0;">
+                                            <select name="dga_unit" class="form-select form-select-sm" style="width:auto; flex-shrink:0;">
+                                                <option value="years"  {{ ($dgaUnit ?? 'years') === 'years'  ? 'selected' : '' }}>years</option>
+                                                <option value="months" {{ ($dgaUnit ?? 'years') === 'months' ? 'selected' : '' }}>months</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {{-- Row 2: Field checkboxes grouped --}}
@@ -97,8 +114,9 @@
                                 @php
                                     $pdfParams = array_merge(
                                         ['pdf' => 1, 'session_id' => $selectedSessionId],
-                                        $classFilter    ? ['class_id'     => $classFilter]    : [],
-                                        $categoryFilter ? ['fee_category' => $categoryFilter] : [],
+                                        $classFilter              ? ['class_id'     => $classFilter]    : [],
+                                        $categoryFilter           ? ['fee_category' => $categoryFilter] : [],
+                                        ($dgaOp && $dgaValue > 0) ? ['dga_op' => $dgaOp, 'dga_value' => $dgaValue, 'dga_unit' => $dgaUnit] : [],
                                         ['fields' => $selectedFields]
                                     );
                                 @endphp
