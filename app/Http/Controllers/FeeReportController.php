@@ -241,6 +241,7 @@ class FeeReportController extends Controller
             'caste'                => ['label' => 'Caste',                   'group' => 'Student'],
             'religion'             => ['label' => 'Religion',                'group' => 'Student'],
             'fee_category'         => ['label' => 'Fee Category',            'group' => 'Student'],
+            'years_at_dga'         => ['label' => 'Years at DGA',            'group' => 'Student'],
             'father_name'          => ['label' => "Father's Name",           'group' => 'Family'],
             'father_occupation'    => ['label' => "Father's Occupation",     'group' => 'Family'],
             'father_phone'         => ['label' => "Father's Phone",          'group' => 'Family'],
@@ -261,6 +262,9 @@ class FeeReportController extends Controller
         $selectedFields = $request->get('fields', $formSubmitted ? [] : ['student_name', 'class_div']);
         $classFilter    = $request->get('class_id');
         $categoryFilter = $request->get('fee_category');
+        $dgaOp          = $request->get('dga_op', '');
+        $dgaValue       = (int) $request->get('dga_value', 0);
+        $dgaUnit        = $request->get('dga_unit', 'years');
 
         $students = null;
         if ($formSubmitted || $request->get('pdf')) {
@@ -279,6 +283,20 @@ class FeeReportController extends Controller
                 $query->where('users.fee_category', $categoryFilter);
             }
 
+            if ($dgaOp && $dgaValue > 0) {
+                $cutoff = $dgaUnit === 'months'
+                    ? now()->subMonths($dgaValue)
+                    : now()->subYears($dgaValue);
+                $query->whereHas('admission', function ($q) use ($dgaOp, $cutoff) {
+                    $q->whereNotNull('confirmed_date');
+                    if ($dgaOp === 'gt') {
+                        $q->where('confirmed_date', '<=', $cutoff);
+                    } else {
+                        $q->where('confirmed_date', '>', $cutoff);
+                    }
+                });
+            }
+
             $students = $query->orderBy('school_classes.id')->orderBy('users.first_name')->get();
         }
 
@@ -291,7 +309,8 @@ class FeeReportController extends Controller
         return view('reports.student-info', compact(
             'sessions', 'selectedSessionId', 'selectedSession',
             'availableFields', 'selectedFields', 'students',
-            'schoolClasses', 'classFilter', 'categoryFilter', 'formSubmitted'
+            'schoolClasses', 'classFilter', 'categoryFilter', 'formSubmitted',
+            'dgaOp', 'dgaValue', 'dgaUnit'
         ));
     }
 

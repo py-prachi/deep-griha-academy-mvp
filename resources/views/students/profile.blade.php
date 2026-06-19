@@ -159,7 +159,22 @@
                                                 <tr>
                                                     <th scope="row">Fee Category:</th>
                                                     <td>{{ ucfirst($student->fee_category ?? '—') }}</td>
-                                                    <th></th><td></td>
+                                                    <th scope="row">At DGA since:</th>
+                                                    <td>
+                                                        @if($a && $a->confirmed_date)
+                                                            @php
+                                                                $diff  = \Carbon\Carbon::parse($a->confirmed_date)->diff(now());
+                                                                $parts = [];
+                                                                if ($diff->y > 0) $parts[] = $diff->y . ' year' . ($diff->y !== 1 ? 's' : '');
+                                                                if ($diff->m > 0) $parts[] = $diff->m . ' month' . ($diff->m !== 1 ? 's' : '');
+                                                                if (empty($parts)) $parts[] = max(1, $diff->d) . ' day' . ($diff->d !== 1 ? 's' : '');
+                                                            @endphp
+                                                            <span class="badge bg-primary">{{ implode(' ', $parts) }}</span>
+                                                            <small class="text-muted d-block">since {{ \Carbon\Carbon::parse($a->confirmed_date)->format('d M Y') }}</small>
+                                                        @else
+                                                            —
+                                                        @endif
+                                                    </td>
                                                 </tr>
                                             </tbody>
                                         </table>

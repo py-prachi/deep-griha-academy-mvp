@@ -329,6 +329,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/timetable/period/reset-day',    [TimetableController::class, 'periodResetDay'])->name('timetable.period.reset-day');
 
     // ── COUNSELLING ───────────────────────────────────────────────
+    Route::get('/counselling/report',             [App\Http\Controllers\CounsellingController::class, 'report'])->name('counselling.report');
     Route::get('/counselling',                    [App\Http\Controllers\CounsellingController::class, 'index'])->name('counselling.index');
     Route::post('/counselling',                   [App\Http\Controllers\CounsellingController::class, 'store'])->name('counselling.store');
     Route::put('/counselling/{id}',               [App\Http\Controllers\CounsellingController::class, 'update'])->name('counselling.update');
