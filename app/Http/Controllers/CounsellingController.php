@@ -42,12 +42,12 @@ class CounsellingController extends Controller
             ->get()
             ->map(fn($c) => $this->withClassInfo($c, $session_id));
 
-        // Students for the add dropdown — all active students in current session, keyed by general_id
+        // Students for the add dropdown — all active students in current session, searchable by name
         $students = Promotion::with(['student.admission', 'schoolClass', 'section'])
             ->where('session_id', $session_id)
             ->get()
-            ->filter(fn($p) => $p->student && $p->student->admission && $p->student->admission->general_id)
-            ->sortBy(fn($p) => $p->student->admission->general_id)
+            ->filter(fn($p) => $p->student)
+            ->sortBy(fn($p) => $p->student->first_name . ' ' . $p->student->last_name)
             ->values();
 
         return view('counselling.index', compact('active', 'past', 'students', 'session_id'));
@@ -129,9 +129,11 @@ class CounsellingController extends Controller
             ->where('student_id', $c->student_user_id)
             ->where('session_id', $session_id)
             ->first();
-        $c->class_name   = $promotion ? optional($promotion->schoolClass)->class_name : '—';
-        $c->section_name = $promotion ? optional($promotion->section)->section_name : '—';
-        $c->general_id   = optional(optional($c->student)->admission)->general_id ?? '—';
+        $c->class_name    = $promotion ? optional($promotion->schoolClass)->class_name : '—';
+        $c->section_name  = $promotion ? optional($promotion->section)->section_name : '—';
+        $admission        = optional($c->student)->admission;
+        $c->display_id    = optional($admission)->general_id ?? optional($admission)->dga_admission_no ?? '—';
+        $c->student_name  = trim(optional($c->student)->first_name . ' ' . optional($c->student)->last_name) ?: '—';
         return $c;
     }
 }

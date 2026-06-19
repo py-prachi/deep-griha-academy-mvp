@@ -48,7 +48,7 @@
                                 <table class="table table-bordered table-hover align-middle mb-0">
                                     <thead class="table-secondary">
                                         <tr>
-                                            <th>General ID</th>
+                                            <th>Student ID <span class="text-muted fw-normal small">(hover for name)</span></th>
                                             <th>Class</th>
                                             <th>Since</th>
                                             <th>Reason</th>
@@ -59,7 +59,9 @@
                                     <tbody>
                                         @foreach($active as $c)
                                         <tr>
-                                            <td class="fw-semibold font-monospace">{{ $c->general_id }}</td>
+                                            <td class="fw-semibold font-monospace"
+                                                title="{{ $c->student_name }}"
+                                                style="cursor:default;">{{ $c->display_id }}</td>
                                             <td class="text-nowrap">{{ $c->class_name }} {{ $c->section_name }}</td>
                                             <td class="text-nowrap">{{ \Carbon\Carbon::parse($c->start_date)->format('d M Y') }}</td>
                                             <td>{{ $c->reason ?: '—' }}</td>
@@ -94,7 +96,7 @@
                                                     <div class="modal-header">
                                                         <h5 class="modal-title">
                                                             <i class="bi bi-journal-text me-1"></i>
-                                                            Counselling — <span class="font-monospace">{{ $c->general_id }}</span>
+                                                            Counselling — <span class="font-monospace">{{ $c->display_id }}</span>
                                                             <small class="text-muted ms-1">{{ $c->class_name }} {{ $c->section_name }}</small>
                                                         </h5>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -197,7 +199,7 @@
                                                     @csrf
                                                     <div class="modal-content">
                                                         <div class="modal-header">
-                                                            <h5 class="modal-title">End Counselling — <span class="font-monospace">{{ $c->general_id }}</span></h5>
+                                                            <h5 class="modal-title">End Counselling — <span class="font-monospace">{{ $c->display_id }}</span></h5>
                                                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                                         </div>
                                                         <div class="modal-body">
@@ -230,7 +232,7 @@
                                 <table class="table table-bordered table-hover align-middle mb-0">
                                     <thead class="table-secondary">
                                         <tr>
-                                            <th>General ID</th>
+                                            <th>Student ID <span class="text-muted fw-normal small">(hover for name)</span></th>
                                             <th>Class</th>
                                             <th>Period</th>
                                             <th>Reason</th>
@@ -241,7 +243,9 @@
                                     <tbody>
                                         @foreach($past as $c)
                                         <tr class="table-light">
-                                            <td class="fw-semibold font-monospace">{{ $c->general_id }}</td>
+                                            <td class="fw-semibold font-monospace"
+                                                title="{{ $c->student_name }}"
+                                                style="cursor:default;">{{ $c->display_id }}</td>
                                             <td class="text-nowrap">{{ $c->class_name }} {{ $c->section_name }}</td>
                                             <td class="text-nowrap small">
                                                 {{ \Carbon\Carbon::parse($c->start_date)->format('d M Y') }}
@@ -271,7 +275,7 @@
                                                 <div class="modal-content">
                                                     <div class="modal-header">
                                                         <h5 class="modal-title">
-                                                            Counselling — <span class="font-monospace">{{ $c->general_id }}</span>
+                                                            Counselling — <span class="font-monospace">{{ $c->display_id }}</span>
                                                             <small class="text-muted ms-1">{{ $c->class_name }} {{ $c->section_name }}</small>
                                                         </h5>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -355,10 +359,9 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">General ID <span class="text-danger">*</span></label>
+                        <label class="form-label">Search Student by Name <span class="text-danger">*</span></label>
                         <input type="text" id="studentSearch" class="form-control mb-1"
-                            placeholder="Type General ID to search..." autocomplete="off"
-                            inputmode="numeric" maxlength="11">
+                            placeholder="Type student name to search..." autocomplete="off">
                         <input type="hidden" name="student_user_id" id="studentId" required>
                         <div id="studentResults" class="list-group" style="max-height:200px;overflow-y:auto;display:none;"></div>
                         <div id="studentSelected" class="alert alert-success py-1 px-2 small mt-1" style="display:none;"></div>
@@ -385,16 +388,16 @@
     </div>
 </div>
 <script>
-// Build student list from server data — keyed by General ID
 var studentList = [
     @foreach($students as $p)
-        @if($p->student && $p->student->admission && $p->student->admission->general_id)
-        {
-            id: {{ $p->student->id }},
-            general_id: "{{ $p->student->admission->general_id }}",
-            label: "{{ $p->student->admission->general_id }} — {{ optional($p->schoolClass)->class_name }} {{ optional($p->section)->section_name }}"
-        },
-        @endif
+    @if($p->student)
+    {
+        id: {{ $p->student->id }},
+        name: "{{ addslashes($p->student->first_name . ' ' . $p->student->last_name) }}",
+        class: "{{ optional($p->schoolClass)->class_name }} {{ optional($p->section)->section_name }}",
+        display_id: "{{ optional($p->student->admission)->general_id ?? optional($p->student->admission)->dga_admission_no ?? '' }}"
+    },
+    @endif
     @endforeach
 ];
 
@@ -404,19 +407,19 @@ var resultsBox     = document.getElementById('studentResults');
 var selectedBox    = document.getElementById('studentSelected');
 
 searchInput.addEventListener('input', function() {
-    var q = this.value.trim();
+    var q = this.value.trim().toLowerCase();
     resultsBox.innerHTML = '';
     selectedBox.style.display = 'none';
     studentIdInput.value = '';
 
-    if (q.length < 3) { resultsBox.style.display = 'none'; return; }
+    if (q.length < 2) { resultsBox.style.display = 'none'; return; }
 
     var matches = studentList.filter(function(s) {
-        return s.general_id.indexOf(q) !== -1;
+        return s.name.toLowerCase().indexOf(q) !== -1;
     }).slice(0, 10);
 
     if (matches.length === 0) {
-        resultsBox.innerHTML = '<div class="list-group-item text-muted small">No students found with this General ID</div>';
+        resultsBox.innerHTML = '<div class="list-group-item text-muted small">No students found</div>';
         resultsBox.style.display = 'block';
         return;
     }
@@ -424,13 +427,13 @@ searchInput.addEventListener('input', function() {
     matches.forEach(function(s) {
         var btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'list-group-item list-group-item-action small py-1 font-monospace';
-        btn.textContent = s.label;
+        btn.className = 'list-group-item list-group-item-action small py-1';
+        btn.innerHTML = '<strong>' + s.name + '</strong> <span class="text-muted">— ' + s.class + (s.display_id ? ' (' + s.display_id + ')' : '') + '</span>';
         btn.addEventListener('click', function() {
             studentIdInput.value = s.id;
             searchInput.value = '';
             resultsBox.style.display = 'none';
-            selectedBox.textContent = '✓ ' + s.label;
+            selectedBox.innerHTML = '&#10003; <strong>' + s.name + '</strong> — ' + s.class + (s.display_id ? ' (' + s.display_id + ')' : '');
             selectedBox.style.display = 'block';
         });
         resultsBox.appendChild(btn);
@@ -438,7 +441,6 @@ searchInput.addEventListener('input', function() {
     resultsBox.style.display = 'block';
 });
 
-// Clear selection when modal closes
 document.getElementById('addModal').addEventListener('hidden.bs.modal', function() {
     searchInput.value = '';
     studentIdInput.value = '';
