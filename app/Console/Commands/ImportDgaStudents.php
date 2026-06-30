@@ -162,6 +162,9 @@ class ImportDgaStudents extends Command
                         'updated_at'      => now(),
                     ]);
 
+                    // Write admission_id back to user (mirrors the normal confirm flow)
+                    DB::table('users')->where('id', $userId)->update(['admission_id' => $admissionId]);
+
                     // Create promotion (assign to current session + class + section)
                     DB::table('promotions')->insert([
                         'student_id' => $userId,

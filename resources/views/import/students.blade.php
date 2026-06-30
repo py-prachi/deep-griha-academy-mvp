@@ -155,8 +155,18 @@
                                     <th>Gender</th>
                                     <th>Class</th>
                                     <th>Section</th>
-                                    <th>Category</th>
-                                    <th>Father</th>
+                                    <th>Fee Category</th>
+                                    <th>Discount%</th>
+                                    <th>Custom Fee</th>
+                                    <th>Father's Contact</th>
+                                    <th>Village</th>
+                                    <th>Distance</th>
+                                    <th>Father Name</th>
+                                    <th>Father Occ.</th>
+                                    <th>Mother Name</th>
+                                    <th>Mother Occ.</th>
+                                    <th>General ID</th>
+                                    <th>DGA Adm. No</th>
                                     <th>Issues</th>
                                 </tr>
                             </thead>
@@ -179,13 +189,27 @@
                                             <span class="badge bg-success">Valid</span>
                                         @endif
                                     </td>
-                                    <td>{{ $d['student_name'] }}</td>
+                                    <td style="white-space:nowrap">{{ $d['student_name'] }}</td>
                                     <td>{{ $d['date_of_birth'] }}</td>
                                     <td>{{ $d['gender'] }}</td>
                                     <td>{{ $d['class_name'] }}</td>
                                     <td>{{ $d['section_name'] }}</td>
                                     <td>{{ $d['fee_category'] }}</td>
-                                    <td>{{ $d['father_name'] }}</td>
+                                    <td>{{ $d['fee_category'] === 'discount' && isset($d['discount_percentage']) ? $d['discount_percentage'].'%' : '' }}</td>
+                                    <td>
+                                        @if(!empty($d['custom_tuition_fee']))
+                                            ₹{{ number_format($d['custom_tuition_fee'], 0) }}
+                                        @endif
+                                    </td>
+                                    <td>{{ $d['father_phone'] ?? '' }}</td>
+                                    <td>{{ $d['village'] ?? '' }}</td>
+                                    <td>{{ $d['distance_from_school'] ?? '' }}</td>
+                                    <td style="white-space:nowrap">{{ $d['father_name'] ?? '' }}</td>
+                                    <td>{{ $d['father_occupation'] ?? '' }}</td>
+                                    <td style="white-space:nowrap">{{ $d['mother_name'] ?? '' }}</td>
+                                    <td>{{ $d['mother_occupation'] ?? '' }}</td>
+                                    <td>{{ $d['general_id'] ?? '' }}</td>
+                                    <td>{{ $d['dga_admission_no'] ?? '' }}</td>
                                     <td>
                                         @if(!empty($row['errors']))
                                             <ul class="mb-0 ps-3 text-danger" style="font-size:12px;">

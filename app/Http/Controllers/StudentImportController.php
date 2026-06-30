@@ -14,35 +14,67 @@ use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class StudentImportController extends Controller
 {
-    // Column order in the template (1-based)
+    /*
+     * Template column layout (1-based, matches downloadTemplate())
+     * Close to the DGA fee-collection sheet format so staff can copy-paste.
+     *
+     *  A  Sr.No              (reference, ignored)
+     *  B  Student Name       *required
+     *  C  Date of Birth      *required  DD/MM/YYYY
+     *  D  Gender             *required  male / female
+     *  E  Class              *required  Nursery / Lower KG / Upper KG / Class 1 … Class 8
+     *  F  Section                       A / B  (default A)
+     *  G  Contact Mobile
+     *  H  Fee Category       *required  general / rte / coc / discount
+     *  I  Discount %                    required when H = discount  (e.g. 50)
+     *  J  Already Collected (₹)        DGA "Collected Fee" — creates a fee payment record
+     *  K  Challan No                    leave blank to auto-generate
+     *  L  Payment Date                  DD/MM/YYYY  (default: today)
+     *  M  Payment Mode                  cash / cheque / qr  (default: cash)
+     *  N  Village
+     *  O  Distance from School
+     *  M  Father Name
+     *  N  Father Occupation
+     *  O  Mother Name
+     *  P  Mother Occupation
+     *  Q  General ID                    11-digit ZP/SARAL ID (Class 1+)
+     *  R  DGA Admission No              pre-primary only; leave blank to auto-generate
+     */
     const COLUMNS = [
-        1  => 'student_name',
-        2  => 'date_of_birth',
-        3  => 'gender',
-        4  => 'class_name',
-        5  => 'section_name',
-        6  => 'fee_category',
-        7  => 'father_name',
-        8  => 'father_phone',
-        9  => 'mother_name',
-        10 => 'mother_phone',
-        11 => 'contact_mobile',
-        12 => 'full_address',
-        13 => 'city',
-        14 => 'general_id',
-        15 => 'dga_admission_no',
-        16 => 'blood_type',
-        17 => 'religion',
-        18 => 'caste',
-        19 => 'previous_school',
+        1  => 'sr_no',
+        2  => 'student_name',
+        3  => 'date_of_birth',
+        4  => 'gender',
+        5  => 'class_name',
+        6  => 'section_name',
+        7  => 'father_phone',
+        8  => 'fee_category',
+        9  => 'discount_percentage',
+        10 => 'custom_tuition_fee',
+        11 => 'village',
+        12 => 'distance_from_school',
+        13 => 'father_name',
+        14 => 'father_occupation',
+        15 => 'mother_name',
+        16 => 'mother_occupation',
+        17 => 'general_id',
+        18 => 'dga_admission_no',
     ];
 
-    const REQUIRED_FIELDS = ['student_name', 'date_of_birth', 'gender', 'class_name', 'fee_category'];
+    const REQUIRED_FIELDS = ['student_name', 'gender', 'class_name', 'fee_category'];
 
     const PRE_PRIMARY = ['Nursery', 'Lower KG', 'Upper KG'];
+
+    const VALID_CLASSES = [
+        'Nursery', 'Lower KG', 'Upper KG',
+        'Class 1', 'Class 2', 'Class 3', 'Class 4',
+        'Class 5', 'Class 6', 'Class 7', 'Class 8',
+    ];
 
     public function __construct()
     {
@@ -70,102 +102,147 @@ class StudentImportController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Students');
 
+        // ── Header row ────────────────────────────────────────────────────
         $headers = [
-            'student_name *',
-            'date_of_birth * (DD/MM/YYYY)',
-            'gender * (male/female)',
-            'class_name *',
-            'section_name (A/B)',
-            'fee_category * (general/rte/coc/discount)',
-            'father_name',
-            'father_phone',
-            'mother_name',
-            'mother_phone',
-            'contact_mobile',
-            'full_address',
-            'city',
-            'general_id (Class 1+)',
-            'dga_admission_no (pre-primary only)',
-            'blood_type',
-            'religion',
-            'caste',
-            'previous_school',
+            ['label' => 'Sr.No',                   'required' => false, 'note' => 'Reference only — ignored on import'],
+            ['label' => 'Student Name',             'required' => true,  'note' => 'Full name as it should appear in the system'],
+            ['label' => 'Date of Birth (DD/MM/YYYY)', 'required' => false, 'note' => 'e.g. 15/08/2015 — optional, can be updated later via admission edit'],
+            ['label' => 'Gender',                   'required' => true,  'note' => 'male or female'],
+            ['label' => 'Class',                    'required' => true,  'note' => 'Nursery / Lower KG / Upper KG / Class 1 … Class 8'],
+            ['label' => 'Section',                  'required' => false, 'note' => 'A or B — leave blank to default to A'],
+            ['label' => "Father's Contact No",       'required' => false, 'note' => '10-digit mobile — main contact for this student'],
+            ['label' => 'Fee Category',             'required' => true,  'note' => 'general / rte / coc / discount'],
+            ['label' => 'Discount %',               'required' => false, 'note' => 'Required if Fee Category = discount. Enter number only, e.g. 50 for 50% off.'],
+            ['label' => 'Custom Tuition Fee (Rs)', 'required' => false, 'note' => 'Fill ONLY if actual fee is a flat negotiated amount. Leave blank to let the system calculate from category/discount.'],
+            ['label' => 'Village',                  'required' => false, 'note' => ''],
+            ['label' => 'Distance from School',     'required' => false, 'note' => 'e.g. 2.5km'],
+            ['label' => 'Father Name',              'required' => false, 'note' => ''],
+            ['label' => 'Father Occupation',        'required' => false, 'note' => ''],
+            ['label' => 'Mother Name',              'required' => false, 'note' => ''],
+            ['label' => 'Mother Occupation',        'required' => false, 'note' => ''],
+            ['label' => 'General ID (Class 1+)',    'required' => false, 'note' => '11-digit ZP / SARAL ID'],
+            ['label' => 'DGA Admission No',         'required' => false, 'note' => 'Pre-primary only. Leave blank to auto-generate.'],
         ];
 
-        $requiredCols = [1, 2, 3, 4, 6];
-
-        foreach ($headers as $i => $header) {
+        foreach ($headers as $i => $h) {
             $col = $i + 1;
-            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
-            $sheet->setCellValue($colLetter . '1', $header);
+            $letter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+            $cell = $letter . '1';
 
-            if (in_array($col, $requiredCols)) {
-                $sheet->getStyle($colLetter . '1')->applyFromArray([
-                    'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'C0392B']],
-                ]);
-            } else {
-                $sheet->getStyle($colLetter . '1')->applyFromArray([
-                    'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2E4057']],
-                ]);
+            $label = $h['required'] ? $h['label'] . ' *' : $h['label'];
+            $sheet->setCellValue($cell, $label);
+
+            if ($h['note'] !== '') {
+                $sheet->getComment($cell)->getText()->createTextRun($h['note']);
+                $sheet->getComment($cell)->setWidth('200pt');
+                $sheet->getComment($cell)->setHeight('40pt');
             }
-            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
-        }
 
-        // Example row
-        $example = [
-            'Rahul Kumar', '15/08/2015', 'male', 'Class 3', 'A', 'general',
-            'Suresh Kumar', '9876543210', 'Priya Kumar', '9876543211',
-            '', 'Near Temple, Village Road', 'Pune', '12345678901',
-            '', 'B+', 'Hindu', 'Brahmin', 'Previous School Name',
+            $bgColor = $h['required'] ? 'C0392B' : '2E4057';
+            $sheet->getStyle($cell)->applyFromArray([
+                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bgColor]],
+                'alignment' => ['wrapText' => true, 'vertical' => Alignment::VERTICAL_CENTER],
+            ]);
+            $sheet->getColumnDimension($letter)->setWidth(20);
+        }
+        $sheet->getRowDimension(1)->setRowHeight(30);
+
+        // ── Example rows ─────────────────────────────────────────────────
+        $examples = [
+            // General boy — no custom fee
+            [1, 'Rahul Kumar', '15/08/2015', 'male', 'Class 3', 'A', '9876543210',
+             'general', '', '', 'Yawat', '2km', 'Suresh Kumar', '9876543210', 'Farmer',
+             'Priya Kumar', '9876543211', 'Homemaker', '', ''],
+            // Discount girl — 50%, but negotiated flat Rs.6000 (custom overrides the 50% calc)
+            [2, 'Aradhya Devidas Kalaphad', '10/03/2017', 'female', 'Nursery', 'A', '7972024744',
+             'discount', '50', '6000', 'Baravkarvadi', '3km', 'Devidas Kalaphad', '7972024744', 'Worker',
+             'Sunita Kalaphad', '', 'Homemaker', '', ''],
+            // RTE — zero fees, no custom fee needed
+            [3, 'Mohammed Arif Khan', '20/06/2016', 'male', 'Class 2', 'A', '8765432109',
+             'rte', '', '', 'Kedgaon', '3km', 'Anwar Khan', '8765432109', 'Driver',
+             '', '', '', '12345678901', ''],
         ];
-        foreach ($example as $i => $val) {
-            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
-            $sheet->setCellValue($colLetter . '2', $val);
+
+        foreach ($examples as $ri => $row) {
+            $rowNum = $ri + 2;
+            foreach ($row as $ci => $val) {
+                $letter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($ci + 1);
+                $sheet->setCellValue($letter . $rowNum, $val);
+            }
+            $bgEx = $ri === 0 ? 'EBF5FB' : ($ri === 1 ? 'FEF9E7' : 'EAFAF1');
+            $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+            $sheet->getStyle('A' . $rowNum . ':' . $lastCol . $rowNum)->applyFromArray([
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bgEx]],
+                'font' => ['italic' => true, 'color' => ['rgb' => '555555']],
+            ]);
         }
 
-        $sheet->getStyle('A2:S2')->applyFromArray([
-            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EBF5FB']],
+        $sheet->setCellValue('A5', '← DELETE rows 2-4 (examples) before uploading your real data');
+        $sheet->getStyle('A5')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'E74C3C']],
         ]);
 
         $sheet->freezePane('A2');
 
-        // Instructions sheet
+        // ── Instructions sheet ────────────────────────────────────────────
         $info = $spreadsheet->createSheet();
         $info->setTitle('Instructions');
-        $info->setCellValue('A1', 'INSTRUCTIONS — Deep Griha Academy Student Import');
-        $info->getStyle('A1')->getFont()->setBold(true)->setSize(13);
 
-        $lines = [
-            '',
-            'Red header columns are REQUIRED. Blue are optional.',
-            '',
-            'class_name must exactly match one of:',
-            '  Nursery, Lower KG, Upper KG, Class 1, Class 2, Class 3, Class 4, Class 5, Class 6, Class 7, Class 8',
-            '',
-            'gender: male or female (lowercase)',
-            'fee_category: general, rte, coc, or discount (lowercase)',
-            'date_of_birth: DD/MM/YYYY  e.g. 15/08/2015',
-            'section_name: A or B — leave blank to auto-assign section A',
-            '',
-            'general_id: For Class 1 and above — 11-digit ZP portal ID (optional)',
-            'dga_admission_no: For Nursery/LKG/UKG — leave blank to auto-generate',
-            '',
-            'DO NOT change column order or add/remove columns.',
-            'Row 2 is an example — replace or delete it before uploading.',
-            'Save as .xlsx before uploading.',
+        $infoRows = [
+            ['Deep Griha Academy — Student Import Template', true, 13],
+            ['', false, 11],
+            ['REQUIRED columns (red header) — must be filled for every student:', true, 11],
+            ['  • Student Name        — full name as it should appear in the system', false, 10],
+            ['  • Date of Birth       — DD/MM/YYYY format, e.g. 15/08/2015', false, 10],
+            ['  • Gender              — male or female (lowercase)', false, 10],
+            ['  • Class               — must exactly match: Nursery, Lower KG, Upper KG, Class 1, Class 2, Class 3, Class 4, Class 5, Class 6, Class 7, Class 8', false, 10],
+            ['  • Fee Category        — general / rte / coc / discount (lowercase)', false, 10],
+            ['', false, 11],
+            ['FEE CATEGORY guide:', true, 11],
+            ['  general   — standard fee as per fee structure (system calculates automatically)', false, 10],
+            ['  rte       — Right to Education (zero tuition)', false, 10],
+            ['  coc       — Corporation of Chinchwad subsidy (boys only)', false, 10],
+            ['  discount  — partial discount; enter the % in "Discount %" column (e.g. 50 for 50% off)', false, 10],
+            ['', false, 11],
+            ['DISCOUNT % column:', true, 11],
+            ['  Required when Fee Category = discount. Enter a number, e.g. 50 for 50%.', false, 10],
+            ['  System calculates: Boys fee x (1 - %) or Girls fee x (1 - %) based on gender.', false, 10],
+            ['  Leave blank for general / rte / coc.', false, 10],
+            ['', false, 11],
+            ['CUSTOM TUITION FEE column:', true, 11],
+            ['  Fill ONLY when the negotiated fee does not match the discount calculation.', false, 10],
+            ['  Example: student is 50% discount but agreed fee is Rs.6000 (not Rs.6100).', false, 10],
+            ['  Enter 6000 here. Leave blank for all other students.', false, 10],
+            ['', false, 11],
+            ['OTHER NOTES:', true, 11],
+            ['  Section — enter A or B. Leave blank to default to A.', false, 10],
+            ['  General ID — 11-digit ZP/SARAL number for Class 1 and above (optional).', false, 10],
+            ['  DGA Admission No — for Nursery/LKG/UKG only. Leave blank to auto-generate.', false, 10],
+            ['  Sr.No column is ignored — just for your reference while filling the sheet.', false, 10],
+            ['', false, 11],
+            ['IMPORTANT:', true, 11],
+            ['  • Delete the 3 example rows (rows 2-4) before uploading.', false, 10],
+            ['  • Do NOT change column order or add/remove columns.', false, 10],
+            ['  • Save as .xlsx before uploading.', false, 10],
+            ['  • Use the Preview step to check for errors before committing.', false, 10],
         ];
 
-        foreach ($lines as $i => $line) {
-            $info->setCellValue('A' . ($i + 2), $line);
+        foreach ($infoRows as $i => $r) {
+            $cell = 'A' . ($i + 1);
+            $info->setCellValue($cell, $r[0]);
+            if ($r[1]) {
+                $info->getStyle($cell)->getFont()->setBold(true)->setSize($r[2]);
+            } else {
+                $info->getStyle($cell)->getFont()->setSize($r[2]);
+            }
         }
-        $info->getColumnDimension('A')->setWidth(90);
+        $info->getColumnDimension('A')->setWidth(100);
 
         $spreadsheet->setActiveSheetIndex(0);
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="StudentImportTemplate.xlsx"');
+        header('Content-Disposition: attachment; filename="DGA_StudentImportTemplate.xlsx"');
         header('Cache-Control: max-age=0');
 
         $writer = new Xlsx($spreadsheet);
@@ -177,7 +254,7 @@ class StudentImportController extends Controller
 
     public function preview(Request $request)
     {
-        $request->validate(['file' => 'required|file|mimes:xlsx,xls|max:5120']);
+        $request->validate(['file' => 'required|file|mimes:xlsx,xls|max:10240']);
 
         $path = $request->file('file')->getPathname();
 
@@ -187,35 +264,33 @@ class StudentImportController extends Controller
             $spreadsheet = $reader->load($path);
             $sheet = $spreadsheet->getActiveSheet();
         } catch (\Exception $e) {
-            return back()->withErrors(['file' => 'Could not read the Excel file. Upload the correct template (.xlsx).']);
+            return back()->withErrors(['file' => 'Could not read the Excel file. Please use the downloaded template (.xlsx).']);
         }
 
         $rawRows = $sheet->toArray(null, true, true, false);
         array_shift($rawRows); // remove header row
 
-        // Load lookup tables
-        $classMap  = SchoolClass::pluck('id', 'class_name')->toArray();
-        $allSections = Section::all();
-        $session   = SchoolSession::latest('id')->first();
+        // Lookup tables
+        $session     = SchoolSession::latest('id')->first();
+        $classMap    = SchoolClass::where('session_id', $session->id)->pluck('id', 'class_name')->toArray();
+        $allSections = Section::whereIn('class_id', array_values($classMap))->get();
 
         $parsed = [];
 
         foreach ($rawRows as $rowIndex => $row) {
             $lineNo = $rowIndex + 2;
 
-            // Skip blank rows
+            // Skip blank rows and the "delete these examples" notice row
             $allEmpty = true;
             foreach ($row as $cell) {
-                if (trim((string) $cell) !== '') {
-                    $allEmpty = false;
-                    break;
-                }
+                if (trim((string) $cell) !== '') { $allEmpty = false; break; }
             }
-            if ($allEmpty) {
-                continue;
-            }
+            if ($allEmpty) continue;
 
-            // Map columns to fields
+            $first = trim((string) ($row[0] ?? ''));
+            if (strpos($first, '←') !== false || strpos($first, 'DELETE') !== false) continue;
+
+            // Map columns → fields
             $d = [];
             foreach (self::COLUMNS as $colIdx => $field) {
                 $d[$field] = isset($row[$colIdx - 1]) ? trim((string) $row[$colIdx - 1]) : '';
@@ -224,24 +299,24 @@ class StudentImportController extends Controller
             $errors   = [];
             $warnings = [];
 
-            // Required fields
+            // ── Required fields ───────────────────────────────────────────
             foreach (self::REQUIRED_FIELDS as $field) {
                 if ($d[$field] === '') {
                     $errors[] = ucwords(str_replace('_', ' ', $field)) . ' is required';
                 }
             }
 
-            // Date of birth
+            // ── Date of birth ─────────────────────────────────────────────
             if ($d['date_of_birth'] !== '') {
                 $dob = \DateTime::createFromFormat('d/m/Y', $d['date_of_birth']);
                 if (!$dob) {
-                    $errors[] = 'Date of birth must be DD/MM/YYYY (e.g. 15/08/2015)';
+                    $errors[] = 'Date of Birth must be DD/MM/YYYY (e.g. 15/08/2015)';
                 } else {
                     $d['dob_parsed'] = $dob->format('Y-m-d');
                 }
             }
 
-            // Gender
+            // ── Gender ────────────────────────────────────────────────────
             if ($d['gender'] !== '') {
                 $d['gender'] = strtolower($d['gender']);
                 if (!in_array($d['gender'], ['male', 'female'])) {
@@ -249,63 +324,69 @@ class StudentImportController extends Controller
                 }
             }
 
-            // Fee category
-            if ($d['fee_category'] !== '') {
-                $d['fee_category'] = strtolower($d['fee_category']);
-                if (!in_array($d['fee_category'], ['general', 'rte', 'coc', 'discount'])) {
-                    $errors[] = 'Fee category must be general, rte, coc, or discount';
-                }
-                if ($d['fee_category'] === 'coc' && ($d['gender'] ?? '') === 'female') {
-                    $errors[] = 'CoC fee category is only for male students';
-                }
-            }
-
-            // Class lookup
-            $classId   = null;
-            $className = $d['class_name'];
-            if ($className !== '') {
-                if (!isset($classMap[$className])) {
-                    $errors[] = 'Class "' . $className . '" not recognised — check spelling exactly';
+            // ── Class lookup ──────────────────────────────────────────────
+            $classId = null;
+            if ($d['class_name'] !== '') {
+                if (!isset($classMap[$d['class_name']])) {
+                    $errors[] = 'Class "' . $d['class_name'] . '" not recognised — must exactly match: ' . implode(', ', self::VALID_CLASSES);
                 } else {
-                    $classId       = $classMap[$className];
+                    $classId       = $classMap[$d['class_name']];
                     $d['class_id'] = $classId;
                 }
             }
 
-            // Section lookup
-            $sectionId = null;
+            // ── Section lookup ────────────────────────────────────────────
             if ($classId) {
                 $sectionName = $d['section_name'] !== '' ? strtoupper($d['section_name']) : 'A';
-                $section = $allSections->where('class_id', $classId)
-                                       ->where('section_name', $sectionName)
-                                       ->first();
+                $section = $allSections->where('class_id', $classId)->where('section_name', $sectionName)->first();
                 if (!$section) {
                     $fallback = $allSections->where('class_id', $classId)->first();
                     if ($fallback) {
                         $warnings[]        = 'Section "' . $d['section_name'] . '" not found — assigned to ' . $fallback->section_name;
-                        $sectionId         = $fallback->id;
+                        $d['section_id']   = $fallback->id;
                         $d['section_name'] = $fallback->section_name;
                     } else {
-                        $errors[] = 'No sections found for class "' . $className . '"';
+                        $errors[] = 'No sections found for class "' . $d['class_name'] . '"';
                     }
                 } else {
-                    $sectionId = $section->id;
-                }
-                $d['section_id'] = $sectionId;
-            }
-
-            // Duplicate check
-            if (isset($d['dob_parsed']) && $classId && $d['student_name'] !== '') {
-                $dup = Admission::where('student_name', $d['student_name'])
-                    ->where('date_of_birth', $d['dob_parsed'])
-                    ->where('class_id', $classId)
-                    ->exists();
-                if ($dup) {
-                    $errors[] = 'Duplicate — a student with the same name, DOB and class already exists (skipped)';
+                    $d['section_id'] = $section->id;
                 }
             }
 
-            // General ID checks
+            // ── Fee category ──────────────────────────────────────────────
+            if ($d['fee_category'] !== '') {
+                $d['fee_category'] = strtolower($d['fee_category']);
+                if (!in_array($d['fee_category'], ['general', 'rte', 'coc', 'discount'])) {
+                    $errors[] = 'Fee Category must be: general, rte, coc, or discount';
+                } elseif ($d['fee_category'] === 'coc' && ($d['gender'] ?? '') === 'female') {
+                    $errors[] = 'CoC fee category is only available for male students';
+                } elseif ($d['fee_category'] === 'discount') {
+                    if ($d['discount_percentage'] === '' && $d['custom_tuition_fee'] === '') {
+                        $errors[] = 'Discount students need either a Discount % or a Custom Tuition Fee (or both)';
+                    } elseif ($d['discount_percentage'] !== '') {
+                        if (!is_numeric($d['discount_percentage']) || (float)$d['discount_percentage'] <= 0 || (float)$d['discount_percentage'] > 100) {
+                            $errors[] = 'Discount % must be a number between 1 and 100';
+                        } else {
+                            $d['discount_percentage'] = (float) $d['discount_percentage'];
+                        }
+                    }
+                } else {
+                    $d['discount_percentage'] = null;
+                }
+            }
+
+            // ── Custom tuition fee ────────────────────────────────────────
+            if ($d['custom_tuition_fee'] !== '') {
+                if (!is_numeric($d['custom_tuition_fee']) || (float)$d['custom_tuition_fee'] < 0) {
+                    $errors[] = 'Custom Tuition Fee must be a positive number (or leave blank)';
+                } else {
+                    $d['custom_tuition_fee'] = (float) $d['custom_tuition_fee'];
+                }
+            } else {
+                $d['custom_tuition_fee'] = null;
+            }
+
+            // ── General ID ────────────────────────────────────────────────
             if ($d['general_id'] !== '') {
                 if (!preg_match('/^\d{11}$/', $d['general_id'])) {
                     $errors[] = 'General ID must be exactly 11 digits';
@@ -314,7 +395,18 @@ class StudentImportController extends Controller
                 }
             }
 
-            // Session / academic year
+            // ── Duplicate check ───────────────────────────────────────────
+            if (isset($d['dob_parsed']) && $classId && $d['student_name'] !== '') {
+                $dup = Admission::where('student_name', $d['student_name'])
+                    ->where('date_of_birth', $d['dob_parsed'])
+                    ->where('class_id', $classId)
+                    ->exists();
+                if ($dup) {
+                    $errors[] = 'Duplicate — a student with this name, DOB and class already exists';
+                }
+            }
+
+            // ── Session ───────────────────────────────────────────────────
             $d['session_id']    = $session ? $session->id : null;
             $d['academic_year'] = $session ? $session->session_name : '';
 
@@ -330,10 +422,9 @@ class StudentImportController extends Controller
         }
 
         if (empty($parsed)) {
-            return back()->withErrors(['file' => 'No data rows found in the uploaded file.']);
+            return back()->withErrors(['file' => 'No data rows found. Make sure to delete the example rows and save as .xlsx.']);
         }
 
-        // Store importable rows (valid + warning) in session for commit
         $importable = array_values(array_filter($parsed, function ($r) {
             return $r['status'] !== 'error';
         }));
@@ -357,51 +448,52 @@ class StudentImportController extends Controller
                 ->withErrors(['file' => 'Preview session expired — please re-upload the file.']);
         }
 
-        $imported = 0;
-        $skipped  = 0;
-        $rowErrors = [];
+        $session = SchoolSession::latest('id')->first();
+
+        $imported   = 0;
+        $skipped    = 0;
+        $rowErrors  = [];
 
         foreach ($rows as $row) {
             $d = $row['data'];
             DB::beginTransaction();
             try {
+                // ── Create admission record ───────────────────────────────
                 $admission = Admission::create([
-                    'student_name'    => $d['student_name'],
-                    'date_of_birth'   => isset($d['dob_parsed']) ? $d['dob_parsed'] : null,
-                    'gender'          => $d['gender'],
-                    'class_id'        => $d['class_id'],
-                    'section_id'      => isset($d['section_id']) ? $d['section_id'] : null,
-                    'session_id'      => $d['session_id'],
-                    'academic_year'   => $d['academic_year'],
-                    'fee_category'    => $d['fee_category'],
-                    'father_name'     => $d['father_name'] !== '' ? $d['father_name'] : null,
-                    'father_phone'    => $d['father_phone'] !== '' ? $d['father_phone'] : null,
-                    'mother_name'     => $d['mother_name'] !== '' ? $d['mother_name'] : null,
-                    'mother_phone'    => $d['mother_phone'] !== '' ? $d['mother_phone'] : null,
-                    'contact_mobile'  => $d['contact_mobile'] !== '' ? $d['contact_mobile'] : null,
-                    'full_address'    => $d['full_address'] !== '' ? $d['full_address'] : null,
-                    'city'            => $d['city'] !== '' ? $d['city'] : null,
-                    'general_id'      => $d['general_id'] !== '' ? $d['general_id'] : null,
-                    'blood_type'      => $d['blood_type'] !== '' ? $d['blood_type'] : null,
-                    'religion'        => $d['religion'] !== '' ? $d['religion'] : null,
-                    'caste'           => $d['caste'] !== '' ? $d['caste'] : null,
-                    'previous_school' => $d['previous_school'] !== '' ? $d['previous_school'] : null,
-                    'inquiry_date'    => now()->toDateString(),
-                    'status'          => Admission::STATUS_CONFIRMED,
-                    'confirmed_date'  => now()->toDateString(),
+                    'student_name'         => $d['student_name'],
+                    'date_of_birth'        => isset($d['dob_parsed']) ? $d['dob_parsed'] : null,
+                    'gender'               => $d['gender'],
+                    'class_id'             => $d['class_id'],
+                    'section_id'           => isset($d['section_id']) ? $d['section_id'] : null,
+                    'session_id'           => $d['session_id'],
+                    'academic_year'        => $d['academic_year'],
+                    'fee_category'         => $d['fee_category'],
+                    'discount_percentage'  => (isset($d['discount_percentage']) && $d['discount_percentage'] !== '') ? $d['discount_percentage'] : null,
+                    'custom_tuition_fee'   => (isset($d['custom_tuition_fee']) && $d['custom_tuition_fee'] !== '') ? $d['custom_tuition_fee'] : null,
+                    'father_name'          => $d['father_name'] !== '' ? $d['father_name'] : null,
+                    'father_phone'         => $d['father_phone'] !== '' ? $d['father_phone'] : null,
+                    'father_occupation'    => $d['father_occupation'] !== '' ? $d['father_occupation'] : null,
+                    'mother_name'          => $d['mother_name'] !== '' ? $d['mother_name'] : null,
+                    'mother_phone'         => null,
+                    'mother_occupation'    => $d['mother_occupation'] !== '' ? $d['mother_occupation'] : null,
+                    'contact_mobile'       => $d['father_phone'] !== '' ? $d['father_phone'] : null,
+                    'village'              => $d['village'] !== '' ? $d['village'] : null,
+                    'distance_from_school' => $d['distance_from_school'] !== '' ? $d['distance_from_school'] : null,
+                    'general_id'           => $d['general_id'] !== '' ? $d['general_id'] : null,
+                    'inquiry_date'         => now()->toDateString(),
+                    'status'               => Admission::STATUS_CONFIRMED,
+                    'confirmed_date'       => now()->toDateString(),
                 ]);
 
-                // Assign admission number
+                // ── Assign admission number ───────────────────────────────
                 if (in_array($d['class_name'], self::PRE_PRIMARY)) {
-                    $admission->dga_admission_no = $d['dga_admission_no'] !== ''
+                    $admission->dga_admission_no = ($d['dga_admission_no'] !== '')
                         ? $d['dga_admission_no']
                         : Admission::generateDgaAdmissionNo($d['academic_year']);
                     $admission->save();
-                } else {
-                    // general_id already saved above; no change needed
                 }
 
-                // Create student user
+                // ── Create student user ───────────────────────────────────
                 $nameParts = explode(' ', $admission->student_name, 2);
                 $student = User::create([
                     'first_name'           => $nameParts[0],
@@ -411,12 +503,11 @@ class StudentImportController extends Controller
                     'gender'               => ucfirst($admission->gender ?? 'male'),
                     'nationality'          => 'Indian',
                     'phone'                => $admission->father_phone ?? $admission->contact_mobile ?? '',
-                    'address'              => $admission->full_address ?? '',
-                    'address2'             => $admission->village ?? '',
-                    'city'                 => $admission->city ?? '',
-                    'zip'                  => $admission->zip ?? '',
+                    'address'              => '',
+                    'address2'             => '',
+                    'city'                 => '',
+                    'zip'                  => '',
                     'birthday'             => $admission->date_of_birth,
-                    'religion'             => $admission->religion,
                     'role'                 => 'student',
                     'fee_category'         => $admission->fee_category,
                     'dga_admission_no'     => $admission->dga_admission_no,
@@ -425,25 +516,23 @@ class StudentImportController extends Controller
                     'distance_from_school' => $admission->distance_from_school ?? '',
                     'student_status'       => 'active',
                     'admission_id'         => $admission->id,
-                    'blood_type'           => $admission->blood_type,
                 ]);
 
-                $student->assignRole('student');
-
-                // Create promotion record
-                $promotionRepo = new \App\Repositories\PromotionRepository();
-                $promotionRepo->assignClassSection([
-                    'session_id'     => $admission->session_id,
-                    'class_id'       => $admission->class_id,
-                    'section_id'     => $admission->section_id,
-                    'id_card_number' => $admission->dga_admission_no ?? $admission->general_id ?? null,
-                ], $student->id);
-
-                // Link student to admission
+                // Link student back to admission
                 $admission->student_user_id = $student->id;
                 $admission->save();
 
-                // Create document checklist
+                // ── Create promotion ──────────────────────────────────────
+                DB::table('promotions')->insert([
+                    'student_id' => $student->id,
+                    'session_id' => $admission->session_id,
+                    'class_id'   => $admission->class_id,
+                    'section_id' => $admission->section_id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                // ── Create document checklist ─────────────────────────────
                 $this->createDocumentChecklist($admission);
 
                 DB::commit();
@@ -452,7 +541,7 @@ class StudentImportController extends Controller
             } catch (\Exception $e) {
                 DB::rollBack();
                 $skipped++;
-                $rowErrors[] = 'Row ' . $row['line'] . ' (' . $d['student_name'] . '): ' . $e->getMessage();
+                $rowErrors[] = 'Row ' . $row['line'] . ' (' . ($d['student_name'] ?? '?') . '): ' . $e->getMessage();
             }
         }
 
