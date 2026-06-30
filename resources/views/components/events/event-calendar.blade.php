@@ -360,7 +360,13 @@
                 processData: false,
                 success: function (data) {
                     calendar.fullCalendar('renderEvent', {
-                        id: data.id, title: data.title, start: data.start, end: data.end
+                        id: data.id, title: data.title, start: data.start, end: data.end,
+                        activity_type: data.activity_type, description: data.description,
+                        purpose: data.purpose, location: data.location, duration: data.duration,
+                        participants: data.participants, participant_count: data.participant_count,
+                        skills_values: data.skills_values, photo_url: data.photo_url,
+                        outcome: data.outcome, publish_to_calendar: data.publish_to_calendar,
+                        created_by: data.created_by,
                     }, true);
                     bootstrap.Modal.getInstance(document.getElementById('createEventModal')).hide();
                     displayMessage("Activity logged.");
@@ -410,7 +416,13 @@
                 success: function (data) {
                     calendar.fullCalendar('removeEvents', data.id);
                     calendar.fullCalendar('renderEvent', {
-                        id: data.id, title: data.title, start: data.start, end: data.end
+                        id: data.id, title: data.title, start: data.start, end: data.end,
+                        activity_type: data.activity_type, description: data.description,
+                        purpose: data.purpose, location: data.location, duration: data.duration,
+                        participants: data.participants, participant_count: data.participant_count,
+                        skills_values: data.skills_values, photo_url: data.photo_url,
+                        outcome: data.outcome, publish_to_calendar: data.publish_to_calendar,
+                        created_by: data.created_by,
                     }, true);
                     bootstrap.Modal.getInstance(document.getElementById('editEventModal')).hide();
                     displayMessage("Activity updated.");
