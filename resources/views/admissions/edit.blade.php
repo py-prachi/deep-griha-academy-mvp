@@ -235,6 +235,34 @@
                         </div>
                         @endif
 
+                        {{-- Fee Category (editable for all statuses) --}}
+                        <div class="bg-white border shadow-sm p-4 mb-4">
+                            <h5 class="mb-3 border-bottom pb-2"><i class="bi bi-tag"></i> Fee Category</h5>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Category</label>
+                                    <select name="fee_category" id="editFeeCategorySelect" class="form-select">
+                                        <option value="">-- Not set --</option>
+                                        <option value="general"  {{ old('fee_category', $admission->fee_category) === 'general'  ? 'selected' : '' }}>General</option>
+                                        <option value="rte"      {{ old('fee_category', $admission->fee_category) === 'rte'      ? 'selected' : '' }}>RTE (₹0 tuition)</option>
+                                        <option value="coc"      {{ old('fee_category', $admission->fee_category) === 'coc'      ? 'selected' : '' }}>CoC (Boys only)</option>
+                                        <option value="discount" {{ old('fee_category', $admission->fee_category) === 'discount' ? 'selected' : '' }}>Discount</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4" id="editDiscountPctField" style="{{ old('fee_category', $admission->fee_category) === 'discount' ? '' : 'display:none;' }}">
+                                    <label class="form-label">Discount % <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="number" name="discount_percentage" id="editDiscountPct" class="form-control"
+                                               step="0.01" min="0" max="100"
+                                               value="{{ old('discount_percentage', $admission->discount_percentage) }}"
+                                               placeholder="e.g. 50">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    <div class="form-text">Applied on General category tuition fee for this student's class.</div>
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Fee Override (admin only, confirmed students) --}}
                         @if($admission->status === 'confirmed')
                         <div class="bg-white border shadow-sm p-4 mb-4">
@@ -282,6 +310,20 @@
         </div>
     </div>
 </div>
+<script>
+document.getElementById('editFeeCategorySelect').addEventListener('change', function() {
+    var field = document.getElementById('editDiscountPctField');
+    var input = document.getElementById('editDiscountPct');
+    if (this.value === 'discount') {
+        field.style.display = '';
+        input.required = true;
+    } else {
+        field.style.display = 'none';
+        input.required = false;
+        input.value = '';
+    }
+});
+</script>
 @if(in_array($admission->status, ['enquiry', 'pending']))
 <script>
 document.getElementById('editClassSelect').addEventListener('change', function() {

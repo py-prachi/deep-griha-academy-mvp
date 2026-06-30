@@ -116,6 +116,11 @@
                                     <div class="col-md-6"><strong>Fee Category:</strong>
                                         @if($admission->fee_category)
                                             <span class="badge bg-primary">{{ strtoupper($admission->fee_category) }}</span>
+                                            @if($admission->fee_category === 'discount' && $admission->discount_percentage)
+                                                <span class="badge bg-secondary ms-1">{{ $admission->discount_percentage }}% off</span>
+                                            @elseif($admission->fee_category === 'discount')
+                                                <span class="badge bg-warning text-dark ms-1">% not set</span>
+                                            @endif
                                         @else
                                             <span class="text-muted">Not set</span>
                                         @endif

@@ -142,17 +142,23 @@ class AdmissionController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'general_id' => 'nullable|digits:11|unique:admissions,general_id,' . $id,
+            'general_id'          => 'nullable|digits:11|unique:admissions,general_id,' . $id,
+            'fee_category'        => 'nullable|in:general,rte,coc,discount',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100|required_if:fee_category,discount',
         ]);
 
         try {
             $admission = $this->admissionRepository->update($id, $request->all());
             // Sync denormalized copies in users + promotions tables
             if ($admission->student_user_id) {
-                \App\Models\User::where('id', $admission->student_user_id)->update([
+                $userSync = [
                     'general_id'       => $admission->general_id,
                     'dga_admission_no' => $admission->dga_admission_no,
-                ]);
+                ];
+                if ($request->filled('fee_category')) {
+                    $userSync['fee_category'] = $admission->fee_category;
+                }
+                \App\Models\User::where('id', $admission->student_user_id)->update($userSync);
                 if ($request->filled('general_id')) {
                     \App\Models\Promotion::where('student_id', $admission->student_user_id)
                         ->update(['id_card_number' => $request->general_id]);
