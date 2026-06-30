@@ -191,6 +191,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/academics/subjects/class-assignments', [SubjectController::class, 'saveClassSubjects'])->name('subjects.saveClassSubjects');
     Route::post('/academics/subjects/bulk-assign-1to8', [SubjectController::class, 'bulkAssignClasses1to8'])->name('subjects.bulkAssign1to8');
     Route::post('/promotions/reassign-roll-numbers', [App\Http\Controllers\PromotionController::class, 'reassignRollNumbers'])->name('promotions.reassignRollNumbers');
+    Route::post('/promotions/assign-missing-roll-numbers', [App\Http\Controllers\PromotionController::class, 'assignMissingRollNumbers'])->name('promotions.assignMissingRollNumbers');
 
     // Teacher assignments (new clean flow)
     Route::get('/academics/teacher-assignments', [SubjectController::class, 'teacherAssignments'])->name('academics.teacher-assignments');

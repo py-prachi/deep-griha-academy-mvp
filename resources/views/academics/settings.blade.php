@@ -165,14 +165,34 @@
                                 <div class="card-body">
                                     <h6><i class="bi bi-sort-numeric-down me-1 text-primary"></i> Assign Roll Numbers</h6>
                                     <p class="text-muted small">
-                                        Assign roll numbers to all students in the current session, sorted A–Z by first name within each class.
-                                        <strong>One-time action</strong> — run once after all admissions are confirmed.
+                                        Assign roll numbers to all students in the current session, in the order they were admitted per class.
+                                        <strong>One-time action</strong> — run once after all admissions are confirmed. Overwrites existing roll numbers.
                                     </p>
                                     <form method="POST" action="{{ route('promotions.reassignRollNumbers') }}">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-outline-primary w-100"
-                                            onclick="return confirm('Assign roll numbers to all students in the current session (sorted A-Z by first name per class)?\n\nThis will overwrite any existing roll numbers.')">
+                                            onclick="return confirm('Assign roll numbers to all students in the current session (in admission order per class)?\n\nThis will overwrite any existing roll numbers.')">
                                             <i class="bi bi-sort-numeric-down me-1"></i> Assign Roll Numbers
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Assign Missing Roll Numbers (for imported students) --}}
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6><i class="bi bi-file-earmark-arrow-up me-1 text-success"></i> Fill in Missing Roll Numbers</h6>
+                                    <p class="text-muted small">
+                                        Only assigns roll numbers to students who don't have one yet (e.g. bulk-imported students).
+                                        Existing roll numbers are <strong>never changed</strong> — new students are numbered from the next available number per class, in the order they were admitted.
+                                    </p>
+                                    <form method="POST" action="{{ route('promotions.assignMissingRollNumbers') }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-success w-100"
+                                            onclick="return confirm('Assign roll numbers to imported students who don\'t have one yet?\n\nExisting roll numbers will NOT be changed.')">
+                                            <i class="bi bi-file-earmark-arrow-up me-1"></i> Fill in Missing Roll Numbers
                                         </button>
                                     </form>
                                 </div>

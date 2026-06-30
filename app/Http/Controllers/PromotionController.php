@@ -396,9 +396,7 @@ class PromotionController extends Controller
             });
 
         foreach ($groups as $promotions) {
-            $sorted = $promotions->sortBy(function ($p) {
-                return strtolower($p->student->first_name ?? 'zzz');
-            })->values();
+            $sorted = $promotions->sortBy('id')->values();
             foreach ($sorted as $i => $p) {
                 $p->roll_number = $i + 1;
                 $p->save();
@@ -406,6 +404,44 @@ class PromotionController extends Controller
         }
 
         $total = Promotion::where('session_id', $session_id)->count();
-        return back()->with('status', 'Roll numbers assigned for ' . $total . ' student(s), sorted A-Z by first name per class.');
+        return back()->with('status', 'Roll numbers assigned for ' . $total . ' student(s) in admission order per class.');
+    }
+
+    // Assigns roll numbers only to students who don't have one yet.
+    // Per class/section: starts from max(existing roll_number)+1, or 1 if none assigned yet.
+    // Sorted by promotion ID (insertion order = order of admission creation).
+    public function assignMissingRollNumbers()
+    {
+        $session_id = $this->getSchoolCurrentSession();
+
+        $groups = Promotion::with('student')
+            ->where('session_id', $session_id)
+            ->get()
+            ->groupBy(function ($p) {
+                return $p->class_id . '-' . $p->section_id;
+            });
+
+        $assigned = 0;
+
+        foreach ($groups as $promotions) {
+            $maxRoll = $promotions->max('roll_number') ?? 0;
+
+            $unassigned = $promotions
+                ->filter(function ($p) { return $p->roll_number === null; })
+                ->sortBy('id')
+                ->values();
+
+            foreach ($unassigned as $i => $p) {
+                $p->roll_number = $maxRoll + $i + 1;
+                $p->save();
+                $assigned++;
+            }
+        }
+
+        if ($assigned === 0) {
+            return back()->with('status', 'No students without roll numbers found — nothing to assign.');
+        }
+
+        return back()->with('status', 'Roll numbers assigned to ' . $assigned . ' imported student(s). Existing roll numbers were not changed.');
     }
 }
