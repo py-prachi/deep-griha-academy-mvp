@@ -158,6 +158,7 @@
                                     <th>Fee Category</th>
                                     <th>Discount%</th>
                                     <th>Custom Fee</th>
+                                    <th>Collected</th>
                                     <th>Father's Contact</th>
                                     <th>Village</th>
                                     <th>Distance</th>
@@ -199,6 +200,13 @@
                                     <td>
                                         @if(!empty($d['custom_tuition_fee']))
                                             ₹{{ number_format($d['custom_tuition_fee'], 0) }}
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if(!empty($d['already_collected']))
+                                            ₹{{ number_format($d['already_collected'], 0) }}
+                                        @else
+                                            <span class="text-muted">0</span>
                                         @endif
                                     </td>
                                     <td>{{ $d['father_phone'] ?? '' }}</td>

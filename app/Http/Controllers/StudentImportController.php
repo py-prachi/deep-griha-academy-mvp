@@ -21,29 +21,27 @@ class StudentImportController extends Controller
 {
     /*
      * Template column layout (1-based, matches downloadTemplate())
-     * Close to the DGA fee-collection sheet format so staff can copy-paste.
      *
-     *  A  Sr.No              (reference, ignored)
-     *  B  Student Name       *required
-     *  C  Date of Birth      *required  DD/MM/YYYY
-     *  D  Gender             *required  male / female
-     *  E  Class              *required  Nursery / Lower KG / Upper KG / Class 1 … Class 8
-     *  F  Section                       A / B  (default A)
-     *  G  Contact Mobile
-     *  H  Fee Category       *required  general / rte / coc / discount
-     *  I  Discount %                    required when H = discount  (e.g. 50)
-     *  J  Already Collected (₹)        DGA "Collected Fee" — creates a fee payment record
-     *  K  Challan No                    leave blank to auto-generate
-     *  L  Payment Date                  DD/MM/YYYY  (default: today)
-     *  M  Payment Mode                  cash / cheque / qr  (default: cash)
-     *  N  Village
-     *  O  Distance from School
-     *  M  Father Name
-     *  N  Father Occupation
-     *  O  Mother Name
-     *  P  Mother Occupation
-     *  Q  General ID                    11-digit ZP/SARAL ID (Class 1+)
-     *  R  DGA Admission No              pre-primary only; leave blank to auto-generate
+     *  A(1)   Sr.No
+     *  B(2)   Student Name       *required
+     *  C(3)   Date of Birth      DD/MM/YYYY
+     *  D(4)   Gender             *required  male / female
+     *  E(5)   Class              *required
+     *  F(6)   Section            A / B  (default A)
+     *  G(7)   Father's Contact No
+     *  H(8)   Fee Category       *required  general / rte / coc / discount
+     *  I(9)   Discount %         required when H = discount
+     *  J(10)  Custom Tuition Fee
+     *  K(11)  Already Collected (₹)  creates a fee_payment record; enter 0 if nothing collected
+     *  L(12)  Village
+     *  M(13)  Distance from School
+     *  N(14)  Father Name
+     *  O(15)  Father Occupation
+     *  P(16)  Mother Name
+     *  Q(17)  Mother Occupation
+     *  R(18)  General ID         11-digit ZP/SARAL ID
+     *  S(19)  DGA Admission No   pre-primary only
+     *  T(20)+ Notes / anything else — ignored on import
      */
     const COLUMNS = [
         1  => 'sr_no',
@@ -56,14 +54,15 @@ class StudentImportController extends Controller
         8  => 'fee_category',
         9  => 'discount_percentage',
         10 => 'custom_tuition_fee',
-        11 => 'village',
-        12 => 'distance_from_school',
-        13 => 'father_name',
-        14 => 'father_occupation',
-        15 => 'mother_name',
-        16 => 'mother_occupation',
-        17 => 'general_id',
-        18 => 'dga_admission_no',
+        11 => 'already_collected',
+        12 => 'village',
+        13 => 'distance_from_school',
+        14 => 'father_name',
+        15 => 'father_occupation',
+        16 => 'mother_name',
+        17 => 'mother_occupation',
+        18 => 'general_id',
+        19 => 'dga_admission_no',
     ];
 
     const REQUIRED_FIELDS = ['student_name', 'gender', 'class_name', 'fee_category'];
@@ -114,6 +113,7 @@ class StudentImportController extends Controller
             ['label' => 'Fee Category',             'required' => true,  'note' => 'general / rte / coc / discount'],
             ['label' => 'Discount %',               'required' => false, 'note' => 'Required if Fee Category = discount. Enter number only, e.g. 50 for 50% off.'],
             ['label' => 'Custom Tuition Fee (Rs)', 'required' => false, 'note' => 'Fill ONLY if actual fee is a flat negotiated amount. Leave blank to let the system calculate from category/discount.'],
+            ['label' => 'Already Collected (Rs)',  'required' => false, 'note' => 'Fees already collected for this student. A payment record will be created automatically. Enter 0 if nothing collected.'],
             ['label' => 'Village',                  'required' => false, 'note' => ''],
             ['label' => 'Distance from School',     'required' => false, 'note' => 'e.g. 2.5km'],
             ['label' => 'Father Name',              'required' => false, 'note' => ''],
@@ -150,18 +150,18 @@ class StudentImportController extends Controller
 
         // ── Example rows ─────────────────────────────────────────────────
         $examples = [
-            // General boy — no custom fee
+            // General boy — paid Rs.16200 in full
             [1, 'Rahul Kumar', '15/08/2015', 'male', 'Class 3', 'A', '9876543210',
-             'general', '', '', 'Yawat', '2km', 'Suresh Kumar', '9876543210', 'Farmer',
-             'Priya Kumar', '9876543211', 'Homemaker', '', ''],
-            // Discount girl — 50%, but negotiated flat Rs.6000 (custom overrides the 50% calc)
+             'general', '', '', 16200, 'Yawat', '2km', 'Suresh Kumar', 'Farmer',
+             'Priya Kumar', 'Homemaker', '', ''],
+            // Discount girl — 50% + custom Rs.6000, collected Rs.3000 so far
             [2, 'Aradhya Devidas Kalaphad', '10/03/2017', 'female', 'Nursery', 'A', '7972024744',
-             'discount', '50', '6000', 'Baravkarvadi', '3km', 'Devidas Kalaphad', '7972024744', 'Worker',
-             'Sunita Kalaphad', '', 'Homemaker', '', ''],
-            // RTE — zero fees, no custom fee needed
+             'discount', '50', 6000, 3000, 'Baravkarvadi', '3km', 'Devidas Kalaphad', 'Worker',
+             'Sunita Kalaphad', 'Homemaker', '', ''],
+            // RTE — zero fees paid (govt pays), enter 0
             [3, 'Mohammed Arif Khan', '20/06/2016', 'male', 'Class 2', 'A', '8765432109',
-             'rte', '', '', 'Kedgaon', '3km', 'Anwar Khan', '8765432109', 'Driver',
-             '', '', '', '12345678901', ''],
+             'rte', '', '', 0, 'Kedgaon', '3km', 'Anwar Khan', 'Driver',
+             '', '', '12345678901', ''],
         ];
 
         foreach ($examples as $ri => $row) {
@@ -214,6 +214,12 @@ class StudentImportController extends Controller
             ['  Fill ONLY when the negotiated fee does not match the discount calculation.', false, 10],
             ['  Example: student is 50% discount but agreed fee is Rs.6000 (not Rs.6100).', false, 10],
             ['  Enter 6000 here. Leave blank for all other students.', false, 10],
+            ['', false, 11],
+            ['ALREADY COLLECTED (Rs) column:', true, 11],
+            ['  Enter the total fees already collected for this student (from your records).', false, 10],
+            ['  A fee payment record will be created automatically during import.', false, 10],
+            ['  Enter 0 if nothing has been collected yet.', false, 10],
+            ['  RTE/COC students: enter 0 (their fees are covered by government/scheme).', false, 10],
             ['', false, 11],
             ['OTHER NOTES:', true, 11],
             ['  Section — enter A or B. Leave blank to default to A.', false, 10],
@@ -386,6 +392,17 @@ class StudentImportController extends Controller
                 $d['custom_tuition_fee'] = null;
             }
 
+            // ── Already collected ─────────────────────────────────────────
+            $raw = $d['already_collected'];
+            if ($raw === '' || $raw === null || strtolower((string)$raw) === 'rte' || strtolower((string)$raw) === 'free') {
+                $d['already_collected'] = 0;
+            } elseif (!is_numeric($raw) || (float)$raw < 0) {
+                $warnings[] = 'Already Collected "' . $raw . '" is not a valid number — treating as 0';
+                $d['already_collected'] = 0;
+            } else {
+                $d['already_collected'] = (float) $raw;
+            }
+
             // ── General ID ────────────────────────────────────────────────
             if ($d['general_id'] !== '') {
                 if (!preg_match('/^\d{11}$/', $d['general_id'])) {
@@ -531,6 +548,25 @@ class StudentImportController extends Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+
+                // ── Record already-collected fee payment ──────────────────
+                if (!empty($d['already_collected']) && (float)$d['already_collected'] > 0) {
+                    $nextChallan = \App\Models\FeePayment::nextChallanNo();
+                    DB::table('fee_payments')->insert([
+                        'student_user_id'      => $student->id,
+                        'session_id'           => $admission->session_id,
+                        'challan_no'           => $nextChallan,
+                        'payment_date'         => now()->toDateString(),
+                        'amount_paid'          => (float) $d['already_collected'],
+                        'payment_mode'         => 'cash',
+                        'payment_category'     => 'fee',
+                        'is_internal_transfer' => false,
+                        'recorded_by'          => auth()->id() ?? 1,
+                        'notes'                => 'Imported from DGA records (2024-25 collection data)',
+                        'created_at'           => now(),
+                        'updated_at'           => now(),
+                    ]);
+                }
 
                 // ── Create document checklist ─────────────────────────────
                 $this->createDocumentChecklist($admission);

@@ -192,35 +192,59 @@
                                         </tr>
                                         @if($rollover->remaining > 0)
                                         <tr class="collapse" id="rollover-form-{{ $rollover->id }}">
-                                            <td colspan="6" class="bg-light px-3 py-2">
-                                                <form method="POST" action="{{ route('fees.rollover.store', [$student->id, $rollover->id]) }}" class="row g-2 align-items-end">
+                                            <td colspan="6" class="bg-light px-3 py-3">
+                                                <form method="POST" action="{{ route('fees.rollover.store', [$student->id, $rollover->id]) }}">
                                                     @csrf
-                                                    <div class="col-md-2">
-                                                        <label class="form-label form-label-sm">Date</label>
-                                                        <input type="date" name="payment_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required>
+                                                    <div class="row g-2 align-items-end">
+                                                        <div class="col-md-2">
+                                                            <label class="form-label form-label-sm fw-semibold">Date</label>
+                                                            <input type="date" name="payment_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required>
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <label class="form-label form-label-sm fw-semibold">Amount <span class="text-muted fw-normal">(max ₹{{ number_format($rollover->remaining, 0) }})</span></label>
+                                                            <input type="number" name="amount_paid" class="form-control form-control-sm"
+                                                                value="{{ $rollover->remaining }}" min="1" max="{{ $rollover->remaining }}" step="1" required>
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <label class="form-label form-label-sm fw-semibold">Mode</label>
+                                                            <select name="payment_mode" class="form-select form-select-sm rollover-mode-select" data-rollover="{{ $rollover->id }}" required>
+                                                                <option value="cash">Cash</option>
+                                                                <option value="qr">QR / UPI</option>
+                                                                <option value="cheque">Cheque</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <label class="form-label form-label-sm fw-semibold">Notes (optional)</label>
+                                                            <input type="text" name="notes" class="form-control form-control-sm" placeholder="e.g. paid by father">
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <button type="submit" class="btn btn-sm btn-warning text-dark w-100"
+                                                                onclick="return confirm('Record recovery for {{ optional($rollover->session)->session_name }} outstanding fees?')">
+                                                                <i class="bi bi-check2 me-1"></i> Confirm Recovery
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    <div class="col-md-2">
-                                                        <label class="form-label form-label-sm">Amount (max ₹{{ number_format($rollover->remaining, 0) }})</label>
-                                                        <input type="number" name="amount_paid" class="form-control form-control-sm"
-                                                            value="{{ $rollover->remaining }}" min="1" max="{{ $rollover->remaining }}" step="1" required>
+                                                    {{-- QR / UPI field --}}
+                                                    <div class="row g-2 mt-1 rollover-qr-{{ $rollover->id }}" style="display:none">
+                                                        <div class="col-md-4">
+                                                            <label class="form-label form-label-sm fw-semibold">UPI Transaction ID <span class="text-danger">*</span></label>
+                                                            <input type="text" name="transaction_ref" class="form-control form-control-sm" placeholder="e.g. 123456789012">
+                                                        </div>
                                                     </div>
-                                                    <div class="col-md-2">
-                                                        <label class="form-label form-label-sm">Mode</label>
-                                                        <select name="payment_mode" class="form-select form-select-sm" required>
-                                                            <option value="cash">Cash</option>
-                                                            <option value="qr">QR</option>
-                                                            <option value="cheque">Cheque</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <label class="form-label form-label-sm">Notes (optional)</label>
-                                                        <input type="text" name="notes" class="form-control form-control-sm" placeholder="e.g. paid by father">
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <button type="submit" class="btn btn-sm btn-warning text-dark w-100"
-                                                            onclick="return confirm('Record ₹{{ $rollover->remaining }} recovery for {{ optional($rollover->session)->session_name }} outstanding fees?')">
-                                                            <i class="bi bi-check2 me-1"></i> Confirm Recovery
-                                                        </button>
+                                                    {{-- Cheque fields --}}
+                                                    <div class="row g-2 mt-1 rollover-cheque-{{ $rollover->id }}" style="display:none">
+                                                        <div class="col-md-3">
+                                                            <label class="form-label form-label-sm fw-semibold">Cheque No <span class="text-danger">*</span></label>
+                                                            <input type="text" name="cheque_no" class="form-control form-control-sm">
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <label class="form-label form-label-sm fw-semibold">Cheque Date <span class="text-danger">*</span></label>
+                                                            <input type="date" name="cheque_date" class="form-control form-control-sm">
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <label class="form-label form-label-sm fw-semibold">Bank Name <span class="text-danger">*</span></label>
+                                                            <input type="text" name="bank_name" class="form-control form-control-sm">
+                                                        </div>
                                                     </div>
                                                 </form>
                                             </td>
@@ -298,4 +322,17 @@
         </div>
     </div>
 </div>
+
+@if(isset($rollovers) && $rollovers->count() > 0)
+<script>
+document.querySelectorAll('.rollover-mode-select').forEach(function(select) {
+    var rid = select.dataset.rollover;
+    select.addEventListener('change', function() {
+        document.querySelector('.rollover-qr-'     + rid).style.display = this.value === 'qr'     ? '' : 'none';
+        document.querySelector('.rollover-cheque-' + rid).style.display = this.value === 'cheque' ? '' : 'none';
+    });
+});
+</script>
+@endif
+
 @endsection
