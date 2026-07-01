@@ -159,6 +159,7 @@
                                     <th>Discount%</th>
                                     <th>Custom Fee</th>
                                     <th>Collected</th>
+                                    <th>Adm. Date</th>
                                     <th>Father's Contact</th>
                                     <th>Village</th>
                                     <th>Distance</th>
@@ -209,6 +210,7 @@
                                             <span class="text-muted">0</span>
                                         @endif
                                     </td>
+                                    <td>{{ $d['admission_date'] ?? '' }}</td>
                                     <td>{{ $d['father_phone'] ?? '' }}</td>
                                     <td>{{ $d['village'] ?? '' }}</td>
                                     <td>{{ $d['distance_from_school'] ?? '' }}</td>

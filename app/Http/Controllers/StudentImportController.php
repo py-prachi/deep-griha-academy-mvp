@@ -33,15 +33,16 @@ class StudentImportController extends Controller
      *  I(9)   Discount %         required when H = discount
      *  J(10)  Custom Tuition Fee
      *  K(11)  Already Collected (₹)  creates a fee_payment record; enter 0 if nothing collected
-     *  L(12)  Village
-     *  M(13)  Distance from School
-     *  N(14)  Father Name
-     *  O(15)  Father Occupation
-     *  P(16)  Mother Name
-     *  Q(17)  Mother Occupation
-     *  R(18)  General ID         11-digit ZP/SARAL ID
-     *  S(19)  DGA Admission No   pre-primary only
-     *  T(20)+ Notes / anything else — ignored on import
+     *  L(12)  Admission Date (DD/MM/YYYY)  used for inquiry_date & confirmed_date; leave blank = today
+     *  M(13)  Village
+     *  N(14)  Distance from School
+     *  O(15)  Father Name
+     *  P(16)  Father Occupation
+     *  Q(17)  Mother Name
+     *  R(18)  Mother Occupation
+     *  S(19)  General ID         11-digit ZP/SARAL ID
+     *  T(20)  DGA Admission No   pre-primary only
+     *  U(21)+ Notes / anything else — ignored on import
      */
     const COLUMNS = [
         1  => 'sr_no',
@@ -55,14 +56,15 @@ class StudentImportController extends Controller
         9  => 'discount_percentage',
         10 => 'custom_tuition_fee',
         11 => 'already_collected',
-        12 => 'village',
-        13 => 'distance_from_school',
-        14 => 'father_name',
-        15 => 'father_occupation',
-        16 => 'mother_name',
-        17 => 'mother_occupation',
-        18 => 'general_id',
-        19 => 'dga_admission_no',
+        12 => 'admission_date',
+        13 => 'village',
+        14 => 'distance_from_school',
+        15 => 'father_name',
+        16 => 'father_occupation',
+        17 => 'mother_name',
+        18 => 'mother_occupation',
+        19 => 'general_id',
+        20 => 'dga_admission_no',
     ];
 
     const REQUIRED_FIELDS = ['student_name', 'gender', 'class_name', 'fee_category'];
@@ -114,6 +116,7 @@ class StudentImportController extends Controller
             ['label' => 'Discount %',               'required' => false, 'note' => 'Required if Fee Category = discount. Enter number only, e.g. 50 for 50% off.'],
             ['label' => 'Custom Tuition Fee (Rs)', 'required' => false, 'note' => 'Fill ONLY if actual fee is a flat negotiated amount. Leave blank to let the system calculate from category/discount.'],
             ['label' => 'Already Collected (Rs)',  'required' => false, 'note' => 'Fees already collected for this student. A payment record will be created automatically. Enter 0 if nothing collected.'],
+            ['label' => 'Admission Date (DD/MM/YYYY)', 'required' => false, 'note' => 'Date of admission e.g. 15/01/2025. Leave blank to use today\'s date. Affects roll number ordering.'],
             ['label' => 'Village',                  'required' => false, 'note' => ''],
             ['label' => 'Distance from School',     'required' => false, 'note' => 'e.g. 2.5km'],
             ['label' => 'Father Name',              'required' => false, 'note' => ''],
@@ -152,15 +155,15 @@ class StudentImportController extends Controller
         $examples = [
             // General boy — paid Rs.16200 in full
             [1, 'Rahul Kumar', '15/08/2015', 'male', 'Class 3', 'A', '9876543210',
-             'general', '', '', 16200, 'Yawat', '2km', 'Suresh Kumar', 'Farmer',
+             'general', '', '', 16200, '10/01/2022', 'Yawat', '2km', 'Suresh Kumar', 'Farmer',
              'Priya Kumar', 'Homemaker', '', ''],
             // Discount girl — 50% + custom Rs.6000, collected Rs.3000 so far
             [2, 'Aradhya Devidas Kalaphad', '10/03/2017', 'female', 'Nursery', 'A', '7972024744',
-             'discount', '50', 6000, 3000, 'Baravkarvadi', '3km', 'Devidas Kalaphad', 'Worker',
+             'discount', '50', 6000, 3000, '15/01/2025', 'Baravkarvadi', '3km', 'Devidas Kalaphad', 'Worker',
              'Sunita Kalaphad', 'Homemaker', '', ''],
             // RTE — zero fees paid (govt pays), enter 0
             [3, 'Mohammed Arif Khan', '20/06/2016', 'male', 'Class 2', 'A', '8765432109',
-             'rte', '', '', 0, 'Kedgaon', '3km', 'Anwar Khan', 'Driver',
+             'rte', '', '', 0, '05/01/2023', 'Kedgaon', '3km', 'Anwar Khan', 'Driver',
              '', '', '12345678901', ''],
         ];
 
@@ -220,6 +223,11 @@ class StudentImportController extends Controller
             ['  A fee payment record will be created automatically during import.', false, 10],
             ['  Enter 0 if nothing has been collected yet.', false, 10],
             ['  RTE/COC students: enter 0 (their fees are covered by government/scheme).', false, 10],
+            ['', false, 11],
+            ['ADMISSION DATE column:', true, 11],
+            ['  Enter the date of admission in DD/MM/YYYY format, e.g. 15/01/2025.', false, 10],
+            ['  This affects roll number ordering — students admitted earlier get lower roll numbers.', false, 10],
+            ['  Leave blank to use today\'s date.', false, 10],
             ['', false, 11],
             ['OTHER NOTES:', true, 11],
             ['  Section — enter A or B. Leave blank to default to A.', false, 10],
@@ -320,6 +328,19 @@ class StudentImportController extends Controller
                 } else {
                     $d['dob_parsed'] = $dob->format('Y-m-d');
                 }
+            }
+
+            // ── Admission date ────────────────────────────────────────────
+            if ($d['admission_date'] !== '') {
+                $admDate = \DateTime::createFromFormat('d/m/Y', $d['admission_date']);
+                if (!$admDate) {
+                    $warnings[] = 'Admission Date "' . $d['admission_date'] . '" is not DD/MM/YYYY — using today';
+                    $d['admission_date_parsed'] = now()->toDateString();
+                } else {
+                    $d['admission_date_parsed'] = $admDate->format('Y-m-d');
+                }
+            } else {
+                $d['admission_date_parsed'] = now()->toDateString();
             }
 
             // ── Gender ────────────────────────────────────────────────────
@@ -497,9 +518,9 @@ class StudentImportController extends Controller
                     'village'              => $d['village'] !== '' ? $d['village'] : null,
                     'distance_from_school' => $d['distance_from_school'] !== '' ? $d['distance_from_school'] : null,
                     'general_id'           => $d['general_id'] !== '' ? $d['general_id'] : null,
-                    'inquiry_date'         => now()->toDateString(),
+                    'inquiry_date'         => $d['admission_date_parsed'] ?? now()->toDateString(),
                     'status'               => Admission::STATUS_CONFIRMED,
-                    'confirmed_date'       => now()->toDateString(),
+                    'confirmed_date'       => $d['admission_date_parsed'] ?? now()->toDateString(),
                 ]);
 
                 // ── Assign admission number ───────────────────────────────
