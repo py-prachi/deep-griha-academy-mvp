@@ -33,6 +33,18 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                <div class="col-auto ms-2">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ route('reports.fees.defaulters', ['session_id' => $selectedSessionId, 'mode' => 'parent']) }}"
+                                           class="btn {{ $mode === 'parent' ? 'btn-danger' : 'btn-outline-danger' }}">
+                                            Parent Defaulters
+                                        </a>
+                                        <a href="{{ route('reports.fees.defaulters', ['session_id' => $selectedSessionId, 'mode' => 'rte']) }}"
+                                           class="btn {{ $mode === 'rte' ? 'btn-warning' : 'btn-outline-warning' }}">
+                                            RTE Pending
+                                        </a>
+                                    </div>
+                                </div>
                                 @if($selectedSession)
                                 <div class="col-auto">
                                     <span class="text-muted small">Showing: <strong>{{ $selectedSession->session_name }}</strong></span>
@@ -42,27 +54,19 @@
                         </form>
 
                         <div class="row mb-3">
-                            <div class="col-md-4">
-                                <div class="card text-white bg-danger">
+                            <div class="col-md-6">
+                                <div class="card text-white {{ $mode === 'rte' ? 'bg-warning' : 'bg-danger' }}">
                                     <div class="card-body text-center">
-                                        <h6 class="card-title">Total Defaulters</h6>
+                                        <h6 class="card-title">{{ $mode === 'rte' ? 'RTE Pending' : 'Total Defaulters' }}</h6>
                                         <h3>{{ count($defaulters) }}</h3>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="card text-white bg-warning">
                                     <div class="card-body text-center">
                                         <h6 class="card-title">Total Outstanding</h6>
                                         <h3>₹{{ number_format(collect($defaulters)->sum('balance'), 2) }}</h3>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="card text-white bg-secondary">
-                                    <div class="card-body text-center">
-                                        <h6 class="card-title">Avg. Balance Due</h6>
-                                        <h3>₹{{ count($defaulters) ? number_format(collect($defaulters)->avg('balance'), 2) : '0.00' }}</h3>
                                     </div>
                                 </div>
                             </div>

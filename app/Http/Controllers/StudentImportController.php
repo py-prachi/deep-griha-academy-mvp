@@ -434,13 +434,14 @@ class StudentImportController extends Controller
             }
 
             // ── Duplicate check ───────────────────────────────────────────
-            if (isset($d['dob_parsed']) && $classId && $d['student_name'] !== '') {
-                $dup = Admission::where('student_name', $d['student_name'])
-                    ->where('date_of_birth', $d['dob_parsed'])
-                    ->where('class_id', $classId)
-                    ->exists();
-                if ($dup) {
-                    $errors[] = 'Duplicate — a student with this name, DOB and class already exists';
+            if ($classId && $d['student_name'] !== '') {
+                $dupQuery = Admission::where('student_name', $d['student_name'])
+                    ->where('class_id', $classId);
+                if (isset($d['dob_parsed'])) {
+                    $dupQuery->where('date_of_birth', $d['dob_parsed']);
+                }
+                if ($dupQuery->exists()) {
+                    $errors[] = 'Duplicate — a student with this name' . (isset($d['dob_parsed']) ? ', DOB' : '') . ' and class already exists';
                 }
             }
 

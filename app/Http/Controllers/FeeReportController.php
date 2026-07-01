@@ -66,12 +66,13 @@ class FeeReportController extends Controller
         $sessions = $this->schoolSessionRepository->getAll();
         $selectedSessionId = $request->get('session_id', $this->getSchoolCurrentSession());
         $selectedSession = $sessions->firstWhere('id', $selectedSessionId);
-        $defaulters = $this->feePaymentRepository->getDefaulters($selectedSessionId);
+        $mode = in_array($request->get('mode'), ['parent', 'rte']) ? $request->get('mode') : 'parent';
+        $defaulters = $this->feePaymentRepository->getDefaulters($selectedSessionId, $mode);
         if ($request->get('pdf')) {
-            $pdf = Pdf::loadView('reports.fees.defaulters-pdf', compact('defaulters'))->setPaper('a4', 'portrait');
+            $pdf = Pdf::loadView('reports.fees.defaulters-pdf', compact('defaulters', 'mode'))->setPaper('a4', 'portrait');
             return $pdf->download('defaulters.pdf');
         }
-        return view('reports.fees.defaulters', compact('defaulters', 'sessions', 'selectedSessionId', 'selectedSession'));
+        return view('reports.fees.defaulters', compact('defaulters', 'sessions', 'selectedSessionId', 'selectedSession', 'mode'));
     }
 
     public function categorySummary(Request $request)
@@ -200,6 +201,7 @@ class FeeReportController extends Controller
         $rteStudents      = $baseQuery('rte');
         $discountStudents = $baseQuery('discount');
         $cocStudents      = $baseQuery('coc');
+        $rteFees          = collect($this->feePaymentRepository->getRteWithFees($selectedSessionId))->keyBy('student_id');
 
         if ($request->get('pdf')) {
             $category = $request->get('category', 'rte');
@@ -216,7 +218,7 @@ class FeeReportController extends Controller
         }
 
         return view('reports.rte', compact(
-            'rteStudents', 'discountStudents', 'cocStudents',
+            'rteStudents', 'discountStudents', 'cocStudents', 'rteFees',
             'sessions', 'selectedSessionId', 'selectedSession'
         ));
     }

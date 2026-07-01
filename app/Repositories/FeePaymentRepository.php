@@ -140,8 +140,13 @@ class FeePaymentRepository implements FeePaymentInterface
             ->get();
     }
 
-    public function getDefaulters($session_id)
+    // $mode: 'parent' = non-RTE defaulters | 'rte' = RTE with govt reimbursement pending
+    public function getDefaulters($session_id, string $mode = 'parent')
     {
+        $categoryFilter = $mode === 'rte'
+            ? "AND u.fee_category = 'rte'"
+            : "AND u.fee_category != 'rte'";
+
         return DB::select("
             SELECT
                 u.id AS student_id,
@@ -154,32 +159,36 @@ class FeePaymentRepository implements FeePaymentInterface
                 sc.class_name,
                 s.section_name,
                 COALESCE(
-                    CASE WHEN u.fee_category = 'discount' THEN
-                        (CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
-                              THEN fs.girls_tuition_fee
-                              ELSE fs.tuition_fee END
-                         * (1 - COALESCE(a.discount_percentage, 0) / 100))
-                        + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
-                    ELSE
-                        (CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
-                              THEN fs.girls_tuition_fee
-                              ELSE fs.tuition_fee END)
-                        + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
+                    CASE
+                        WHEN COALESCE(a.custom_tuition_fee, 0) > 0 THEN a.custom_tuition_fee
+                        WHEN u.fee_category = 'discount' THEN
+                            (CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
+                                  THEN fs.girls_tuition_fee
+                                  ELSE fs.tuition_fee END
+                             * (1 - COALESCE(a.discount_percentage, 0) / 100))
+                            + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
+                        ELSE
+                            (CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
+                                  THEN fs.girls_tuition_fee
+                                  ELSE fs.tuition_fee END)
+                            + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
                     END
                 , 0) AS total_due,
                 COALESCE(SUM(fp.amount_paid), 0) AS total_paid,
                 COALESCE(
-                    CASE WHEN u.fee_category = 'discount' THEN
-                        (CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
-                              THEN fs.girls_tuition_fee
-                              ELSE fs.tuition_fee END
-                         * (1 - COALESCE(a.discount_percentage, 0) / 100))
-                        + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
-                    ELSE
-                        (CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
-                              THEN fs.girls_tuition_fee
-                              ELSE fs.tuition_fee END)
-                        + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
+                    CASE
+                        WHEN COALESCE(a.custom_tuition_fee, 0) > 0 THEN a.custom_tuition_fee
+                        WHEN u.fee_category = 'discount' THEN
+                            (CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
+                                  THEN fs.girls_tuition_fee
+                                  ELSE fs.tuition_fee END
+                             * (1 - COALESCE(a.discount_percentage, 0) / 100))
+                            + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
+                        ELSE
+                            (CASE WHEN u.gender = 'Female' AND fs.girls_tuition_fee IS NOT NULL
+                                  THEN fs.girls_tuition_fee
+                                  ELSE fs.tuition_fee END)
+                            + COALESCE(fs.transport_fee, 0) + COALESCE(fs.other_fee, 0)
                     END
                 , 0) - COALESCE(SUM(fp.amount_paid), 0) AS balance
             FROM users u
@@ -194,12 +203,49 @@ class FeePaymentRepository implements FeePaymentInterface
                 AND fp.payment_category = 'fee'
                 AND fp.session_id = ?
             WHERE u.role = 'student'
+            $categoryFilter
             GROUP BY u.id, u.first_name, u.last_name, u.fee_category,
                      u.admission_id, a.dga_admission_no, u.dga_admission_no,
                      a.general_id, u.general_id, sc.class_name, s.section_name,
                      fs.total_fee, fs.tuition_fee, fs.girls_tuition_fee, fs.transport_fee, fs.other_fee,
-                     a.discount_percentage, u.gender
+                     a.discount_percentage, a.custom_tuition_fee, u.gender
             HAVING ROUND(balance, 0) >= 1
+            ORDER BY sc.class_name, s.section_name, u.first_name
+        ", [$session_id, $session_id, $session_id]);
+    }
+
+    public function getRteWithFees($session_id)
+    {
+        return DB::select("
+            SELECT
+                u.id AS student_id,
+                u.first_name,
+                u.last_name,
+                u.admission_id,
+                u.gender,
+                COALESCE(a.dga_admission_no, u.dga_admission_no) AS dga_admission_no,
+                COALESCE(a.general_id, u.general_id) AS general_id,
+                sc.class_name,
+                s.section_name,
+                a.father_name,
+                u.birthday,
+                COALESCE(fs.tuition_fee, 0) AS total_due,
+                COALESCE(SUM(fp.amount_paid), 0) AS total_paid,
+                COALESCE(fs.tuition_fee, 0) - COALESCE(SUM(fp.amount_paid), 0) AS balance
+            FROM users u
+            JOIN promotions p ON p.student_id = u.id AND p.session_id = ?
+            JOIN school_classes sc ON sc.id = p.class_id
+            JOIN sections s ON s.id = p.section_id
+            LEFT JOIN fee_structures fs ON fs.class_id = p.class_id
+                AND fs.session_id = ? AND fs.fee_category = 'rte'
+            LEFT JOIN admissions a ON a.id = u.admission_id
+            LEFT JOIN fee_payments fp ON fp.student_user_id = u.id
+                AND fp.payment_category = 'fee' AND fp.session_id = ?
+            WHERE u.role = 'student' AND u.fee_category = 'rte'
+            GROUP BY u.id, u.first_name, u.last_name, u.admission_id, u.gender,
+                     a.dga_admission_no, u.dga_admission_no, a.general_id, u.general_id,
+                     sc.class_name, s.section_name, fs.tuition_fee,
+                     a.father_name, u.birthday
             ORDER BY sc.class_name, s.section_name, u.first_name
         ", [$session_id, $session_id, $session_id]);
     }

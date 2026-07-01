@@ -112,19 +112,36 @@
                                                 <th>RTE Doc No</th>
                                                 <th>Date of Birth</th>
                                                 <th>Father's Name</th>
+                                                <th class="text-end">Govt. Due ₹</th>
+                                                <th class="text-end">Received ₹</th>
+                                                <th class="text-end">Pending ₹</th>
+                                                <th class="text-center">Status</th>
                                                 <th class="text-center">Profile</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach($rteStudents as $i => $student)
-                                            <tr>
+                                            @php $fee = $rteFees->get($student->id); @endphp
+                                            <tr class="{{ $fee && $fee->balance <= 0 ? 'table-light' : '' }}">
                                                 <td>{{ $i + 1 }}</td>
                                                 <td>{{ $student->first_name }} {{ $student->last_name }}</td>
                                                 <td>{{ $student->class_name }} {{ $student->section_name }}</td>
                                                 <td>{{ $student->dga_admission_no ?? $student->general_id ?? '—' }}</td>
-                                                <td>{{ $student->admission ? $student->admission->rte_doc_no : '—' }}</td>
+                                                <td>—</td>
                                                 <td>{{ $student->birthday ? \Carbon\Carbon::parse($student->birthday)->format('d M Y') : '—' }}</td>
                                                 <td>{{ $student->admission ? $student->admission->father_name : '—' }}</td>
+                                                <td class="text-end">₹{{ $fee ? number_format($fee->total_due, 0) : '—' }}</td>
+                                                <td class="text-end text-success">₹{{ $fee ? number_format($fee->total_paid, 0) : '0' }}</td>
+                                                <td class="text-end fw-bold {{ $fee && $fee->balance > 0 ? 'text-danger' : 'text-success' }}">
+                                                    ₹{{ $fee ? number_format($fee->balance, 0) : '—' }}
+                                                </td>
+                                                <td class="text-center">
+                                                    @if($fee && $fee->balance <= 0)
+                                                        <span class="badge bg-success">Received</span>
+                                                    @else
+                                                        <span class="badge bg-warning text-dark">Pending</span>
+                                                    @endif
+                                                </td>
                                                 <td class="text-center">
                                                     @if($student->admission_id)
                                                     <a href="{{ route('admissions.show', $student->admission_id) }}" class="btn btn-sm btn-outline-primary">View</a>

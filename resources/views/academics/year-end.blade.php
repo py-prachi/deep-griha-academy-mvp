@@ -81,7 +81,9 @@
                                 <tr class="{{ $settlement ? 'table-light' : '' }}">
                                     <td>
                                         <div class="fw-semibold">{{ $d->first_name }} {{ $d->last_name }}</div>
-                                        <small class="text-muted font-monospace">{{ $d->general_id ?? $d->dga_admission_no ?? '—' }}</small>
+                                        @if($d->general_id || $d->dga_admission_no)
+                                        <small class="text-muted font-monospace">{{ $d->general_id ?? $d->dga_admission_no }}</small>
+                                        @endif
                                     </td>
                                     <td class="text-nowrap small">{{ $d->class_name }} {{ $d->section_name }}</td>
                                     <td class="text-end small">₹{{ number_format($d->total_due, 0) }}</td>
