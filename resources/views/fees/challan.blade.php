@@ -64,6 +64,19 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @if($payment->payment_category === 'rollover')
+                            <tr>
+                                <td>1</td>
+                                <td>
+                                    <strong>Previous Year Outstanding Recovery</strong><br>
+                                    <small class="text-muted">
+                                        Session: {{ isset($rollover) && $rollover->session ? $rollover->session->session_name : '—' }}
+                                        &nbsp;|&nbsp; Original Outstanding: ₹{{ isset($rollover) ? number_format($rollover->outstanding_amount, 0) : '—' }}
+                                    </small>
+                                </td>
+                                <td class="text-end">{{ number_format($payment->amount_paid, 2) }}</td>
+                            </tr>
+                            @else
                             @forelse($payment->lineItems as $i => $item)
                             <tr>
                                 <td>{{ $i + 1 }}</td>
@@ -77,6 +90,7 @@
                                 <td class="text-end">{{ number_format($payment->amount_paid, 2) }}</td>
                             </tr>
                             @endforelse
+                            @endif
                         </tbody>
                         <tfoot>
                             <tr class="table-dark">
@@ -85,7 +99,9 @@
                             </tr>
                             @if($balance !== null)
                             <tr class="{{ $balance > 0 ? 'table-warning' : 'table-success' }}">
-                                <td colspan="2" class="text-end"><strong>Balance Remaining ₹</strong></td>
+                                <td colspan="2" class="text-end">
+                                    <strong>{{ $payment->payment_category === 'rollover' ? 'Previous Year Balance Remaining ₹' : 'Balance Remaining ₹' }}</strong>
+                                </td>
                                 <td class="text-end"><strong>{{ number_format($balance, 2) }}</strong></td>
                             </tr>
                             @endif

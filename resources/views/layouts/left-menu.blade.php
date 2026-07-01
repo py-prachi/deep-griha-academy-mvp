@@ -309,6 +309,7 @@
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.rte') }}"><i class="bi bi-star me-2"></i> Special Categories</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.dateRange') }}"><i class="bi bi-calendar-range me-2"></i> Collection Report</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.defaulters') }}"><i class="bi bi-exclamation-triangle me-2"></i> Defaulters</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.rollovers') }}"><i class="bi bi-arrow-return-right me-2"></i> Carried Forward</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.categorySummary') }}"><i class="bi bi-pie-chart me-2"></i> Category Summary</a></li>
                             <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.miscSales') }}"><i class="bi bi-bag me-2"></i> Misc Sales</a></li>
                         </ul>

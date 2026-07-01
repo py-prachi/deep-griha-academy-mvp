@@ -38,4 +38,24 @@ class FeeSettlement extends Model
     {
         return $this->belongsTo(User::class, 'settled_by');
     }
+
+    public function session()
+    {
+        return $this->belongsTo(\App\Models\SchoolSession::class, 'session_id');
+    }
+
+    public function recoveryPayments()
+    {
+        return $this->hasMany(\App\Models\FeePayment::class, 'rollover_id');
+    }
+
+    public function recoveredAmount(): float
+    {
+        return (float) $this->recoveryPayments()->sum('amount_paid');
+    }
+
+    public function remainingAmount(): float
+    {
+        return max(0, (float) $this->outstanding_amount - $this->recoveredAmount());
+    }
 }

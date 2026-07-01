@@ -150,6 +150,89 @@
                         </div>
                         @endif
 
+                        {{-- Previous Year Carried-Forward Dues --}}
+                        @if(isset($rollovers) && $rollovers->count() > 0)
+                        <div class="card mb-3 border-warning">
+                            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                                <strong><i class="bi bi-arrow-return-right me-1"></i> Previous Year Outstanding (Carried Forward)</strong>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-sm mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Session</th>
+                                            <th class="text-end">Rolled Over</th>
+                                            <th class="text-end">Recovered</th>
+                                            <th class="text-end">Still Outstanding</th>
+                                            <th>Remark</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($rollovers as $rollover)
+                                        <tr class="{{ $rollover->remaining > 0 ? 'table-warning' : 'table-light' }}">
+                                            <td class="fw-semibold">{{ optional($rollover->session)->session_name ?? '—' }}</td>
+                                            <td class="text-end">₹{{ number_format($rollover->outstanding_amount, 0) }}</td>
+                                            <td class="text-end text-success">₹{{ number_format($rollover->recovered, 0) }}</td>
+                                            <td class="text-end fw-bold {{ $rollover->remaining > 0 ? 'text-danger' : 'text-success' }}">
+                                                ₹{{ number_format($rollover->remaining, 0) }}
+                                            </td>
+                                            <td class="small text-muted">{{ $rollover->remark }}</td>
+                                            <td>
+                                                @if($rollover->remaining > 0)
+                                                <button class="btn btn-sm btn-warning text-dark" type="button"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#rollover-form-{{ $rollover->id }}">
+                                                    <i class="bi bi-cash me-1"></i> Record Recovery
+                                                </button>
+                                                @else
+                                                <span class="badge bg-success"><i class="bi bi-check2-circle me-1"></i> Cleared</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        @if($rollover->remaining > 0)
+                                        <tr class="collapse" id="rollover-form-{{ $rollover->id }}">
+                                            <td colspan="6" class="bg-light px-3 py-2">
+                                                <form method="POST" action="{{ route('fees.rollover.store', [$student->id, $rollover->id]) }}" class="row g-2 align-items-end">
+                                                    @csrf
+                                                    <div class="col-md-2">
+                                                        <label class="form-label form-label-sm">Date</label>
+                                                        <input type="date" name="payment_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <label class="form-label form-label-sm">Amount (max ₹{{ number_format($rollover->remaining, 0) }})</label>
+                                                        <input type="number" name="amount_paid" class="form-control form-control-sm"
+                                                            value="{{ $rollover->remaining }}" min="1" max="{{ $rollover->remaining }}" step="1" required>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <label class="form-label form-label-sm">Mode</label>
+                                                        <select name="payment_mode" class="form-select form-select-sm" required>
+                                                            <option value="cash">Cash</option>
+                                                            <option value="qr">QR</option>
+                                                            <option value="cheque">Cheque</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="form-label form-label-sm">Notes (optional)</label>
+                                                        <input type="text" name="notes" class="form-control form-control-sm" placeholder="e.g. paid by father">
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <button type="submit" class="btn btn-sm btn-warning text-dark w-100"
+                                                            onclick="return confirm('Record ₹{{ $rollover->remaining }} recovery for {{ optional($rollover->session)->session_name }} outstanding fees?')">
+                                                            <i class="bi bi-check2 me-1"></i> Confirm Recovery
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        @endif
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        @endif
+
                         {{-- Payment History --}}
                         <div class="card">
                             <div class="card-header"><strong>Payment History</strong></div>

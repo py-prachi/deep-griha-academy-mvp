@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\FeePayment;
 use App\Models\FeeStructure;
 use App\Models\FeeLineItem;
+use App\Models\FeeSettlement;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class FeePaymentController extends Controller
@@ -166,11 +167,23 @@ class FeePaymentController extends Controller
             );
         }
 
-        // All payments for history display (fee + misc) — unscoped, show full history
+        // All payments for history display (fee + misc + rollover) — full history
         $payments = $this->feePaymentRepository->getByStudent($student_id);
 
         // Balance uses fee payments for current session only
         $calc = $this->calculateBalance($student, $feeStructure, $student_id, $discountPct, $current_school_session_id);
+
+        // Carried-forward settlements from previous sessions with their recovery amounts
+        $rollovers = FeeSettlement::where('student_user_id', $student_id)
+            ->where('settlement_type', 'carried_forward')
+            ->where('session_id', '!=', $current_school_session_id)
+            ->with('session', 'recoveryPayments')
+            ->get()
+            ->map(function ($s) {
+                $s->recovered  = $s->recoveredAmount();
+                $s->remaining  = $s->remainingAmount();
+                return $s;
+            });
 
         return view('fees.ledger', [
             'student'          => $student,
@@ -182,6 +195,7 @@ class FeePaymentController extends Controller
             'balance'          => $calc['balance'],
             'effectiveTuition' => $calc['effectiveTuition'],
             'discountPct'      => $discountPct,
+            'rollovers'        => $rollovers,
         ]);
     }
 
@@ -284,6 +298,68 @@ class FeePaymentController extends Controller
         }
     }
 
+    // ── ROLLOVER PAYMENT ──────────────────────────────────────────────────
+
+    public function storeRolloverPayment(Request $request, $student_id, $settlement_id)
+    {
+        $settlement = FeeSettlement::where('id', $settlement_id)
+            ->where('student_user_id', $student_id)
+            ->where('settlement_type', 'carried_forward')
+            ->firstOrFail();
+
+        $remaining = $settlement->remainingAmount();
+
+        $request->validate([
+            'payment_date'    => 'required|date',
+            'amount_paid'     => 'required|numeric|min:1|max:' . $remaining,
+            'payment_mode'    => 'required|in:cash,cheque,qr',
+            'cheque_no'       => 'nullable|required_if:payment_mode,cheque',
+            'cheque_date'     => 'nullable|required_if:payment_mode,cheque|date',
+            'bank_name'       => 'nullable|required_if:payment_mode,cheque',
+            'transaction_ref' => 'nullable|required_if:payment_mode,qr',
+        ]);
+
+        $payment = $this->feePaymentRepository->store([
+            'student_user_id'  => $student_id,
+            'session_id'       => $this->getSchoolCurrentSession(),
+            'payment_date'     => $request->payment_date,
+            'amount_paid'      => $request->amount_paid,
+            'payment_mode'     => $request->payment_mode,
+            'payment_category' => FeePayment::CATEGORY_ROLLOVER,
+            'rollover_id'      => $settlement->id,
+            'cheque_no'        => $request->cheque_no,
+            'cheque_date'      => $request->cheque_date,
+            'bank_name'        => $request->bank_name,
+            'transaction_ref'  => $request->transaction_ref,
+            'recorded_by'      => auth()->id(),
+            'notes'            => 'Recovery of ' . optional($settlement->session)->session_name . ' outstanding fees. ' . $request->notes,
+        ]);
+
+        return redirect()->route('fees.challan', $payment->id)
+            ->with('status', 'Previous year recovery recorded.');
+    }
+
+    // ── ROLLOVER REPORT ───────────────────────────────────────────────────
+
+    public function rolloverReport()
+    {
+        $rollovers = FeeSettlement::where('settlement_type', 'carried_forward')
+            ->with(['student', 'session', 'recoveryPayments'])
+            ->get()
+            ->map(function ($s) {
+                $s->recovered = $s->recoveredAmount();
+                $s->remaining = $s->remainingAmount();
+                return $s;
+            })
+            ->sortByDesc('remaining');
+
+        $totalRolledOver = $rollovers->sum('outstanding_amount');
+        $totalRecovered  = $rollovers->sum('recovered');
+        $totalOutstanding = $rollovers->sum('remaining');
+
+        return view('reports.fees.rollovers', compact('rollovers', 'totalRolledOver', 'totalRecovered', 'totalOutstanding'));
+    }
+
     // ── CHALLAN ───────────────────────────────────────────────────────────
 
     public function challan($payment_id)
@@ -298,8 +374,13 @@ class FeePaymentController extends Controller
             ->with('section.schoolClass')
             ->first();
 
-        $balance = null;
-        if ($payment->payment_category === 'fee') {
+        $balance  = null;
+        $rollover = null;
+
+        if ($payment->payment_category === FeePayment::CATEGORY_ROLLOVER) {
+            $rollover = $payment->rolloverSettlement()->with('session')->first();
+            $balance  = $rollover ? $rollover->remainingAmount() : null;
+        } elseif ($payment->payment_category === FeePayment::CATEGORY_FEE) {
             $feeStructure = null;
             $resolvedCat  = $this->resolvedFeeCategory($student->fee_category);
             $discountPct  = $this->discountPct($student);
@@ -321,6 +402,7 @@ class FeePaymentController extends Controller
             'student'   => $student,
             'promotion' => $promotion,
             'balance'   => $balance,
+            'rollover'  => $rollover,
         ]);
     }
 

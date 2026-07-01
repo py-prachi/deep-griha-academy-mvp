@@ -15,6 +15,7 @@ class FeePayment extends Model
         'amount_paid',
         'payment_mode',
         'payment_category',
+        'rollover_id',
         'cheque_no',
         'cheque_date',
         'bank_name',
@@ -39,8 +40,9 @@ class FeePayment extends Model
 
     // ── PAYMENT CATEGORY CONSTANTS ────────────────────────────────────────
 
-    const CATEGORY_FEE  = 'fee';
-    const CATEGORY_MISC = 'misc';
+    const CATEGORY_FEE      = 'fee';
+    const CATEGORY_MISC     = 'misc';
+    const CATEGORY_ROLLOVER = 'rollover';
 
     // ── RELATIONSHIPS ─────────────────────────────────────────────────────
 
@@ -57,6 +59,11 @@ class FeePayment extends Model
     public function lineItems()
     {
         return $this->hasMany(FeeLineItem::class, 'fee_payment_id');
+    }
+
+    public function rolloverSettlement()
+    {
+        return $this->belongsTo(\App\Models\FeeSettlement::class, 'rollover_id');
     }
 
     // ── HELPER METHODS ────────────────────────────────────────────────────

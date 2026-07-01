@@ -80,6 +80,7 @@ class FeePaymentRepository implements FeePaymentInterface
                 'bank_name'            => $data['bank_name']             ?? null,
                 'transaction_ref'      => $data['transaction_ref']       ?? null,
                 'is_internal_transfer' => $data['is_internal_transfer']  ?? false,
+                'rollover_id'          => $data['rollover_id']           ?? null,
                 'recorded_by'          => $data['recorded_by'],
                 'notes'                => $data['notes']                 ?? null,
             ]);

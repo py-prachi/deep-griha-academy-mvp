@@ -295,8 +295,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/fees/student/{student_id}/pay',        [App\Http\Controllers\FeePaymentController::class, 'store'])->name('fees.store');
     Route::get('/fees/challan/{payment_id}',             [App\Http\Controllers\FeePaymentController::class, 'challan'])->name('fees.challan');
     Route::get('/fees/challan/{payment_id}/pdf',         [App\Http\Controllers\FeePaymentController::class, 'challanPdf'])->name('fees.challan.pdf');
+    Route::post('/fees/student/{student_id}/rollover/{settlement_id}', [App\Http\Controllers\FeePaymentController::class, 'storeRolloverPayment'])->name('fees.rollover.store');
 
     // ── FEE REPORTS ───────────────────────────────────────────────────────
+    Route::get('/reports/fees/rollovers',                [App\Http\Controllers\FeePaymentController::class, 'rolloverReport'])->name('reports.fees.rollovers');
     Route::get('/reports/fees/daily',                    [App\Http\Controllers\FeeReportController::class, 'daily'])->name('reports.fees.daily');
     Route::get('/reports/fees/date-range',               [App\Http\Controllers\FeeReportController::class, 'dateRange'])->name('reports.fees.dateRange');
     Route::get('/reports/fees/defaulters',               [App\Http\Controllers\FeeReportController::class, 'defaulters'])->name('reports.fees.defaulters');
