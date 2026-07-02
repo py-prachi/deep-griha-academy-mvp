@@ -74,13 +74,14 @@ class AdmissionController extends Controller
     {
         $current_session_id = $this->getSchoolCurrentSession();
         $school_classes     = $this->schoolClassRepository->getAllBySession($current_session_id);
-        $sessions           = $this->schoolSessionRepository->getAll();
+        $sessions           = $this->schoolSessionRepository->getAll()->sortByDesc('id');
+        $latestSession      = $this->schoolSessionRepository->getLatestSession();
 
         return view('admissions.create', [
-            'school_classes' => $school_classes,
-            'sessions'       => $sessions,
+            'school_classes'     => $school_classes,
+            'sessions'           => $sessions,
             'current_session_id' => $current_session_id,
-            'academic_year'  => '2025-2026',
+            'academic_year'      => $latestSession->session_name ?? '2025-2026',
         ]);
     }
 

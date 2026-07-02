@@ -32,16 +32,25 @@
                                     <label class="form-label">Full Name <span class="text-danger">*</span></label>
                                     <input type="text" name="student_name" class="form-control" value="{{ old('student_name', $admission->student_name) }}" required>
                                 </div>
+                                @php
+                                    $isPrePrimary = in_array(optional($admission->schoolClass)->class_name, ['Nursery', 'Lower KG', 'Upper KG']);
+                                @endphp
                                 @if($admission->dga_admission_no)
                                 <div class="col-md-3">
                                     <label class="form-label">DGA Admission No.</label>
                                     <input type="text" class="form-control" value="{{ $admission->dga_admission_no }}" disabled>
                                     <small class="text-muted">Auto-generated, not editable</small>
                                 </div>
-                                @else
+                                @endif
+                                @if(!$isPrePrimary)
                                 <div class="col-md-3">
-                                    <label class="form-label">General ID <span class="text-muted small">(ZP Portal / SARAL)</span></label>
-                                    <input type="text" name="general_id" class="form-control" value="{{ old('general_id', $admission->general_id) }}" placeholder="11-digit ZP ID" maxlength="11" pattern="\d{11}" inputmode="numeric">
+                                    <label class="form-label">General ID <span class="text-muted small">(ZP / SARAL)</span></label>
+                                    <input type="text" name="general_id" class="form-control {{ $admission->general_id ? '' : 'border-warning' }}"
+                                        value="{{ old('general_id', $admission->general_id) }}"
+                                        placeholder="11-digit ZP ID" maxlength="11" pattern="\d{11}" inputmode="numeric">
+                                    @if(!$admission->general_id)
+                                        <small class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>Not set yet</small>
+                                    @endif
                                 </div>
                                 @endif
                                 <div class="col-md-3">

@@ -23,8 +23,7 @@
                         @csrf
 
                         {{-- Hidden fields --}}
-                        <input type="hidden" name="academic_year" value="{{ $academic_year }}">
-                        <input type="hidden" name="session_id" value="{{ $current_session_id }}">
+                        <input type="hidden" name="session_id" id="admission_session_id" value="{{ $current_session_id }}">
 
                         {{-- SECTION 1: Student Info --}}
                         <div class="bg-white border shadow-sm p-4 mb-4">
@@ -106,7 +105,16 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Academic Year</label>
-                                    <input type="text" class="form-control" value="{{ $academic_year }}" readonly>
+                                    <select name="academic_year" class="form-select"
+                                        onchange="document.getElementById('admission_session_id').value = this.options[this.selectedIndex].dataset.sid">
+                                        @foreach($sessions as $sess)
+                                            <option value="{{ $sess->session_name }}"
+                                                data-sid="{{ $sess->id }}"
+                                                {{ $sess->session_name === $academic_year ? 'selected' : '' }}>
+                                                {{ $sess->session_name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                         </div>
