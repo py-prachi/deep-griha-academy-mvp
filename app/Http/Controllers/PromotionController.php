@@ -388,7 +388,7 @@ class PromotionController extends Controller
     {
         $session_id = $this->getSchoolCurrentSession();
 
-        $groups = Promotion::with('student')
+        $groups = Promotion::with(['student.admission'])
             ->where('session_id', $session_id)
             ->get()
             ->groupBy(function ($p) {
@@ -396,7 +396,9 @@ class PromotionController extends Controller
             });
 
         foreach ($groups as $promotions) {
-            $sorted = $promotions->sortBy('id')->values();
+            $sorted = $promotions->sortBy(function ($p) {
+                return optional($p->student->admission)->confirmed_date ?? '9999-12-31';
+            })->values();
             foreach ($sorted as $i => $p) {
                 $p->roll_number = $i + 1;
                 $p->save();
@@ -404,7 +406,7 @@ class PromotionController extends Controller
         }
 
         $total = Promotion::where('session_id', $session_id)->count();
-        return back()->with('status', 'Roll numbers assigned for ' . $total . ' student(s) in admission order per class.');
+        return back()->with('status', 'Roll numbers assigned for ' . $total . ' student(s) sorted by admission date per class.');
     }
 
     // Assigns roll numbers only to students who don't have one yet.

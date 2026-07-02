@@ -97,7 +97,7 @@
                                 <table class="table table-bordered table-hover align-middle">
                                     <thead class="table-dark">
                                         <tr>
-                                            <th>#ID Card No.</th>
+                                            <th>General ID / DGA No</th>
                                             <th>Name</th>
                                             <th>From Class</th>
                                             <th>From Section</th>
@@ -113,7 +113,7 @@
                                             @foreach ($students as $index => $student)
                                             <tr id="row-{{ $index }}">
                                                 <td>
-                                                    <input type="text" class="form-control form-control-sm" name="id_card_number[{{$student->student->id}}]" value="{{$student->id_card_number}}">
+                                                    <input type="text" class="form-control form-control-sm" name="id_card_number[{{$student->student->id}}]" value="{{ $student->id_card_number ?: ($student->student->general_id ?: ($student->student->dga_admission_no ?? '')) }}">
                                                 </td>
                                                 <td>{{ $student->student->first_name }} {{ $student->student->last_name }}</td>
                                                 <td>{{ $schoolClass->class_name }}</td>

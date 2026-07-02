@@ -140,12 +140,16 @@ class FeePaymentRepository implements FeePaymentInterface
             ->get();
     }
 
-    // $mode: 'parent' = non-RTE defaulters | 'rte' = RTE with govt reimbursement pending
+    // $mode: 'parent' = non-RTE | 'rte' = RTE only | 'all' = everyone (used by year-end settlement)
     public function getDefaulters($session_id, string $mode = 'parent')
     {
-        $categoryFilter = $mode === 'rte'
-            ? "AND u.fee_category = 'rte'"
-            : "AND u.fee_category != 'rte'";
+        if ($mode === 'rte') {
+            $categoryFilter = "AND u.fee_category = 'rte'";
+        } elseif ($mode === 'all') {
+            $categoryFilter = '';
+        } else {
+            $categoryFilter = "AND u.fee_category != 'rte'";
+        }
 
         return DB::select("
             SELECT

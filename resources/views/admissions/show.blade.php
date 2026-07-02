@@ -79,13 +79,21 @@
                             @endif
 
                             {{-- Admission number --}}
+                            @php
+                                $profilePrePrimary = in_array($admission->schoolClass->class_name ?? '', ['Nursery', 'Lower KG', 'Upper KG']);
+                            @endphp
                             @if($admission->dga_admission_no)
-                                <span class="badge bg-info text-dark fs-6 p-2">
+                                <span class="badge bg-info text-dark fs-6 p-2 me-1">
                                     <i class="bi bi-hash"></i> {{ $admission->dga_admission_no }}
                                 </span>
-                            @elseif($admission->general_id)
-                                <span class="badge bg-info text-dark fs-6 p-2">
-                                    <i class="bi bi-hash"></i> General ID: {{ $admission->general_id }}
+                            @endif
+                            @if($admission->general_id)
+                                <span class="badge bg-primary fs-6 p-2">
+                                    <i class="bi bi-person-vcard"></i> General ID: {{ $admission->general_id }}
+                                </span>
+                            @elseif(!$profilePrePrimary)
+                                <span class="badge bg-warning text-dark fs-6 p-2" title="General ID not set">
+                                    <i class="bi bi-exclamation-triangle"></i> General ID not set
                                 </span>
                             @endif
                         </div>

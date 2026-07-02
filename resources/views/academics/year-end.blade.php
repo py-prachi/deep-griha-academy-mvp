@@ -69,6 +69,7 @@
                                 <tr>
                                     <th>Student</th>
                                     <th>Class</th>
+                                    <th>Category</th>
                                     <th class="text-end">Total Due</th>
                                     <th class="text-end">Paid</th>
                                     <th class="text-end text-warning">Balance</th>
@@ -86,6 +87,13 @@
                                         @endif
                                     </td>
                                     <td class="text-nowrap small">{{ $d->class_name }} {{ $d->section_name }}</td>
+                                    <td>
+                                        @php
+                                            $catColors = ['rte' => 'bg-success', 'coc' => 'bg-info', 'discount' => 'bg-warning text-dark'];
+                                            $catColor = $catColors[$d->fee_category] ?? 'bg-secondary';
+                                        @endphp
+                                        <span class="badge {{ $catColor }}">{{ strtoupper($d->fee_category) }}</span>
+                                    </td>
                                     <td class="text-end small">₹{{ number_format($d->total_due, 0) }}</td>
                                     <td class="text-end small text-success">₹{{ number_format($d->total_paid, 0) }}</td>
                                     <td class="text-end fw-bold text-danger">₹{{ number_format($d->balance, 0) }}</td>

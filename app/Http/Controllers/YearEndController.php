@@ -31,7 +31,7 @@ class YearEndController extends Controller
         $session_id = $this->getSchoolCurrentSession();
         $session    = SchoolSessionModel::find($session_id);
 
-        $defaulters  = app(FeePaymentRepository::class)->getDefaulters($session_id);
+        $defaulters  = app(FeePaymentRepository::class)->getDefaulters($session_id, 'all');
         $settledMap  = FeeSettlement::where('session_id', $session_id)
             ->get()
             ->keyBy('student_user_id');
