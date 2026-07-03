@@ -164,10 +164,10 @@ class StudentImportController extends Controller
             [2, 'Aradhya Devidas Kalaphad', '10/03/2017', 'female', 'Nursery', 'A', '7972024744',
              'discount', '50', 6000, 3000, '15/01/2025', 'Baravkarvadi', '3km', 'Devidas Kalaphad', 'Worker',
              'Sunita Kalaphad', 'Homemaker', '', ''],
-            // RTE — zero fees paid (govt pays), enter 0
+            // RTE — zero fees paid (govt pays), enter 0; fill RTE App No in column U
             [3, 'Mohammed Arif Khan', '20/06/2016', 'male', 'Class 2', 'A', '8765432109',
              'rte', '', '', 0, '05/01/2023', 'Kedgaon', '3km', 'Anwar Khan', 'Driver',
-             '', '', '12345678901', ''],
+             '', '', '12345678901', '', '26MS011157'],
         ];
 
         foreach ($examples as $ri => $row) {
@@ -533,6 +533,7 @@ class StudentImportController extends Controller
                     'village'              => $d['village'] !== '' ? $d['village'] : null,
                     'distance_from_school' => $d['distance_from_school'] !== '' ? $d['distance_from_school'] : null,
                     'general_id'           => $d['general_id'] !== '' ? $d['general_id'] : null,
+                    'rte_application_no'   => ($d['rte_application_no'] ?? '') !== '' ? strtoupper($d['rte_application_no']) : null,
                     'inquiry_date'         => $d['admission_date_parsed'] ?? now()->toDateString(),
                     'status'               => Admission::STATUS_CONFIRMED,
                     'confirmed_date'       => $d['admission_date_parsed'] ?? now()->toDateString(),
@@ -577,12 +578,13 @@ class StudentImportController extends Controller
 
                 // ── Create promotion ──────────────────────────────────────
                 DB::table('promotions')->insert([
-                    'student_id' => $student->id,
-                    'session_id' => $admission->session_id,
-                    'class_id'   => $admission->class_id,
-                    'section_id' => $admission->section_id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'student_id'     => $student->id,
+                    'session_id'     => $admission->session_id,
+                    'class_id'       => $admission->class_id,
+                    'section_id'     => $admission->section_id,
+                    'id_card_number' => $d['general_id'] !== '' ? $d['general_id'] : ($admission->dga_admission_no ?? ''),
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
                 ]);
 
                 // ── Record already-collected fee payment ──────────────────

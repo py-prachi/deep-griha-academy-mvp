@@ -60,6 +60,7 @@ class Admission extends Model
         'previous_school',
         'aadhaar_no',
         'pen_id',
+        'rte_application_no',
         'inquiry_date',
         'confirmed_date',
         'exit_date',
