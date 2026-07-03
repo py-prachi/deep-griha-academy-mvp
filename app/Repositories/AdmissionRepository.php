@@ -93,6 +93,7 @@ class AdmissionRepository implements AdmissionInterface
                 'section_id'              => $data['section_id'] ?? null,
                 'academic_year'           => $data['academic_year'],
                 'fee_category'            => $data['fee_category'] ?? null,
+                'rte_application_no'      => isset($data['rte_application_no']) && $data['rte_application_no'] !== '' ? strtoupper($data['rte_application_no']) : null,
                 'discounted_amount'       => $data['discounted_amount'] ?? null,
                 'inquiry_date'            => now()->toDateString(),
             ]);

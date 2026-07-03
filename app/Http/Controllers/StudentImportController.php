@@ -42,7 +42,8 @@ class StudentImportController extends Controller
      *  R(18)  Mother Occupation
      *  S(19)  General ID         11-digit ZP/SARAL ID
      *  T(20)  DGA Admission No   pre-primary only
-     *  U(21)+ Notes / anything else — ignored on import
+     *  U(21)  RTE Application No e.g. 26MS011157 (only for fee_category = rte)
+     *  V(22)+ Notes / anything else — ignored on import
      */
     const COLUMNS = [
         1  => 'sr_no',
@@ -65,6 +66,7 @@ class StudentImportController extends Controller
         18 => 'mother_occupation',
         19 => 'general_id',
         20 => 'dga_admission_no',
+        21 => 'rte_application_no',
     ];
 
     const REQUIRED_FIELDS = ['student_name', 'gender', 'class_name', 'fee_category'];
@@ -125,6 +127,7 @@ class StudentImportController extends Controller
             ['label' => 'Mother Occupation',        'required' => false, 'note' => ''],
             ['label' => 'General ID (Class 1+)',    'required' => false, 'note' => '11-digit ZP / SARAL ID'],
             ['label' => 'DGA Admission No',         'required' => false, 'note' => 'Pre-primary only. Leave blank to auto-generate.'],
+            ['label' => 'RTE Application No',       'required' => false, 'note' => 'Only for RTE students. Alphanumeric, e.g. 26MS011157 (Year+StateCode+Sequence).'],
         ];
 
         foreach ($headers as $i => $h) {
@@ -233,6 +236,7 @@ class StudentImportController extends Controller
             ['  Section — enter A or B. Leave blank to default to A.', false, 10],
             ['  General ID — 11-digit ZP/SARAL number for Class 1 and above (optional).', false, 10],
             ['  DGA Admission No — for Nursery/LKG/UKG only. Leave blank to auto-generate.', false, 10],
+            ['  RTE Application No — alphanumeric, e.g. 26MS011157. Fill only for RTE students.', false, 10],
             ['  Sr.No column is ignored — just for your reference while filling the sheet.', false, 10],
             ['', false, 11],
             ['IMPORTANT:', true, 11],
@@ -430,6 +434,16 @@ class StudentImportController extends Controller
                     $errors[] = 'General ID must be exactly 11 digits';
                 } elseif (Admission::where('general_id', $d['general_id'])->exists()) {
                     $errors[] = 'General ID ' . $d['general_id'] . ' already exists in the system';
+                }
+            }
+
+            // ── RTE Application No ────────────────────────────────────────
+            if (($d['rte_application_no'] ?? '') !== '') {
+                $d['rte_application_no'] = strtoupper(trim($d['rte_application_no']));
+                if (!preg_match('/^[A-Z0-9]{1,20}$/', $d['rte_application_no'])) {
+                    $errors[] = 'RTE Application No must be alphanumeric, max 20 characters';
+                } elseif (($d['fee_category'] ?? '') !== 'rte') {
+                    $errors[] = 'RTE Application No should only be filled for RTE students';
                 }
             }
 
