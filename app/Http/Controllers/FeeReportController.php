@@ -7,6 +7,7 @@ use App\Interfaces\FeePaymentInterface;
 use App\Interfaces\SchoolSessionInterface;
 use App\Interfaces\SchoolClassInterface;
 use App\Models\Admission;
+use App\Models\BulkFeeReceipt;
 use App\Models\User;
 use App\Models\Promotion;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -203,6 +204,20 @@ class FeeReportController extends Controller
         $cocStudents      = $baseQuery('coc');
         $rteFees          = collect($this->feePaymentRepository->getRteWithFees($selectedSessionId))->keyBy('student_id');
 
+        $rteTotalDue      = $rteFees->sum('total_due');
+        $cocFeePerStudent = 16200; // same fee structure — update when COC has its own structure
+        $cocTotalDue      = $cocStudents->count() * $cocFeePerStudent;
+
+        $bulkReceipts     = BulkFeeReceipt::where('session_id', $selectedSessionId)
+                                ->orderBy('received_date')
+                                ->get()
+                                ->groupBy('fee_category');
+
+        $rteReceipts      = $bulkReceipts->get('rte', collect());
+        $cocReceipts      = $bulkReceipts->get('coc', collect());
+        $rteTotalReceived = $rteReceipts->sum('amount_received');
+        $cocTotalReceived = $cocReceipts->sum('amount_received');
+
         if ($request->get('pdf')) {
             $category = $request->get('category', 'rte');
             if ($category === 'discount') {
@@ -219,8 +234,44 @@ class FeeReportController extends Controller
 
         return view('reports.rte', compact(
             'rteStudents', 'discountStudents', 'cocStudents', 'rteFees',
-            'sessions', 'selectedSessionId', 'selectedSession'
+            'sessions', 'selectedSessionId', 'selectedSession',
+            'rteTotalDue', 'rteTotalReceived', 'rteReceipts',
+            'cocTotalDue', 'cocTotalReceived', 'cocReceipts'
         ));
+    }
+
+    public function storeBulkReceipt(Request $request)
+    {
+        $request->validate([
+            'session_id'      => 'required|exists:school_sessions,id',
+            'fee_category'    => 'required|in:rte,coc',
+            'amount_received' => 'required|numeric|min:1',
+            'received_date'   => 'required|date',
+            'remark'          => 'nullable|string|max:255',
+        ]);
+
+        BulkFeeReceipt::create([
+            'session_id'      => $request->session_id,
+            'fee_category'    => $request->fee_category,
+            'amount_received' => $request->amount_received,
+            'received_date'   => $request->received_date,
+            'remark'          => $request->remark,
+            'recorded_by'     => auth()->id(),
+        ]);
+
+        $tab = $request->fee_category;
+        return redirect()->route('reports.rte', ['session_id' => $request->session_id, 'tab' => $tab])
+            ->with('status', 'Bulk payment recorded successfully.');
+    }
+
+    public function deleteBulkReceipt($id)
+    {
+        $receipt = BulkFeeReceipt::findOrFail($id);
+        $sessionId = $receipt->session_id;
+        $tab = $receipt->fee_category;
+        $receipt->delete();
+        return redirect()->route('reports.rte', ['session_id' => $sessionId, 'tab' => $tab])
+            ->with('status', 'Receipt deleted.');
     }
 
     public function studentInfo(Request $request)

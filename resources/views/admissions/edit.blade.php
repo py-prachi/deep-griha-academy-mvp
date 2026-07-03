@@ -269,6 +269,14 @@
                                     </div>
                                     <div class="form-text">Applied on General category tuition fee for this student's class.</div>
                                 </div>
+                                <div class="col-md-4" id="editRteAppNoField" style="{{ old('fee_category', $admission->fee_category) === 'rte' ? '' : 'display:none;' }}">
+                                    <label class="form-label">RTE Application No. <span class="text-muted small">(e.g. 26MS011157)</span></label>
+                                    <input type="text" name="rte_application_no" id="editRteAppNo" class="form-control text-uppercase"
+                                           maxlength="20" pattern="[A-Za-z0-9]+"
+                                           value="{{ old('rte_application_no', $admission->rte_application_no) }}"
+                                           placeholder="e.g. 26MS011157">
+                                    <div class="form-text">Alphanumeric. Stored in uppercase.</div>
+                                </div>
                             </div>
                         </div>
 
@@ -321,15 +329,24 @@
 </div>
 <script>
 document.getElementById('editFeeCategorySelect').addEventListener('change', function() {
-    var field = document.getElementById('editDiscountPctField');
-    var input = document.getElementById('editDiscountPct');
+    var discountField = document.getElementById('editDiscountPctField');
+    var discountInput = document.getElementById('editDiscountPct');
+    var rteField      = document.getElementById('editRteAppNoField');
+
     if (this.value === 'discount') {
-        field.style.display = '';
-        input.required = true;
+        discountField.style.display = '';
+        discountInput.required = true;
+        rteField.style.display = 'none';
+    } else if (this.value === 'rte') {
+        rteField.style.display = '';
+        discountField.style.display = 'none';
+        discountInput.required = false;
+        discountInput.value = '';
     } else {
-        field.style.display = 'none';
-        input.required = false;
-        input.value = '';
+        discountField.style.display = 'none';
+        discountInput.required = false;
+        discountInput.value = '';
+        rteField.style.display = 'none';
     }
 });
 </script>

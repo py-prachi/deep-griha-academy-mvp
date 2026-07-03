@@ -306,6 +306,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/admissions',                    [App\Http\Controllers\FeeReportController::class, 'admissions'])->name('reports.admissions');
     Route::get('/reports/class-strength',                [App\Http\Controllers\FeeReportController::class, 'classStrength'])->name('reports.classStrength');
     Route::get('/reports/rte',                           [App\Http\Controllers\FeeReportController::class, 'rte'])->name('reports.rte');
+    Route::post('/reports/bulk-receipt',                 [App\Http\Controllers\FeeReportController::class, 'storeBulkReceipt'])->name('reports.bulkReceipt.store');
+    Route::delete('/reports/bulk-receipt/{id}',          [App\Http\Controllers\FeeReportController::class, 'deleteBulkReceipt'])->name('reports.bulkReceipt.delete');
     Route::get('/reports/misc-sales',                    [App\Http\Controllers\FeeReportController::class, 'miscSales'])->name('reports.miscSales');
     Route::get('/reports/students',                      [App\Http\Controllers\FeeReportController::class, 'studentInfo'])->name('reports.students');
 
