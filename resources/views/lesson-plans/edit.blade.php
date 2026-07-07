@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Edit Lesson Plan Entry')
+@section('title', 'Edit Learning Standard Entry')
 @section('content')
 <div class="container">
     <div class="row justify-content-start">
@@ -12,7 +12,7 @@
                         <a href="{{ route('lesson-plans.index') }}" class="btn btn-sm btn-outline-secondary me-2">
                             <i class="bi bi-arrow-left"></i>
                         </a>
-                        <h4 class="mb-0">Edit Lesson Plan Entry</h4>
+                        <h4 class="mb-0">Edit Learning Standard Entry</h4>
                     </div>
 
                     <p class="text-muted small mb-3">

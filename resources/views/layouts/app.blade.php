@@ -110,5 +110,12 @@
         <p>Deep Griha Academy</p>
     </div>
 @stack('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+            new bootstrap.Tooltip(el);
+        });
+    });
+</script>
 </body>
 </html>

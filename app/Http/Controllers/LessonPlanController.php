@@ -136,7 +136,7 @@ class LessonPlanController extends Controller
         ]));
 
         return redirect()->route('lesson-plans.index')
-            ->with('status', 'Lesson plan entry added successfully.');
+            ->with('status', 'Learning Standard entry added successfully.');
     }
 
     public function edit($id)
@@ -145,7 +145,7 @@ class LessonPlanController extends Controller
         $plan = LessonPlan::with(['subject', 'schoolClass', 'section'])->findOrFail($id);
 
         if ($user->role !== 'admin' && $plan->teacher_id !== $user->id) {
-            abort(403, 'You can only edit your own lesson plan entries.');
+            abort(403, 'You can only edit your own Learning Standard entries.');
         }
 
         return view('lesson-plans.edit', ['plan' => $plan]);
@@ -172,7 +172,7 @@ class LessonPlanController extends Controller
         $plan->update($data);
 
         return redirect()->route('lesson-plans.index')
-            ->with('status', 'Lesson plan updated.');
+            ->with('status', 'Learning Standard entry updated.');
     }
 
     public function printView(Request $request)
