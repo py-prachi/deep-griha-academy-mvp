@@ -43,6 +43,22 @@
                         </a>
                     </li>
 
+                    {{-- Learning Outcomes & Chapters --}}
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('learning-outcomes*') ? 'active' : '' }}" href="{{ route('monthly-outcomes.index') }}">
+                            <i class="bi bi-journal-bookmark"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Learning Outcomes</span>
+                        </a>
+                    </li>
+
+                    {{-- Diagnostic Test Results --}}
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('diagnostics*') ? 'active' : '' }}" href="{{ route('diagnostics.index') }}">
+                            <i class="bi bi-clipboard-data"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Diagnostic Results</span>
+                        </a>
+                    </li>
+
                     {{-- Timetable --}}
                     <li class="nav-item">
                         <a type="button" href="#teacher-timetable-submenu" data-bs-toggle="collapse"
@@ -273,22 +289,27 @@
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
                         <ul class="nav collapse {{ request()->is('fees*') || request()->is('fee-structures*') ? 'show' : 'hide' }} bg-white" id="fees-submenu">
-                            <li class="nav-item w-100"><a class="nav-link {{ request()->routeIs('fees.collect') ? 'active' : '' }}" href="{{ route('fees.collect') }}"><i class="bi bi-cash-coin me-2"></i> Collect Fee</a></li>
+                            <li class="nav-item w-100"><a class="nav-link {{ request()->routeIs('fees.collect') ? 'active' : '' }}" href="{{ route('fees.collect') }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Search a student and record their fee payment"><i class="bi bi-cash-coin me-2"></i> Collect Fee</a></li>
                             @if(Auth::user()->role == 'admin')
                             <li class="nav-item w-100">
-                                <a class="nav-link {{ $feeStructureMissing ? 'text-warning fw-bold' : '' }} {{ request()->routeIs('fee-structures.index') ? 'active' : '' }}" href="{{ route('fee-structures.index') }}">
+                                <a class="nav-link {{ $feeStructureMissing ? 'text-warning fw-bold' : '' }} {{ request()->routeIs('fee-structures.index') ? 'active' : '' }}" href="{{ route('fee-structures.index') }}" data-bs-toggle="tooltip" data-bs-placement="right" title="View and manage the fee structure for each class and category">
                                     <i class="bi bi-table me-2"></i> Fee Structures
                                     @if($feeStructureMissing)<span class="badge bg-warning text-dark ms-1">!</span>@endif
                                 </a>
                             </li>
                             <li class="nav-item w-100">
-                                <a class="nav-link {{ request()->routeIs('fee-structures.import*') ? 'active' : '' }}" href="{{ route('fee-structures.import') }}">
+                                <a class="nav-link {{ request()->routeIs('fee-structures.import*') ? 'active' : '' }}" href="{{ route('fee-structures.import') }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Upload fee structure via Excel for the new academic year">
                                     <i class="bi bi-upload me-2"></i> Import Fee Structure
                                 </a>
                             </li>
                             <li class="nav-item w-100">
-                                <a class="nav-link {{ request()->routeIs('fee-structures.overview') ? 'active' : '' }}" href="{{ route('fee-structures.overview') }}">
+                                <a class="nav-link {{ request()->routeIs('fee-structures.overview') ? 'active' : '' }}" href="{{ route('fee-structures.overview') }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Print-ready fee summary showing all classes, categories and amounts">
                                     <i class="bi bi-printer me-2"></i> Fee Overview / Print
+                                </a>
+                            </li>
+                            <li class="nav-item w-100">
+                                <a class="nav-link {{ request()->routeIs('fees.categoryReceipts') ? 'active' : '' }}" href="{{ route('fees.categoryReceipts') }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Record lump sum reimbursements received from Govt (RTE) and COC">
+                                    <i class="bi bi-bank me-2"></i> Category Receipts
                                 </a>
                             </li>
                             @endif
@@ -303,15 +324,15 @@
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
                         <ul class="nav collapse {{ request()->is('reports*') ? 'show' : 'hide' }} bg-white" id="reports-submenu">
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.admissions') }}"><i class="bi bi-person-check me-2"></i> Admissions</a></li>
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.students') }}"><i class="bi bi-person-lines-fill me-2"></i> Student Info</a></li>
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.classStrength') }}"><i class="bi bi-people me-2"></i> Class Strength</a></li>
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.rte') }}"><i class="bi bi-star me-2"></i> Special Categories</a></li>
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.dateRange') }}"><i class="bi bi-calendar-range me-2"></i> Collection Report</a></li>
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.defaulters') }}"><i class="bi bi-exclamation-triangle me-2"></i> Defaulters</a></li>
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.rollovers') }}"><i class="bi bi-arrow-return-right me-2"></i> Carried Forward</a></li>
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.categorySummary') }}"><i class="bi bi-pie-chart me-2"></i> Category Summary</a></li>
-                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.miscSales') }}"><i class="bi bi-bag me-2"></i> Misc Sales</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.admissions') }}" data-bs-toggle="tooltip" data-bs-placement="right" title="All admission inquiries with status, class, and confirmation details"><i class="bi bi-person-check me-2"></i> Admissions</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.students') }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Pick the student fields you need and download as PDF"><i class="bi bi-person-lines-fill me-2"></i> Student Info</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.classStrength') }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Headcount per class and section for the selected session"><i class="bi bi-people me-2"></i> Class Strength</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.rte') }}" data-bs-toggle="tooltip" data-bs-placement="right" title="RTE, COC, and discount students — fee tracking and application details"><i class="bi bi-star me-2"></i> Special Categories</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.dateRange') }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Fee collected within a date range, filterable by class or category"><i class="bi bi-calendar-range me-2"></i> Collection Report</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.defaulters') }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Students with outstanding fee balance for the current session"><i class="bi bi-exclamation-triangle me-2"></i> Defaulters</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.rollovers') }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Unpaid fees carried over from a previous academic year"><i class="bi bi-arrow-return-right me-2"></i> Carried Forward</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.fees.categorySummary') }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Fee collection totals broken down by student category (General, RTE, COC)"><i class="bi bi-pie-chart me-2"></i> Category Summary</a></li>
+                            <li class="nav-item w-100"><a class="nav-link" href="{{ route('reports.miscSales') }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Revenue from uniform, stationery, and other non-fee items sold"><i class="bi bi-bag me-2"></i> Misc Sales</a></li>
                         </ul>
                     </li>
 
@@ -337,6 +358,22 @@
                         <a class="nav-link {{ request()->is('learning-standard*') ? 'active' : '' }}" href="{{ route('lesson-plans.index') }}">
                             <i class="bi bi-journal-text"></i>
                             <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Learning Standard</span>
+                        </a>
+                    </li>
+
+                    {{-- Learning Outcomes & Chapters (admin: view only) --}}
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('learning-outcomes*') ? 'active' : '' }}" href="{{ route('monthly-outcomes.index') }}">
+                            <i class="bi bi-journal-bookmark"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Learning Outcomes</span>
+                        </a>
+                    </li>
+
+                    {{-- Diagnostic Test Results --}}
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('diagnostics*') ? 'active' : '' }}" href="{{ route('diagnostics.index') }}">
+                            <i class="bi bi-clipboard-data"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Diagnostic Results</span>
                         </a>
                     </li>
 

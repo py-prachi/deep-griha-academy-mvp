@@ -76,7 +76,7 @@ class YearEndController extends Controller
 
     public static function unsettledCount($session_id): int
     {
-        $defaulters = app(FeePaymentRepository::class)->getDefaulters($session_id);
+        $defaulters = app(FeePaymentRepository::class)->getDefaulters($session_id, 'all');
         $settledIds = FeeSettlement::where('session_id', $session_id)
             ->pluck('student_user_id')
             ->toArray();

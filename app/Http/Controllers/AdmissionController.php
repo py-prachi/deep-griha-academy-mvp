@@ -146,6 +146,7 @@ class AdmissionController extends Controller
             'general_id'          => 'nullable|digits:11|unique:admissions,general_id,' . $id,
             'fee_category'        => 'nullable|in:general,rte,coc,discount',
             'discount_percentage' => 'nullable|numeric|min:0|max:100|required_if:fee_category,discount',
+            'rte_application_no'  => 'nullable|string|max:20|regex:/^[A-Z0-9]+$/i',
         ]);
 
         try {

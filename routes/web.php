@@ -15,6 +15,8 @@ use App\Http\Controllers\ExamRuleController;
 use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\SyllabusController;
 use App\Http\Controllers\LessonPlanController;
+use App\Http\Controllers\MonthlyOutcomeController;
+use App\Http\Controllers\DiagnosticController;
 use App\Http\Controllers\GradeRuleController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\AssignmentController;
@@ -223,6 +225,21 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/learning-standard/{id}',             [LessonPlanController::class, 'destroy'])->name('lesson-plans.destroy');
     Route::get('/learning-standard/print',               [LessonPlanController::class, 'printView'])->name('lesson-plans.print');
 
+    // Learning Outcomes & Chapters Covered Every Month
+    Route::get('/learning-outcomes',                     [MonthlyOutcomeController::class, 'index'])->name('monthly-outcomes.index');
+    Route::get('/learning-outcomes/print',               [MonthlyOutcomeController::class, 'printView'])->name('monthly-outcomes.print');
+    Route::get('/learning-outcomes/create',              [MonthlyOutcomeController::class, 'create'])->name('monthly-outcomes.create');
+    Route::post('/learning-outcomes',                    [MonthlyOutcomeController::class, 'store'])->name('monthly-outcomes.store');
+    Route::get('/learning-outcomes/{id}/edit',           [MonthlyOutcomeController::class, 'edit'])->name('monthly-outcomes.edit');
+    Route::put('/learning-outcomes/{id}',                [MonthlyOutcomeController::class, 'update'])->name('monthly-outcomes.update');
+    Route::delete('/learning-outcomes/{id}',             [MonthlyOutcomeController::class, 'destroy'])->name('monthly-outcomes.destroy');
+
+    // Diagnostic Test Results
+    Route::get('/diagnostics',              [DiagnosticController::class, 'index'])->name('diagnostics.index');
+    Route::get('/diagnostics/entry',        [DiagnosticController::class, 'entry'])->name('diagnostics.entry');
+    Route::post('/diagnostics/save',        [DiagnosticController::class, 'save'])->name('diagnostics.save');
+    Route::get('/diagnostics/view',         [DiagnosticController::class, 'view'])->name('diagnostics.view');
+
     Route::get('/syllabus/create', [SyllabusController::class, 'create'])->name('class.syllabus.create');
     Route::post('/syllabus/create', [SyllabusController::class, 'store'])->name('syllabus.store');
     Route::get('/syllabus/index', [SyllabusController::class, 'index'])->name('course.syllabus.index');
@@ -306,6 +323,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/admissions',                    [App\Http\Controllers\FeeReportController::class, 'admissions'])->name('reports.admissions');
     Route::get('/reports/class-strength',                [App\Http\Controllers\FeeReportController::class, 'classStrength'])->name('reports.classStrength');
     Route::get('/reports/rte',                           [App\Http\Controllers\FeeReportController::class, 'rte'])->name('reports.rte');
+    Route::get('/fees/category-receipts',                [App\Http\Controllers\FeeReportController::class, 'categoryReceipts'])->name('fees.categoryReceipts');
+    Route::post('/fees/category-receipts/store',         [App\Http\Controllers\FeeReportController::class, 'storeBulkReceipt'])->name('reports.bulkReceipt.store');
+    Route::delete('/fees/category-receipts/{id}',        [App\Http\Controllers\FeeReportController::class, 'deleteBulkReceipt'])->name('reports.bulkReceipt.delete');
     Route::get('/reports/misc-sales',                    [App\Http\Controllers\FeeReportController::class, 'miscSales'])->name('reports.miscSales');
     Route::get('/reports/students',                      [App\Http\Controllers\FeeReportController::class, 'studentInfo'])->name('reports.students');
 

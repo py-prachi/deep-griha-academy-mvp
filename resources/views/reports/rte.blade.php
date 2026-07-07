@@ -13,12 +13,8 @@
                         </a>
                         <h4 class="mb-0">Special Category Students</h4>
                     </div>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                            <li class="breadcrumb-item active">Special Category Students</li>
-                        </ol>
-                    </nav>
+
+                    @include('session-messages')
 
                     <div class="container-fluid px-0">
                         {{-- Session filter --}}
@@ -71,19 +67,20 @@
                         </div>
 
                         {{-- Tabs --}}
+                        @php $activeTab = request('tab', 'rte'); @endphp
                         <ul class="nav nav-tabs mb-3" id="categoryTabs" role="tablist">
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="rte-tab" data-bs-toggle="tab" data-bs-target="#rte-pane" type="button" role="tab">
+                                <button class="nav-link {{ $activeTab === 'rte' ? 'active' : '' }}" id="rte-tab" data-bs-toggle="tab" data-bs-target="#rte-pane" type="button" role="tab">
                                     <span class="badge bg-success me-1">{{ $rteStudents->count() }}</span> RTE
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="discount-tab" data-bs-toggle="tab" data-bs-target="#discount-pane" type="button" role="tab">
+                                <button class="nav-link {{ $activeTab === 'discount' ? 'active' : '' }}" id="discount-tab" data-bs-toggle="tab" data-bs-target="#discount-pane" type="button" role="tab">
                                     <span class="badge bg-warning text-dark me-1">{{ $discountStudents->count() }}</span> Discount
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="coc-tab" data-bs-toggle="tab" data-bs-target="#coc-pane" type="button" role="tab">
+                                <button class="nav-link {{ $activeTab === 'coc' ? 'active' : '' }}" id="coc-tab" data-bs-toggle="tab" data-bs-target="#coc-pane" type="button" role="tab">
                                     <span class="badge bg-info me-1">{{ $cocStudents->count() }}</span> COC
                                 </button>
                             </li>
@@ -91,57 +88,48 @@
 
                         <div class="tab-content" id="categoryTabsContent">
 
-                            {{-- RTE Tab --}}
-                            <div class="tab-pane fade show active" id="rte-pane" role="tabpanel">
+                            {{-- ── RTE Tab ──────────────────────────────────────── --}}
+                            <div class="tab-pane fade {{ $activeTab === 'rte' ? 'show active' : '' }}" id="rte-pane" role="tabpanel">
+
+                                {{-- Student list --}}
                                 <div class="d-flex justify-content-end mb-2">
                                     <a href="{{ route('reports.rte', ['pdf' => 1, 'category' => 'rte', 'session_id' => $selectedSessionId]) }}" class="btn btn-sm btn-outline-success">
-                                        <i class="fas fa-download me-1"></i> Download RTE PDF
+                                        <i class="bi bi-download me-1"></i> Download RTE PDF
                                     </a>
                                 </div>
                                 @if($rteStudents->isEmpty())
                                     <p class="text-center text-muted py-4">No RTE students found for this session.</p>
                                 @else
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-hover">
+                                    <table class="table table-bordered table-hover table-sm">
                                         <thead class="table-success">
                                             <tr>
                                                 <th>#</th>
                                                 <th>Student Name</th>
                                                 <th>Class / Div</th>
                                                 <th>Admission No</th>
-                                                <th>RTE Doc No</th>
+                                                <th>RTE App No</th>
                                                 <th>Date of Birth</th>
                                                 <th>Father's Name</th>
-                                                <th class="text-end">Govt. Due ₹</th>
-                                                <th class="text-end">Received ₹</th>
-                                                <th class="text-end">Pending ₹</th>
-                                                <th class="text-center">Status</th>
                                                 <th class="text-center">Profile</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach($rteStudents as $i => $student)
-                                            @php $fee = $rteFees->get($student->id); @endphp
-                                            <tr class="{{ $fee && $fee->balance <= 0 ? 'table-light' : '' }}">
+                                            <tr>
                                                 <td>{{ $i + 1 }}</td>
                                                 <td>{{ $student->first_name }} {{ $student->last_name }}</td>
                                                 <td>{{ $student->class_name }} {{ $student->section_name }}</td>
-                                                <td>{{ $student->dga_admission_no ?? $student->general_id ?? '—' }}</td>
-                                                <td>—</td>
-                                                <td>{{ $student->birthday ? \Carbon\Carbon::parse($student->birthday)->format('d M Y') : '—' }}</td>
-                                                <td>{{ $student->admission ? $student->admission->father_name : '—' }}</td>
-                                                <td class="text-end">₹{{ $fee ? number_format($fee->total_due, 0) : '—' }}</td>
-                                                <td class="text-end text-success">₹{{ $fee ? number_format($fee->total_paid, 0) : '0' }}</td>
-                                                <td class="text-end fw-bold {{ $fee && $fee->balance > 0 ? 'text-danger' : 'text-success' }}">
-                                                    ₹{{ $fee ? number_format($fee->balance, 0) : '—' }}
-                                                </td>
-                                                <td class="text-center">
-                                                    @if($fee && $fee->balance <= 0)
-                                                        <span class="badge bg-success">Received</span>
+                                                <td class="font-monospace small">{{ $student->dga_admission_no ?? $student->general_id ?? '—' }}</td>
+                                                <td class="font-monospace small">
+                                                    @if($student->admission && $student->admission->rte_application_no)
+                                                        <span class="badge bg-success">{{ $student->admission->rte_application_no }}</span>
                                                     @else
-                                                        <span class="badge bg-warning text-dark">Pending</span>
+                                                        <span class="text-muted">—</span>
                                                     @endif
                                                 </td>
+                                                <td class="small">{{ $student->birthday ? \Carbon\Carbon::parse($student->birthday)->format('d M Y') : '—' }}</td>
+                                                <td class="small">{{ $student->admission ? $student->admission->father_name : '—' }}</td>
                                                 <td class="text-center">
                                                     @if($student->admission_id)
                                                     <a href="{{ route('admissions.show', $student->admission_id) }}" class="btn btn-sm btn-outline-primary">View</a>
@@ -157,11 +145,11 @@
                                 @endif
                             </div>
 
-                            {{-- Discount Tab --}}
-                            <div class="tab-pane fade" id="discount-pane" role="tabpanel">
+                            {{-- ── Discount Tab ──────────────────────────────────── --}}
+                            <div class="tab-pane fade {{ $activeTab === 'discount' ? 'show active' : '' }}" id="discount-pane" role="tabpanel">
                                 <div class="d-flex justify-content-end mb-2">
                                     <a href="{{ route('reports.rte', ['pdf' => 1, 'category' => 'discount', 'session_id' => $selectedSessionId]) }}" class="btn btn-sm btn-outline-warning">
-                                        <i class="fas fa-download me-1"></i> Download Discount PDF
+                                        <i class="bi bi-download me-1"></i> Download Discount PDF
                                     </a>
                                 </div>
                                 @if($discountStudents->isEmpty())
@@ -212,11 +200,13 @@
                                 @endif
                             </div>
 
-                            {{-- COC Tab --}}
-                            <div class="tab-pane fade" id="coc-pane" role="tabpanel">
+                            {{-- ── COC Tab ───────────────────────────────────────── --}}
+                            <div class="tab-pane fade {{ $activeTab === 'coc' ? 'show active' : '' }}" id="coc-pane" role="tabpanel">
+
+                                {{-- Student list --}}
                                 <div class="d-flex justify-content-end mb-2">
                                     <a href="{{ route('reports.rte', ['pdf' => 1, 'category' => 'coc', 'session_id' => $selectedSessionId]) }}" class="btn btn-sm btn-outline-info">
-                                        <i class="fas fa-download me-1"></i> Download COC PDF
+                                        <i class="bi bi-download me-1"></i> Download COC PDF
                                     </a>
                                 </div>
                                 @if($cocStudents->isEmpty())
@@ -242,8 +232,8 @@
                                                 <td>{{ $student->first_name }} {{ $student->last_name }}</td>
                                                 <td>{{ $student->class_name }} {{ $student->section_name }}</td>
                                                 <td>{{ $student->dga_admission_no ?? $student->general_id ?? '—' }}</td>
-                                                <td>{{ $student->birthday ? \Carbon\Carbon::parse($student->birthday)->format('d M Y') : '—' }}</td>
-                                                <td>{{ $student->admission ? $student->admission->father_name : '—' }}</td>
+                                                <td class="small">{{ $student->birthday ? \Carbon\Carbon::parse($student->birthday)->format('d M Y') : '—' }}</td>
+                                                <td class="small">{{ $student->admission ? $student->admission->father_name : '—' }}</td>
                                                 <td class="text-center">
                                                     @if($student->admission_id)
                                                     <a href="{{ route('admissions.show', $student->admission_id) }}" class="btn btn-sm btn-outline-primary">View</a>

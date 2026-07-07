@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @php
-        $isSingle      = $plans->count() === 1;
-        $firstGroup    = $plans->first();
-        $firstEntry    = $firstGroup ? $firstGroup->first() : null;
+        $isSingle   = $outcomes->count() === 1;
+        $firstGroup = $outcomes->first();
+        $firstEntry = $firstGroup ? $firstGroup->first() : null;
         $titleParts = [
             config('app.name'),
-            'Learning Standard',
+            'Learning Outcomes & Chapters',
             $teacher->first_name . ' ' . $teacher->last_name,
         ];
         if ($isSingle && $firstEntry) {
@@ -20,14 +20,12 @@
     <title>{{ implode(' — ', array_filter($titleParts)) }}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             font-family: 'Noto Sans', 'Mangal', 'Arial Unicode MS', Arial, sans-serif;
             font-size: 11pt;
             color: #000;
             padding: 20px;
         }
-
         .page-header {
             text-align: center;
             border-bottom: 2px solid #000;
@@ -36,18 +34,13 @@
         }
         .page-header h2 { font-size: 15pt; font-weight: bold; }
         .page-header p  { font-size: 10pt; color: #444; margin-top: 4px; }
-
-        .subject-block {
-            margin-bottom: 28px;
-            page-break-inside: avoid;
-        }
+        .subject-block { margin-bottom: 28px; page-break-inside: avoid; }
         .subject-header {
             background: #1a1a2e;
             color: #fff;
             padding: 6px 10px;
             font-size: 11pt;
             font-weight: bold;
-            margin-bottom: 0;
         }
         .subject-header span {
             font-weight: normal;
@@ -55,12 +48,7 @@
             opacity: 0.8;
             margin-left: 8px;
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 10pt;
-        }
+        table { width: 100%; border-collapse: collapse; font-size: 10pt; }
         th {
             background: #e8e8e8;
             border: 1px solid #aaa;
@@ -68,16 +56,8 @@
             text-align: left;
             font-size: 9.5pt;
         }
-        td {
-            border: 1px solid #ccc;
-            padding: 5px 7px;
-            vertical-align: top;
-        }
+        td { border: 1px solid #ccc; padding: 5px 7px; vertical-align: top; }
         tr:nth-child(even) td { background: #fafafa; }
-
-        .badge-planned   { color: #856404; font-weight: bold; }
-        .badge-completed { color: #155724; font-weight: bold; }
-
         .no-print {
             text-align: center;
             padding: 16px;
@@ -95,12 +75,7 @@
             cursor: pointer;
             margin-right: 8px;
         }
-        .no-print a {
-            color: #555;
-            text-decoration: none;
-            font-size: 12px;
-        }
-
+        .no-print a { color: #555; text-decoration: none; font-size: 12px; }
         @media print {
             .no-print { display: none; }
             body { padding: 10px; }
@@ -112,12 +87,12 @@
 
 <div class="no-print">
     <button onclick="window.print()">🖨 Print / Save as PDF</button>
-    <a href="{{ route('lesson-plans.index') }}">← Back</a>
+    <a href="{{ route('monthly-outcomes.index') }}">← Back</a>
 </div>
 
 <div class="page-header">
     <h2>{{ config('app.name') }}</h2>
-    <h3 style="font-size:13pt; font-weight:600; margin-top:4px;">Learning Standard</h3>
+    <h3 style="font-size:13pt; font-weight:600; margin-top:4px;">Learning Outcomes & Chapters Covered</h3>
     <p style="margin-top:6px;">
         <strong>{{ $teacher->first_name }} {{ $teacher->last_name }}</strong>
         @if($isSingle && $firstEntry)
@@ -131,13 +106,13 @@
     </p>
 </div>
 
-@forelse($plans as $key => $entries)
+@forelse($outcomes as $key => $entries)
 @php
     $first   = $entries->first();
     $subject = $first->subject;
     $class   = $first->schoolClass;
     $section = $first->section;
-    $total   = $entries->sum('days_allocated');
+    $total   = $entries->sum('number_of_days');
 @endphp
 
 <div class="subject-block">
@@ -151,34 +126,34 @@
                 <th style="width:70px;">Month</th>
                 <th style="width:40px;">Days</th>
                 <th style="width:55px;">Ch. No.</th>
-                <th style="width:28%;">Chapter Name</th>
-                <th>Learning Standards / Outcome</th>
-                <th style="width:70px;">Status</th>
+                <th style="width:25%;">Chapter Name</th>
+                <th>Learning Outcomes</th>
+                <th style="width:80px;">Start Date</th>
+                <th style="width:80px;">End Date</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($entries as $plan)
+            @foreach($entries as $outcome)
             <tr>
-                <td><strong>{{ \App\Models\LessonPlan::MONTHS[$plan->month] }}</strong></td>
-                <td style="text-align:center;">{{ $plan->days_allocated }}</td>
-                <td>{{ $plan->chapter_number ?? '—' }}</td>
-                <td>{{ $plan->chapter_name }}</td>
-                <td>{{ $plan->learning_standards ?? '—' }}</td>
-                <td class="badge-{{ $plan->status }}">
-                    {{ \App\Models\LessonPlan::STATUS_LABELS[$plan->status] }}
-                </td>
+                <td><strong>{{ \App\Models\MonthlyOutcome::MONTHS[$outcome->month] }}</strong></td>
+                <td style="text-align:center;">{{ $outcome->number_of_days }}</td>
+                <td>{{ $outcome->chapter_number ?? '—' }}</td>
+                <td>{{ $outcome->chapter_name }}</td>
+                <td>{{ $outcome->learning_outcomes ?? '—' }}</td>
+                <td>{{ $outcome->start_date ? $outcome->start_date->format('d M Y') : '—' }}</td>
+                <td>{{ $outcome->end_date ? $outcome->end_date->format('d M Y') : '—' }}</td>
             </tr>
             @endforeach
             <tr>
                 <td colspan="1" style="text-align:right; font-size:9pt; color:#555;">Total days:</td>
                 <td style="text-align:center; font-weight:bold;">{{ $total }}</td>
-                <td colspan="4"></td>
+                <td colspan="5"></td>
             </tr>
         </tbody>
     </table>
 </div>
 @empty
-<p style="color:#888; text-align:center; margin-top:40px;">No Learning Standard entries found.</p>
+<p style="color:#888; text-align:center; margin-top:40px;">No Learning Outcomes entries found.</p>
 @endforelse
 
 </body>

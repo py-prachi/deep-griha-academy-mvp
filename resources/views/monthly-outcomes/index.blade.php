@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Learning Standard')
+@section('title', 'Learning Outcomes & Chapters')
 @section('content')
 <div class="container">
     <div class="row justify-content-start">
@@ -8,20 +8,18 @@
             <div class="row pt-2">
                 <div class="col ps-4">
 
-                    <h4 class="mb-1"><i class="bi bi-journal-text me-1"></i> Learning Standard</h4>
-                    <p class="text-muted small mb-3">Month-wise syllabus plan for the current academic session.</p>
+                    <h4 class="mb-1"><i class="bi bi-journal-bookmark me-1"></i> Learning Outcomes & Chapters</h4>
+                    <p class="text-muted small mb-3">Month-wise chapters and learning outcomes covered during the academic session.</p>
 
                     @include('session-messages')
 
                     {{-- ── SUBJECT TEACHER SECTION ── --}}
                     @if($subjectAssignments->isNotEmpty())
                     <h6 class="text-uppercase text-muted small fw-bold mb-2 border-bottom pb-1">
-                        <i class="bi bi-pencil-square me-1"></i> My Learning Standard
+                        <i class="bi bi-pencil-square me-1"></i> My Entries
                     </h6>
 
-                    @php
-                        $groupedAssignments = $subjectAssignments->groupBy('class_id');
-                    @endphp
+                    @php $groupedAssignments = $subjectAssignments->groupBy('class_id'); @endphp
 
                     @foreach($groupedAssignments as $classId => $assignments)
                     @php $firstAssignment = $assignments->first(); @endphp
@@ -36,36 +34,35 @@
                         <div class="card-body p-0">
                             @foreach($assignments as $assignment)
                             @php
-                                $key   = $assignment->class_id . '_' . $assignment->subject_id;
-                                $plans = $myPlans->get($key, collect());
-                                $completedCount = $plans->where('status', 'completed')->count();
-                                $totalCount     = $plans->count();
+                                $key      = $assignment->class_id . '_' . $assignment->subject_id;
+                                $outcomes = $myOutcomes->get($key, collect());
+                                $total    = $outcomes->count();
                             @endphp
                             <div class="border-bottom px-3 py-2">
                                 <div class="d-flex align-items-center justify-content-between mb-0">
                                     <div>
                                         <span class="fw-semibold">{{ $assignment->subject->name }}</span>
-                                        @if($totalCount > 0)
-                                            <span class="badge bg-light text-dark ms-2 small">{{ $completedCount }}/{{ $totalCount }} completed</span>
+                                        @if($total > 0)
+                                            <span class="badge bg-light text-dark ms-2 small">{{ $total }} {{ Str::plural('chapter', $total) }}</span>
                                         @else
                                             <span class="badge bg-warning text-dark ms-2 small">No entries yet</span>
                                         @endif
                                     </div>
                                     <div class="d-flex gap-2">
-                                        @if($totalCount > 0)
-                                        <a href="{{ route('lesson-plans.print', ['class_id' => $assignment->class_id, 'subject_id' => $assignment->subject_id]) }}"
+                                        @if($total > 0)
+                                        <a href="{{ route('monthly-outcomes.print', ['class_id' => $assignment->class_id, 'subject_id' => $assignment->subject_id]) }}"
                                            target="_blank" class="btn btn-sm btn-outline-secondary">
                                             <i class="bi bi-printer"></i> Print
                                         </a>
                                         @endif
-                                        <a href="{{ route('lesson-plans.create', ['class_id' => $assignment->class_id, 'section_id' => $assignment->section_id, 'subject_id' => $assignment->subject_id]) }}"
+                                        <a href="{{ route('monthly-outcomes.create', ['class_id' => $assignment->class_id, 'section_id' => $assignment->section_id, 'subject_id' => $assignment->subject_id]) }}"
                                            class="btn btn-sm btn-outline-primary">
                                             <i class="bi bi-plus"></i> Add Entry
                                         </a>
                                     </div>
                                 </div>
 
-                                @if($plans->isNotEmpty())
+                                @if($outcomes->isNotEmpty())
                                 <div class="table-responsive mt-2">
                                     <table class="table table-sm table-bordered mb-0" style="font-size:0.85rem;">
                                         <thead class="table-light">
@@ -74,29 +71,27 @@
                                                 <th style="width:50px;" class="text-center">Days</th>
                                                 <th style="width:60px;">Ch. No.</th>
                                                 <th>Chapter Name</th>
-                                                <th>Learning Standards / Outcome</th>
-                                                <th style="width:90px;">Status</th>
+                                                <th>Learning Outcomes</th>
+                                                <th style="width:95px;">Start Date</th>
+                                                <th style="width:95px;">End Date</th>
                                                 <th style="width:70px;" class="text-center">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($plans as $plan)
+                                            @foreach($outcomes as $outcome)
                                             <tr>
-                                                <td class="fw-semibold">{{ \App\Models\LessonPlan::MONTHS[$plan->month] }}</td>
-                                                <td class="text-center">{{ $plan->days_allocated }}</td>
-                                                <td>{{ $plan->chapter_number ?? '—' }}</td>
-                                                <td>{{ $plan->chapter_name }}</td>
-                                                <td class="text-muted small">{{ $plan->learning_standards ?? '—' }}</td>
-                                                <td>
-                                                    <span class="badge {{ $plan->status === 'completed' ? 'bg-success' : 'bg-warning text-dark' }}">
-                                                        {{ \App\Models\LessonPlan::STATUS_LABELS[$plan->status] }}
-                                                    </span>
-                                                </td>
+                                                <td class="fw-semibold">{{ \App\Models\MonthlyOutcome::MONTHS[$outcome->month] }}</td>
+                                                <td class="text-center">{{ $outcome->number_of_days }}</td>
+                                                <td>{{ $outcome->chapter_number ?? '—' }}</td>
+                                                <td>{{ $outcome->chapter_name }}</td>
+                                                <td class="text-muted small">{{ $outcome->learning_outcomes ?? '—' }}</td>
+                                                <td class="small">{{ $outcome->start_date ? $outcome->start_date->format('d M Y') : '—' }}</td>
+                                                <td class="small">{{ $outcome->end_date ? $outcome->end_date->format('d M Y') : '—' }}</td>
                                                 <td class="text-center">
-                                                    <a href="{{ route('lesson-plans.edit', $plan->id) }}" class="btn btn-xs btn-outline-secondary py-0 px-1" title="Edit">
+                                                    <a href="{{ route('monthly-outcomes.edit', $outcome->id) }}" class="btn btn-xs btn-outline-secondary py-0 px-1" title="Edit">
                                                         <i class="bi bi-pencil"></i>
                                                     </a>
-                                                    <form method="POST" action="{{ route('lesson-plans.destroy', $plan->id) }}" class="d-inline"
+                                                    <form method="POST" action="{{ route('monthly-outcomes.destroy', $outcome->id) }}" class="d-inline"
                                                           onsubmit="return confirm('Delete this entry?')">
                                                         @csrf @method('DELETE')
                                                         <button class="btn btn-xs btn-outline-danger py-0 px-1" title="Delete">
@@ -121,17 +116,17 @@
                     @if($ctAssignment)
                     <h6 class="text-uppercase text-muted small fw-bold mb-2 border-bottom pb-1 mt-4">
                         <i class="bi bi-eye me-1"></i>
-                        My Class Plans — {{ $ctAssignment->schoolClass->class_name }} {{ $ctAssignment->section->section_name }}
+                        My Class — {{ $ctAssignment->schoolClass->class_name }} {{ $ctAssignment->section->section_name }}
                         <span class="text-secondary fw-normal ms-1">(view only)</span>
                     </h6>
 
-                    @if($ctPlans && $ctPlans->isNotEmpty())
-                        @foreach($ctPlans as $subjectId => $plans)
-                        @php $subject = $plans->first()->subject; @endphp
+                    @if($ctOutcomes && $ctOutcomes->isNotEmpty())
+                        @foreach($ctOutcomes as $subjectId => $subjectOutcomes)
+                        @php $subject = $subjectOutcomes->first()->subject; @endphp
                         <div class="card mb-3">
                             <div class="card-header py-2 bg-light">
                                 <strong>{{ $subject->name ?? '—' }}</strong>
-                                <small class="text-muted ms-2">by {{ optional($plans->first()->teacher)->first_name }} {{ optional($plans->first()->teacher)->last_name }}</small>
+                                <small class="text-muted ms-2">by {{ optional($subjectOutcomes->first()->teacher)->first_name }} {{ optional($subjectOutcomes->first()->teacher)->last_name }}</small>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
@@ -142,23 +137,21 @@
                                                 <th style="width:50px;" class="text-center">Days</th>
                                                 <th style="width:60px;">Ch. No.</th>
                                                 <th>Chapter Name</th>
-                                                <th>Learning Standards / Outcome</th>
-                                                <th style="width:90px;">Status</th>
+                                                <th>Learning Outcomes</th>
+                                                <th style="width:95px;">Start Date</th>
+                                                <th style="width:95px;">End Date</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($plans as $plan)
+                                            @foreach($subjectOutcomes as $outcome)
                                             <tr>
-                                                <td class="fw-semibold">{{ \App\Models\LessonPlan::MONTHS[$plan->month] }}</td>
-                                                <td class="text-center">{{ $plan->days_allocated }}</td>
-                                                <td>{{ $plan->chapter_number ?? '—' }}</td>
-                                                <td>{{ $plan->chapter_name }}</td>
-                                                <td class="text-muted small">{{ $plan->learning_standards ?? '—' }}</td>
-                                                <td>
-                                                    <span class="badge {{ $plan->status === 'completed' ? 'bg-success' : 'bg-warning text-dark' }}">
-                                                        {{ \App\Models\LessonPlan::STATUS_LABELS[$plan->status] }}
-                                                    </span>
-                                                </td>
+                                                <td class="fw-semibold">{{ \App\Models\MonthlyOutcome::MONTHS[$outcome->month] }}</td>
+                                                <td class="text-center">{{ $outcome->number_of_days }}</td>
+                                                <td>{{ $outcome->chapter_number ?? '—' }}</td>
+                                                <td>{{ $outcome->chapter_name }}</td>
+                                                <td class="text-muted small">{{ $outcome->learning_outcomes ?? '—' }}</td>
+                                                <td class="small">{{ $outcome->start_date ? $outcome->start_date->format('d M Y') : '—' }}</td>
+                                                <td class="small">{{ $outcome->end_date ? $outcome->end_date->format('d M Y') : '—' }}</td>
                                             </tr>
                                             @endforeach
                                         </tbody>
@@ -168,7 +161,7 @@
                         </div>
                         @endforeach
                     @else
-                        <div class="alert alert-light text-muted">No Learning Standard entries have been added for your class yet.</div>
+                        <div class="alert alert-light text-muted">No Learning Outcomes entries have been added for your class yet.</div>
                     @endif
                     @endif
 

@@ -42,7 +42,8 @@ class StudentImportController extends Controller
      *  R(18)  Mother Occupation
      *  S(19)  General ID         11-digit ZP/SARAL ID
      *  T(20)  DGA Admission No   pre-primary only
-     *  U(21)+ Notes / anything else — ignored on import
+     *  U(21)  RTE Application No e.g. 26MS011157 (only for fee_category = rte)
+     *  V(22)+ Notes / anything else — ignored on import
      */
     const COLUMNS = [
         1  => 'sr_no',
@@ -65,6 +66,7 @@ class StudentImportController extends Controller
         18 => 'mother_occupation',
         19 => 'general_id',
         20 => 'dga_admission_no',
+        21 => 'rte_application_no',
     ];
 
     const REQUIRED_FIELDS = ['student_name', 'gender', 'class_name', 'fee_category'];
@@ -125,6 +127,7 @@ class StudentImportController extends Controller
             ['label' => 'Mother Occupation',        'required' => false, 'note' => ''],
             ['label' => 'General ID (Class 1+)',    'required' => false, 'note' => '11-digit ZP / SARAL ID'],
             ['label' => 'DGA Admission No',         'required' => false, 'note' => 'Pre-primary only. Leave blank to auto-generate.'],
+            ['label' => 'RTE Application No',       'required' => false, 'note' => 'Only for RTE students. Alphanumeric, e.g. 26MS011157 (Year+StateCode+Sequence).'],
         ];
 
         foreach ($headers as $i => $h) {
@@ -161,10 +164,10 @@ class StudentImportController extends Controller
             [2, 'Aradhya Devidas Kalaphad', '10/03/2017', 'female', 'Nursery', 'A', '7972024744',
              'discount', '50', 6000, 3000, '15/01/2025', 'Baravkarvadi', '3km', 'Devidas Kalaphad', 'Worker',
              'Sunita Kalaphad', 'Homemaker', '', ''],
-            // RTE — zero fees paid (govt pays), enter 0
+            // RTE — zero fees paid (govt pays), enter 0; fill RTE App No in column U
             [3, 'Mohammed Arif Khan', '20/06/2016', 'male', 'Class 2', 'A', '8765432109',
              'rte', '', '', 0, '05/01/2023', 'Kedgaon', '3km', 'Anwar Khan', 'Driver',
-             '', '', '12345678901', ''],
+             '', '', '12345678901', '', '26MS011157'],
         ];
 
         foreach ($examples as $ri => $row) {
@@ -233,6 +236,7 @@ class StudentImportController extends Controller
             ['  Section — enter A or B. Leave blank to default to A.', false, 10],
             ['  General ID — 11-digit ZP/SARAL number for Class 1 and above (optional).', false, 10],
             ['  DGA Admission No — for Nursery/LKG/UKG only. Leave blank to auto-generate.', false, 10],
+            ['  RTE Application No — alphanumeric, e.g. 26MS011157. Fill only for RTE students.', false, 10],
             ['  Sr.No column is ignored — just for your reference while filling the sheet.', false, 10],
             ['', false, 11],
             ['IMPORTANT:', true, 11],
@@ -433,6 +437,16 @@ class StudentImportController extends Controller
                 }
             }
 
+            // ── RTE Application No ────────────────────────────────────────
+            if (($d['rte_application_no'] ?? '') !== '') {
+                $d['rte_application_no'] = strtoupper(trim($d['rte_application_no']));
+                if (!preg_match('/^[A-Z0-9]{1,20}$/', $d['rte_application_no'])) {
+                    $errors[] = 'RTE Application No must be alphanumeric, max 20 characters';
+                } elseif (($d['fee_category'] ?? '') !== 'rte') {
+                    $errors[] = 'RTE Application No should only be filled for RTE students';
+                }
+            }
+
             // ── Duplicate check ───────────────────────────────────────────
             if ($classId && $d['student_name'] !== '') {
                 $dupQuery = Admission::where('student_name', $d['student_name'])
@@ -519,6 +533,7 @@ class StudentImportController extends Controller
                     'village'              => $d['village'] !== '' ? $d['village'] : null,
                     'distance_from_school' => $d['distance_from_school'] !== '' ? $d['distance_from_school'] : null,
                     'general_id'           => $d['general_id'] !== '' ? $d['general_id'] : null,
+                    'rte_application_no'   => ($d['rte_application_no'] ?? '') !== '' ? strtoupper($d['rte_application_no']) : null,
                     'inquiry_date'         => $d['admission_date_parsed'] ?? now()->toDateString(),
                     'status'               => Admission::STATUS_CONFIRMED,
                     'confirmed_date'       => $d['admission_date_parsed'] ?? now()->toDateString(),
@@ -563,12 +578,13 @@ class StudentImportController extends Controller
 
                 // ── Create promotion ──────────────────────────────────────
                 DB::table('promotions')->insert([
-                    'student_id' => $student->id,
-                    'session_id' => $admission->session_id,
-                    'class_id'   => $admission->class_id,
-                    'section_id' => $admission->section_id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'student_id'     => $student->id,
+                    'session_id'     => $admission->session_id,
+                    'class_id'       => $admission->class_id,
+                    'section_id'     => $admission->section_id,
+                    'id_card_number' => $d['general_id'] !== '' ? $d['general_id'] : ($admission->dga_admission_no ?? ''),
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
                 ]);
 
                 // ── Record already-collected fee payment ──────────────────

@@ -93,6 +93,7 @@ class AdmissionRepository implements AdmissionInterface
                 'section_id'              => $data['section_id'] ?? null,
                 'academic_year'           => $data['academic_year'],
                 'fee_category'            => $data['fee_category'] ?? null,
+                'rte_application_no'      => isset($data['rte_application_no']) && $data['rte_application_no'] !== '' ? strtoupper($data['rte_application_no']) : null,
                 'discounted_amount'       => $data['discounted_amount'] ?? null,
                 'inquiry_date'            => now()->toDateString(),
             ]);
@@ -147,8 +148,10 @@ class AdmissionRepository implements AdmissionInterface
                 $admission->general_id = $data['general_id'] ?? null;
             }
 
-            // Set fee category and sibling/custom fee overrides
+            // Set fee category, RTE number, and sibling/custom fee overrides
             $admission->fee_category        = $data['fee_category'];
+            $admission->rte_application_no  = isset($data['rte_application_no']) && $data['rte_application_no'] !== ''
+                ? strtoupper($data['rte_application_no']) : null;
             $admission->discount_percentage = isset($data['discount_percentage']) && $data['discount_percentage'] !== ''
                 ? $data['discount_percentage'] : null;
             $admission->section_id          = $data['section_id'] ?? $admission->section_id;

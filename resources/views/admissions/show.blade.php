@@ -133,6 +133,15 @@
                                             <span class="text-muted">Not set</span>
                                         @endif
                                     </div>
+                                    @if($admission->fee_category === 'rte')
+                                    <div class="col-md-6"><strong>RTE Application No.:</strong>
+                                        @if($admission->rte_application_no)
+                                            <span class="badge bg-success fs-6 p-2 font-monospace">{{ $admission->rte_application_no }}</span>
+                                        @else
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>Not set</span>
+                                        @endif
+                                    </div>
+                                    @endif
                                     <div class="col-md-6"><strong>Inquiry Date:</strong> {{ $admission->inquiry_date ? $admission->inquiry_date->format('d M Y') : '-' }}</div>
                                     @if($admission->confirmed_date)
                                     <div class="col-md-6">
