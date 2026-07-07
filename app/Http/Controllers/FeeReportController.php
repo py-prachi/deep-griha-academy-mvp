@@ -202,21 +202,6 @@ class FeeReportController extends Controller
         $rteStudents      = $baseQuery('rte');
         $discountStudents = $baseQuery('discount');
         $cocStudents      = $baseQuery('coc');
-        $rteFees          = collect($this->feePaymentRepository->getRteWithFees($selectedSessionId))->keyBy('student_id');
-
-        $rteTotalDue      = $rteFees->sum('total_due');
-        $cocFeePerStudent = 16200; // same fee structure — update when COC has its own structure
-        $cocTotalDue      = $cocStudents->count() * $cocFeePerStudent;
-
-        $bulkReceipts     = BulkFeeReceipt::where('session_id', $selectedSessionId)
-                                ->orderBy('received_date')
-                                ->get()
-                                ->groupBy('fee_category');
-
-        $rteReceipts      = $bulkReceipts->get('rte', collect());
-        $cocReceipts      = $bulkReceipts->get('coc', collect());
-        $rteTotalReceived = $rteReceipts->sum('amount_received');
-        $cocTotalReceived = $cocReceipts->sum('amount_received');
 
         if ($request->get('pdf')) {
             $category = $request->get('category', 'rte');
@@ -233,10 +218,55 @@ class FeeReportController extends Controller
         }
 
         return view('reports.rte', compact(
-            'rteStudents', 'discountStudents', 'cocStudents', 'rteFees',
+            'rteStudents', 'discountStudents', 'cocStudents',
+            'sessions', 'selectedSessionId', 'selectedSession'
+        ));
+    }
+
+    public function categoryReceipts(Request $request)
+    {
+        $sessions = $this->schoolSessionRepository->getAll();
+        $selectedSessionId = $request->get('session_id', $this->getSchoolCurrentSession());
+        $selectedSession = $sessions->firstWhere('id', $selectedSessionId);
+
+        $baseQuery = function ($category) use ($selectedSessionId) {
+            return User::with(['admission'])
+                ->join('promotions', 'promotions.student_id', '=', 'users.id')
+                ->join('school_classes', 'school_classes.id', '=', 'promotions.class_id')
+                ->join('sections', 'sections.id', '=', 'promotions.section_id')
+                ->where('promotions.session_id', $selectedSessionId)
+                ->where('users.fee_category', $category)
+                ->where('users.role', 'student')
+                ->select('users.*', 'school_classes.class_name', 'sections.section_name')
+                ->orderBy('school_classes.id')
+                ->get();
+        };
+
+        $rteStudents = $baseQuery('rte');
+        $cocStudents = $baseQuery('coc');
+
+        $rteFees     = collect($this->feePaymentRepository->getRteWithFees($selectedSessionId))->keyBy('student_id');
+        $rteTotalDue = $rteFees->sum('total_due');
+        $cocTotalDue = $cocStudents->count() * 16200;
+
+        $bulkReceipts = BulkFeeReceipt::where('session_id', $selectedSessionId)
+            ->orderBy('received_date')
+            ->get()
+            ->groupBy('fee_category');
+
+        $rteReceipts      = $bulkReceipts->get('rte', collect());
+        $cocReceipts      = $bulkReceipts->get('coc', collect());
+        $rteTotalReceived = $rteReceipts->sum('amount_received');
+        $cocTotalReceived = $cocReceipts->sum('amount_received');
+
+        $activeTab = $request->get('tab', 'rte');
+
+        return view('fees.category-receipts', compact(
             'sessions', 'selectedSessionId', 'selectedSession',
+            'rteStudents', 'cocStudents',
             'rteTotalDue', 'rteTotalReceived', 'rteReceipts',
-            'cocTotalDue', 'cocTotalReceived', 'cocReceipts'
+            'cocTotalDue', 'cocTotalReceived', 'cocReceipts',
+            'activeTab'
         ));
     }
 
@@ -260,7 +290,7 @@ class FeeReportController extends Controller
         ]);
 
         $tab = $request->fee_category;
-        return redirect()->route('reports.rte', ['session_id' => $request->session_id, 'tab' => $tab])
+        return redirect()->route('fees.categoryReceipts', ['session_id' => $request->session_id, 'tab' => $tab])
             ->with('status', 'Bulk payment recorded successfully.');
     }
 
@@ -270,7 +300,7 @@ class FeeReportController extends Controller
         $sessionId = $receipt->session_id;
         $tab = $receipt->fee_category;
         $receipt->delete();
-        return redirect()->route('reports.rte', ['session_id' => $sessionId, 'tab' => $tab])
+        return redirect()->route('fees.categoryReceipts', ['session_id' => $sessionId, 'tab' => $tab])
             ->with('status', 'Receipt deleted.');
     }
 
