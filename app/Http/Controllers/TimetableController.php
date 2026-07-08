@@ -345,9 +345,17 @@ class TimetableController extends Controller
         }
         $nextSchoolDayWeekday = $nextSchoolDay->isoWeekday();
 
-        // Lesson plans this teacher has set for the next school day
+        // Plans pinned to the next school day (scheduled_date matches)
         $nextDayPlans = PlanLesson::where('teacher_id', $teacherId)
             ->where('scheduled_date', $nextSchoolDay->toDateString())
+            ->get()
+            ->keyBy(function ($p) {
+                return $p->class_id . '_' . $p->section_id . '_' . $p->subject_id;
+            });
+
+        // Any plan that exists for this teacher this session (for old plans without scheduled_date)
+        $anyPlansExist = PlanLesson::where('teacher_id', $teacherId)
+            ->where('session_id', $session_id)
             ->get()
             ->keyBy(function ($p) {
                 return $p->class_id . '_' . $p->section_id . '_' . $p->subject_id;
@@ -362,6 +370,7 @@ class TimetableController extends Controller
             'nextSchoolDay'      => $nextSchoolDay,
             'nextSchoolDayWeekday' => $nextSchoolDayWeekday,
             'nextDayPlans'       => $nextDayPlans,
+            'anyPlansExist'      => $anyPlansExist,
         ]);
     }
 
