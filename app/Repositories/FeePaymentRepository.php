@@ -145,10 +145,13 @@ class FeePaymentRepository implements FeePaymentInterface
     {
         if ($mode === 'rte') {
             $categoryFilter = "AND u.fee_category = 'rte'";
+        } elseif ($mode === 'coc') {
+            $categoryFilter = "AND u.fee_category = 'coc'";
         } elseif ($mode === 'all') {
             $categoryFilter = '';
         } else {
-            $categoryFilter = "AND u.fee_category != 'rte'";
+            // parent: only general/discount — exclude government-funded categories
+            $categoryFilter = "AND u.fee_category NOT IN ('rte', 'coc')";
         }
 
         return DB::select("

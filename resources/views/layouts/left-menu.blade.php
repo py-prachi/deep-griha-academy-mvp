@@ -43,13 +43,42 @@
                         </a>
                     </li>
 
-                    {{-- Learning Outcomes & Chapters --}}
+                    {{-- Lesson Planning (Class 1-8) --}}
+                    @php
+                        $menuSessionId2 = session('browse_session_id') ?: optional(\App\Models\SchoolSession::orderBy('id','desc')->first())->id;
+                        $showLessonPlanning = auth()->user()->role === 'admin' || (
+                            auth()->user()->role === 'teacher' &&
+                            \App\Models\SubjectTeacher::where('teacher_id', auth()->id())
+                                ->where('session_id', $menuSessionId2)
+                                ->whereHas('schoolClass', function($q){ $q->whereNotIn('class_name', ['Nursery','LKG','UKG']); })
+                                ->exists()
+                        );
+                        $showPreschoolPlan = auth()->user()->role === 'admin' || (
+                            auth()->user()->role === 'teacher' &&
+                            \App\Models\ClassTeacher::where('teacher_id', auth()->id())
+                                ->where('session_id', $menuSessionId2)
+                                ->whereHas('schoolClass', function($q){ $q->whereIn('class_name', ['Nursery','LKG','UKG']); })
+                                ->exists()
+                        );
+                    @endphp
+
+                    @if($showLessonPlanning)
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('learning-outcomes*') ? 'active' : '' }}" href="{{ route('monthly-outcomes.index') }}">
-                            <i class="bi bi-journal-bookmark"></i>
-                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Learning Outcomes</span>
+                        <a class="nav-link {{ request()->is('lesson-planning*') ? 'active' : '' }}" href="{{ route('lesson-planning.index') }}">
+                            <i class="bi bi-journal-text"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Lesson Planning</span>
                         </a>
                     </li>
+                    @endif
+
+                    @if($showPreschoolPlan)
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('preschool-plans*') ? 'active' : '' }}" href="{{ route('preschool-plans.index') }}">
+                            <i class="bi bi-stars"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Pre-School Plan</span>
+                        </a>
+                    </li>
+                    @endif
 
                     {{-- Diagnostic Test Results --}}
                     <li class="nav-item">
@@ -361,11 +390,19 @@
                         </a>
                     </li>
 
-                    {{-- Learning Outcomes & Chapters (admin: view only) --}}
+                    {{-- Lesson Planning (admin: view all) --}}
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('learning-outcomes*') ? 'active' : '' }}" href="{{ route('monthly-outcomes.index') }}">
-                            <i class="bi bi-journal-bookmark"></i>
-                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Learning Outcomes</span>
+                        <a class="nav-link {{ request()->is('lesson-planning*') ? 'active' : '' }}" href="{{ route('lesson-planning.index') }}">
+                            <i class="bi bi-journal-text"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Lesson Planning</span>
+                        </a>
+                    </li>
+
+                    {{-- Pre-School Plans (admin: view all) --}}
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('preschool-plans*') ? 'active' : '' }}" href="{{ route('preschool-plans.index') }}">
+                            <i class="bi bi-stars"></i>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Pre-School Plans</span>
                         </a>
                     </li>
 

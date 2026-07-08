@@ -67,13 +67,26 @@ class FeeReportController extends Controller
         $sessions = $this->schoolSessionRepository->getAll();
         $selectedSessionId = $request->get('session_id', $this->getSchoolCurrentSession());
         $selectedSession = $sessions->firstWhere('id', $selectedSessionId);
-        $mode = in_array($request->get('mode'), ['parent', 'rte']) ? $request->get('mode') : 'parent';
+        $mode = in_array($request->get('mode'), ['parent', 'rte', 'coc']) ? $request->get('mode') : 'parent';
+
         $defaulters = $this->feePaymentRepository->getDefaulters($selectedSessionId, $mode);
+
+        // Exclude categories fully covered by government bulk receipts
+        $rteSettled = \App\Http\Controllers\YearEndController::isCategoryBulkSettled($selectedSessionId, 'rte');
+        $cocSettled = \App\Http\Controllers\YearEndController::isCategoryBulkSettled($selectedSessionId, 'coc');
+        if ($rteSettled || $cocSettled) {
+            $defaulters = collect($defaulters)->filter(function ($d) use ($rteSettled, $cocSettled) {
+                if ($rteSettled && $d->fee_category === 'rte') return false;
+                if ($cocSettled && $d->fee_category === 'coc') return false;
+                return true;
+            })->values()->all();
+        }
+
         if ($request->get('pdf')) {
             $pdf = Pdf::loadView('reports.fees.defaulters-pdf', compact('defaulters', 'mode'))->setPaper('a4', 'portrait');
             return $pdf->download('defaulters.pdf');
         }
-        return view('reports.fees.defaulters', compact('defaulters', 'sessions', 'selectedSessionId', 'selectedSession', 'mode'));
+        return view('reports.fees.defaulters', compact('defaulters', 'sessions', 'selectedSessionId', 'selectedSession', 'mode', 'rteSettled', 'cocSettled'));
     }
 
     public function categorySummary(Request $request)

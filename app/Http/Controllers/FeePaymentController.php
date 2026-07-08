@@ -185,17 +185,22 @@ class FeePaymentController extends Controller
                 return $s;
             });
 
+        // RTE/COC: check if the category's government bulk receipt covers the full amount
+        $isBulkGovtSettled = in_array($student->fee_category, ['rte', 'coc'])
+            && YearEndController::isCategoryBulkSettled($current_school_session_id, $student->fee_category);
+
         return view('fees.ledger', [
-            'student'          => $student,
-            'promotion'        => $promotion,
-            'feeStructure'     => $feeStructure,
-            'payments'         => $payments,
-            'totalDue'         => $calc['totalDue'],
-            'totalPaid'        => $calc['totalPaid'],
-            'balance'          => $calc['balance'],
-            'effectiveTuition' => $calc['effectiveTuition'],
-            'discountPct'      => $discountPct,
-            'rollovers'        => $rollovers,
+            'student'             => $student,
+            'promotion'           => $promotion,
+            'feeStructure'        => $feeStructure,
+            'payments'            => $payments,
+            'totalDue'            => $calc['totalDue'],
+            'totalPaid'           => $calc['totalPaid'],
+            'balance'             => $calc['balance'],
+            'effectiveTuition'    => $calc['effectiveTuition'],
+            'discountPct'         => $discountPct,
+            'rollovers'           => $rollovers,
+            'isBulkGovtSettled'   => $isBulkGovtSettled,
         ]);
     }
 
