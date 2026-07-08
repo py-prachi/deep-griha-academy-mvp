@@ -20,14 +20,10 @@
                         $selSubjectId       = request('subject_id');
                         $selAssessmentType  = request('assessment_type');
 
-                        // Subjects for selected class+section
+                        // Admin sees all subjects; no SubjectTeacher filter needed
                         $availableSubjects = collect();
                         if ($selClassId && $selSectionId) {
-                            $availableSubjects = \App\Models\Subject::whereHas('subjectTeachers', fn($q) =>
-                                $q->where('session_id', $sessionId)
-                                  ->where('class_id', $selClassId)
-                                  ->where('section_id', $selSectionId)
-                            )->orderBy('sort_order')->get();
+                            $availableSubjects = \App\Models\Subject::orderBy('sort_order')->get();
                         }
                     @endphp
 

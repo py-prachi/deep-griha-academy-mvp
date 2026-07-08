@@ -24,6 +24,29 @@
                         $unsettledCount = $totalStudents - $settledCount;
                     @endphp
 
+                    {{-- Government category status banner --}}
+                    @if($rteBulkSettled || $cocBulkSettled)
+                    <div class="alert alert-success py-2 mb-3">
+                        <i class="bi bi-check-circle me-1"></i>
+                        @if($rteBulkSettled && $cocBulkSettled)
+                            RTE and COC fees are fully covered by government bulk receipts and excluded from this list.
+                        @elseif($rteBulkSettled)
+                            RTE fees are fully covered by government bulk receipts and excluded from this list.
+                        @else
+                            COC fees are fully covered by government bulk receipts and excluded from this list.
+                        @endif
+                        <a href="{{ route('fees.categoryReceipts') }}" class="alert-link ms-1">View Category Receipts</a>
+                    </div>
+                    @else
+                    @if(!$rteBulkSettled || !$cocBulkSettled)
+                    <div class="alert alert-info py-2 mb-3 small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        RTE and COC students will be excluded automatically once their
+                        <a href="{{ route('fees.categoryReceipts') }}" class="alert-link">Category Receipts</a> cover the full amount.
+                    </div>
+                    @endif
+                    @endif
+
                     {{-- Progress summary --}}
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">

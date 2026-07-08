@@ -43,6 +43,10 @@
                                            class="btn {{ $mode === 'rte' ? 'btn-warning' : 'btn-outline-warning' }}">
                                             RTE Pending
                                         </a>
+                                        <a href="{{ route('reports.fees.defaulters', ['session_id' => $selectedSessionId, 'mode' => 'coc']) }}"
+                                           class="btn {{ $mode === 'coc' ? 'btn-info' : 'btn-outline-info' }}">
+                                            COC Pending
+                                        </a>
                                     </div>
                                 </div>
                                 @if($selectedSession)
@@ -53,11 +57,29 @@
                             </div>
                         </form>
 
+                        @if(($rteSettled ?? false) && $mode === 'rte')
+                        <div class="alert alert-success py-2 mb-3">
+                            <i class="bi bi-check-circle me-1"></i>
+                            RTE fees are fully covered by government bulk receipts — no individual defaulters.
+                            <a href="{{ route('fees.categoryReceipts') }}" class="alert-link ms-1">View Category Receipts</a>
+                        </div>
+                        @elseif(($cocSettled ?? false) && $mode === 'coc')
+                        <div class="alert alert-success py-2 mb-3">
+                            <i class="bi bi-check-circle me-1"></i>
+                            COC fees are fully covered by government bulk receipts — no individual defaulters.
+                            <a href="{{ route('fees.categoryReceipts') }}" class="alert-link ms-1">View Category Receipts</a>
+                        </div>
+                        @endif
+
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <div class="card text-white {{ $mode === 'rte' ? 'bg-warning' : 'bg-danger' }}">
+                                @php
+                                    $cardColor  = $mode === 'rte' ? 'bg-warning' : ($mode === 'coc' ? 'bg-info' : 'bg-danger');
+                                    $cardLabel  = $mode === 'rte' ? 'RTE Pending' : ($mode === 'coc' ? 'COC Pending' : 'Total Defaulters');
+                                @endphp
+                                <div class="card text-white {{ $cardColor }}">
                                     <div class="card-body text-center">
-                                        <h6 class="card-title">{{ $mode === 'rte' ? 'RTE Pending' : 'Total Defaulters' }}</h6>
+                                        <h6 class="card-title">{{ $cardLabel }}</h6>
                                         <h3>{{ count($defaulters) }}</h3>
                                     </div>
                                 </div>

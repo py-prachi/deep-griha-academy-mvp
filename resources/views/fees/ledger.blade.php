@@ -94,12 +94,22 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
+                                @if(($isBulkGovtSettled ?? false) && $balance > 0)
+                                <div class="card text-white bg-success">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title">Balance Remaining</h6>
+                                        <h3>₹0</h3>
+                                        <small class="opacity-75">Government Funded</small>
+                                    </div>
+                                </div>
+                                @else
                                 <div class="card text-white {{ $balance > 0 ? 'bg-danger' : 'bg-success' }}">
                                     <div class="card-body text-center">
                                         <h6 class="card-title">Balance Remaining</h6>
                                         <h3>₹{{ number_format($balance, 2) }}</h3>
                                     </div>
                                 </div>
+                                @endif
                             </div>
                         </div>
 
