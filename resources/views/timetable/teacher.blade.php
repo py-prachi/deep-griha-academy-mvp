@@ -103,8 +103,8 @@
                                         <td class="text-end pe-3" style="width:150px;">
                                             @if($slot->plan_status === 'dated')
                                                 @php $linkedPlan = $nextDayPlans[$slot->plan_key] ?? null; @endphp
-                                                <a href="{{ $linkedPlan ? route('lesson-planning.lessons.edit', $linkedPlan->id) : '#' }}"
-                                                   class="badge bg-success text-decoration-none" title="View plan">
+                                                <a href="{{ $linkedPlan ? route('lesson-planning.print', ['lesson_id' => $linkedPlan->id]) : '#' }}"
+                                                   class="badge bg-success text-decoration-none" title="View &amp; print plan" target="_blank">
                                                     <i class="bi bi-check-lg me-1"></i>Plan set
                                                 </a>
                                             @elseif($slot->plan_status === 'exists')
@@ -190,8 +190,8 @@
                                                     $subid = optional($routine->course)->subject_id;
                                                 @endphp
                                                 @if(isset($nextDayPlans[$pk]))
-                                                    <a href="{{ route('lesson-planning.lessons.edit', $nextDayPlans[$pk]->id) }}"
-                                                       class="badge bg-success text-decoration-none" title="View plan">
+                                                    <a href="{{ route('lesson-planning.print', ['lesson_id' => $nextDayPlans[$pk]->id]) }}"
+                                                       class="badge bg-success text-decoration-none" title="View &amp; print plan" target="_blank">
                                                         <i class="bi bi-check-lg"></i>
                                                     </a>
                                                 @elseif(isset($anyPlansExist[$pk]))
