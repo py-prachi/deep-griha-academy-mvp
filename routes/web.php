@@ -15,7 +15,8 @@ use App\Http\Controllers\ExamRuleController;
 use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\SyllabusController;
 use App\Http\Controllers\LessonPlanController;
-use App\Http\Controllers\MonthlyOutcomeController;
+use App\Http\Controllers\LessonPlanningController;
+use App\Http\Controllers\PreschoolPlanController;
 use App\Http\Controllers\DiagnosticController;
 use App\Http\Controllers\GradeRuleController;
 use App\Http\Controllers\PromotionController;
@@ -225,14 +226,29 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/learning-standard/{id}',             [LessonPlanController::class, 'destroy'])->name('lesson-plans.destroy');
     Route::get('/learning-standard/print',               [LessonPlanController::class, 'printView'])->name('lesson-plans.print');
 
-    // Learning Outcomes & Chapters Covered Every Month
-    Route::get('/learning-outcomes',                     [MonthlyOutcomeController::class, 'index'])->name('monthly-outcomes.index');
-    Route::get('/learning-outcomes/print',               [MonthlyOutcomeController::class, 'printView'])->name('monthly-outcomes.print');
-    Route::get('/learning-outcomes/create',              [MonthlyOutcomeController::class, 'create'])->name('monthly-outcomes.create');
-    Route::post('/learning-outcomes',                    [MonthlyOutcomeController::class, 'store'])->name('monthly-outcomes.store');
-    Route::get('/learning-outcomes/{id}/edit',           [MonthlyOutcomeController::class, 'edit'])->name('monthly-outcomes.edit');
-    Route::put('/learning-outcomes/{id}',                [MonthlyOutcomeController::class, 'update'])->name('monthly-outcomes.update');
-    Route::delete('/learning-outcomes/{id}',             [MonthlyOutcomeController::class, 'destroy'])->name('monthly-outcomes.destroy');
+    // Lesson Planning (Class 1-8)
+    Route::get('/lesson-planning',                           [LessonPlanningController::class, 'index'])->name('lesson-planning.index');
+    Route::get('/lesson-planning/modules/create',            [LessonPlanningController::class, 'createModule'])->name('lesson-planning.modules.create');
+    Route::post('/lesson-planning/modules',                  [LessonPlanningController::class, 'storeModule'])->name('lesson-planning.modules.store');
+    Route::get('/lesson-planning/modules/{id}/edit',         [LessonPlanningController::class, 'editModule'])->name('lesson-planning.modules.edit');
+    Route::put('/lesson-planning/modules/{id}',              [LessonPlanningController::class, 'updateModule'])->name('lesson-planning.modules.update');
+    Route::delete('/lesson-planning/modules/{id}',           [LessonPlanningController::class, 'destroyModule'])->name('lesson-planning.modules.destroy');
+    Route::get('/lesson-planning/lessons/create',            [LessonPlanningController::class, 'createLesson'])->name('lesson-planning.lessons.create');
+    Route::post('/lesson-planning/lessons',                  [LessonPlanningController::class, 'storeLesson'])->name('lesson-planning.lessons.store');
+    Route::get('/lesson-planning/lessons/{id}/edit',         [LessonPlanningController::class, 'editLesson'])->name('lesson-planning.lessons.edit');
+    Route::put('/lesson-planning/lessons/{id}',              [LessonPlanningController::class, 'updateLesson'])->name('lesson-planning.lessons.update');
+    Route::delete('/lesson-planning/lessons/{id}',           [LessonPlanningController::class, 'destroyLesson'])->name('lesson-planning.lessons.destroy');
+    Route::post('/lesson-planning/lessons/{id}/complete',   [LessonPlanningController::class, 'markComplete'])->name('lesson-planning.lessons.complete');
+    Route::get('/lesson-planning/print',                     [LessonPlanningController::class, 'printView'])->name('lesson-planning.print');
+
+    // Pre-School Plans
+    Route::get('/preschool-plans',                  [PreschoolPlanController::class, 'index'])->name('preschool-plans.index');
+    Route::get('/preschool-plans/create',           [PreschoolPlanController::class, 'create'])->name('preschool-plans.create');
+    Route::post('/preschool-plans',                 [PreschoolPlanController::class, 'store'])->name('preschool-plans.store');
+    Route::get('/preschool-plans/{id}/edit',        [PreschoolPlanController::class, 'edit'])->name('preschool-plans.edit');
+    Route::put('/preschool-plans/{id}',             [PreschoolPlanController::class, 'update'])->name('preschool-plans.update');
+    Route::delete('/preschool-plans/{id}',          [PreschoolPlanController::class, 'destroy'])->name('preschool-plans.destroy');
+    Route::get('/preschool-plans/{id}/print',       [PreschoolPlanController::class, 'printView'])->name('preschool-plans.print');
 
     // Diagnostic Test Results
     Route::get('/diagnostics',              [DiagnosticController::class, 'index'])->name('diagnostics.index');

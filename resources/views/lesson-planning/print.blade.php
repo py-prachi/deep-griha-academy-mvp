@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        @if($lesson)Lesson Plan — {{ optional($lesson->subject)->name }}@else Module — {{ optional($module->subject)->name }}@endif
+    </title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; font-size: 12px; color: #222; padding: 20px; }
+        h2 { font-size: 16px; text-align: center; margin-bottom: 4px; }
+        .subtitle { text-align: center; font-size: 12px; color: #555; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        th, td { border: 1px solid #aaa; padding: 6px 8px; vertical-align: top; }
+        th { background: #f0f0f0; font-weight: bold; width: 30%; white-space: nowrap; }
+        td { white-space: pre-wrap; }
+        .section-title { background: #d8e4f0; font-weight: bold; text-align: center; font-size: 13px; }
+        @@media print {
+            body { padding: 10px; }
+            button { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<h2>Deep Griha Academy</h2>
+<div class="subtitle">
+    @if($session){{ $session->session }} Academic Session
+    @endif
+</div>
+
+@if($lesson)
+{{-- LESSON PLAN PRINT --}}
+<h2 style="margin-top:8px;">Lesson Plan</h2>
+<div class="subtitle">
+    {{ optional($lesson->schoolClass)->class_name }} {{ optional($lesson->section)->section_name }}
+    &mdash; {{ optional($lesson->subject)->name }}
+    &mdash; Teacher: {{ optional($lesson->teacher)->first_name }} {{ optional($lesson->teacher)->last_name }}
+</div>
+
+<table>
+    <tr><th>Date Written</th><td>{{ $lesson->date_written ? $lesson->date_written->format('d M Y') : '—' }}</td></tr>
+    <tr><th>Date of Execution</th><td>{{ $lesson->date_execution ?: '—' }}</td></tr>
+    <tr><th>Chapter / Topic</th><td>{{ $lesson->chapter_topic ?? '—' }}</td></tr>
+    <tr><th>Period Timing</th><td>{{ $lesson->period_timing ?? '—' }}</td></tr>
+    @if($lesson->module)
+    <tr><th>Linked Module</th><td>{{ $lesson->module->topic }}</td></tr>
+    @endif
+</table>
+
+<table>
+    <tr><td colspan="2" class="section-title">Curriculum Details</td></tr>
+    <tr><th>Learning Standard</th><td>{{ $lesson->learning_standard ?? '—' }}</td></tr>
+    <tr><th>Objective</th><td>{{ $lesson->objective ?? '—' }}</td></tr>
+    <tr><th>Material Needed</th><td>{{ $lesson->material_needed ?? '—' }}</td></tr>
+    <tr><th>Training Component</th><td>{{ $lesson->training_component ?? '—' }}</td></tr>
+    <tr><th>Student to Whom Responses Expected</th><td>{{ $lesson->student_responses ?? '—' }}</td></tr>
+</table>
+
+<table>
+    <tr><td colspan="2" class="section-title">Lesson Flow</td></tr>
+    <tr><th>Hook</th><td>{{ $lesson->hook ?? '—' }}</td></tr>
+    <tr><th>Teach</th><td>{{ $lesson->teach ?? '—' }}</td></tr>
+    <tr><th>Guided Practice (CW)</th><td>{{ $lesson->guided_practice ?? '—' }}</td></tr>
+    <tr><th>Independent Practice (CW)</th><td>{{ $lesson->independent_practice ?? '—' }}</td></tr>
+    <tr><th>Closure</th><td>{{ $lesson->closure ?? '—' }}</td></tr>
+</table>
+
+<table>
+    <tr><td colspan="2" class="section-title">Additional</td></tr>
+    <tr><th>Homework</th><td>{{ $lesson->homework ?? '—' }}</td></tr>
+    <tr><th>Any Other Note</th><td>{{ $lesson->other_notes ?? '—' }}</td></tr>
+    <tr><th>Remark</th><td>{{ $lesson->remark ?? '—' }}</td></tr>
+</table>
+
+@elseif($module)
+{{-- MODULE PRINT --}}
+<h2 style="margin-top:8px;">Module Plan</h2>
+<div class="subtitle">
+    {{ optional($module->schoolClass)->class_name }} {{ optional($module->section)->section_name }}
+    &mdash; {{ optional($module->subject)->name }}
+    &mdash; Teacher: {{ optional($module->teacher)->first_name }} {{ optional($module->teacher)->last_name }}
+</div>
+
+<table>
+    <tr><th>Date Written</th><td>{{ $module->date_written ? $module->date_written->format('d M Y') : '—' }}</td></tr>
+    <tr><th>Topic/Topics, Chapter/Chapters</th><td>{{ $module->topic ?? '—' }}</td></tr>
+</table>
+
+<table>
+    <tr><td colspan="2" class="section-title">Module Details</td></tr>
+    <tr><th>Learning Outcome</th><td>{{ $module->learning_outcome ?? '—' }}</td></tr>
+    <tr><th>Assessment</th><td>{{ $module->assessment ?? '—' }}</td></tr>
+    <tr><th>Rubric</th><td>{{ $module->rubric ?? '—' }}</td></tr>
+    <tr><th>Objectives</th><td>{{ $module->objectives ?? '—' }}</td></tr>
+    <tr><th>Duration and Flow of Days</th><td style="white-space:pre-wrap;">{{ $module->duration_and_flow ?? '—' }}</td></tr>
+    <tr><th>Materials</th><td>{{ $module->materials ?? '—' }}</td></tr>
+</table>
+@endif
+
+<div style="margin-top:20px; text-align:right;">
+    <button onclick="window.print()" style="padding:6px 16px; cursor:pointer;">Print</button>
+</div>
+
+</body>
+</html>
