@@ -354,8 +354,10 @@ class TimetableController extends Controller
             });
 
         // Any plan that exists for this teacher this session (for old plans without scheduled_date)
+        // Keyed by class_section_subject so we can link directly to the edit form
         $anyPlansExist = PlanLesson::where('teacher_id', $teacherId)
             ->where('session_id', $session_id)
+            ->orderByDesc('updated_at')
             ->get()
             ->keyBy(function ($p) {
                 return $p->class_id . '_' . $p->section_id . '_' . $p->subject_id;

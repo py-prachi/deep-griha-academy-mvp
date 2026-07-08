@@ -39,7 +39,7 @@
                                     <div class="col-md-4">
                                         <label class="form-label fw-semibold">Scheduled Teaching Date</label>
                                         <input type="date" name="scheduled_date" class="form-control @error('scheduled_date') is-invalid @enderror"
-                                               value="{{ old('scheduled_date', $lesson->scheduled_date ? $lesson->scheduled_date->format('Y-m-d') : '') }}">
+                                               value="{{ old('scheduled_date', $lesson->scheduled_date ? $lesson->scheduled_date->format('Y-m-d') : request('scheduled_date', '')) }}">
                                         <div class="form-text">Used for timetable plan status.</div>
                                         @error('scheduled_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                     </div>
