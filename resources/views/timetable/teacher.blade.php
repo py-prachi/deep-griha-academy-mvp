@@ -37,8 +37,81 @@
                     </div>
                     @else
 
-                    @php $activeDay = \Carbon\Carbon::today()->isoWeekday(); @endphp
-                    @php $dayShort = [1=>'Mon',2=>'Tue',3=>'Wed',4=>'Thu',5=>'Fri',6=>'Sat']; @endphp
+                    @php
+                        $activeDay   = \Carbon\Carbon::today()->isoWeekday();
+                        $dayShort    = [1=>'Mon',2=>'Tue',3=>'Wed',4=>'Thu',5=>'Fri',6=>'Sat'];
+
+                        // Build list of next-school-day slots for this teacher
+                        $nextDaySlots = collect();
+                        foreach (($periodsByDay[$nextSchoolDayWeekday] ?? collect()) as $pd) {
+                            if ($pd->is_break) continue;
+                            $rt = $grid[$nextSchoolDayWeekday][$pd->id] ?? null;
+                            if (!$rt) continue;
+                            $planKey = $rt->class_id . '_' . $rt->section_id . '_' . optional($rt->course)->subject_id;
+                            $nextDaySlots->push((object)[
+                                'period'     => $pd,
+                                'routine'    => $rt,
+                                'plan_key'   => $planKey,
+                                'has_plan'   => isset($nextDayPlans[$planKey]),
+                                'class_id'   => $rt->class_id,
+                                'section_id' => $rt->section_id,
+                                'subject_id' => optional($rt->course)->subject_id,
+                            ]);
+                        }
+                        $plannedCount = $nextDaySlots->where('has_plan', true)->count();
+                        $totalCount   = $nextDaySlots->count();
+                    @endphp
+
+                    {{-- Next Teaching Day lesson plan status panel --}}
+                    @if(!isset($viewingTeacher) || !$viewingTeacher)
+                    <div class="card mb-3 border-{{ $totalCount > 0 && $plannedCount < $totalCount ? 'warning' : 'success' }} shadow-sm">
+                        <div class="card-header py-2 d-flex align-items-center justify-content-between
+                            bg-{{ $totalCount > 0 && $plannedCount < $totalCount ? 'warning bg-opacity-10' : 'success bg-opacity-10' }}">
+                            <span class="fw-semibold small">
+                                <i class="bi bi-calendar-check me-1"></i>
+                                Next Teaching Day — {{ $nextSchoolDay->format('l, d M Y') }}
+                            </span>
+                            @if($totalCount > 0)
+                            <span class="badge {{ $plannedCount === $totalCount ? 'bg-success' : 'bg-warning text-dark' }}">
+                                {{ $plannedCount }} / {{ $totalCount }} plans set
+                            </span>
+                            @endif
+                        </div>
+                        @if($nextDaySlots->isEmpty())
+                        <div class="card-body py-2 text-muted small">No classes scheduled for this day.</div>
+                        @else
+                        <div class="card-body p-0">
+                            <table class="table table-sm mb-0 align-middle" style="font-size:0.83rem;">
+                                <tbody>
+                                    @foreach($nextDaySlots as $slot)
+                                    <tr>
+                                        <td class="ps-3 text-nowrap text-muted" style="width:110px;">
+                                            {{ $slot->period->label }}
+                                            <span class="d-block" style="font-size:0.7rem;">{{ $slot->period->start_time }}–{{ $slot->period->end_time }}</span>
+                                        </td>
+                                        <td class="fw-semibold">{{ optional(optional($slot->routine->course)->subject)->name }}</td>
+                                        <td class="text-muted">
+                                            {{ optional($slot->routine->schoolClass)->class_name }}
+                                            {{ optional($slot->routine->section)->section_name }}
+                                        </td>
+                                        <td class="text-end pe-3" style="width:130px;">
+                                            @if($slot->has_plan)
+                                                <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Plan set</span>
+                                            @else
+                                                <a href="{{ route('lesson-planning.lessons.create', ['class_id' => $slot->class_id, 'section_id' => $slot->section_id, 'subject_id' => $slot->subject_id, 'scheduled_date' => $nextSchoolDay->toDateString()]) }}"
+                                                   class="badge bg-warning text-dark text-decoration-none">
+                                                    <i class="bi bi-exclamation-triangle me-1"></i>Missing
+                                                </a>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        @endif
+                    </div>
+                    @endif
 
                     <ul class="nav nav-tabs mb-0" role="tablist">
                         @foreach($days as $dayNum => $dayName)
@@ -65,6 +138,9 @@
                                         <th style="width:160px;">Period</th>
                                         <th>Subject</th>
                                         <th>Class</th>
+                                        @if($dayNum == $nextSchoolDayWeekday)
+                                        <th class="text-center" style="width:110px;">Lesson Plan</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -76,7 +152,7 @@
                                             <span class="text-muted d-block" style="font-size:0.72rem;">{{ $period->start_time }}–{{ $period->end_time }}</span>
                                         </td>
                                         @if($period->is_break)
-                                            <td colspan="2" class="text-muted small fst-italic">{{ $period->label }}</td>
+                                            <td colspan="{{ $dayNum == $nextSchoolDayWeekday ? 3 : 2 }}" class="text-muted small fst-italic">{{ $period->label }}</td>
                                         @else
                                             <td class="fw-semibold small">
                                                 {{ $routine ? optional(optional($routine->course)->subject)->name : '—' }}
@@ -87,6 +163,25 @@
                                                     {{ optional($routine->section)->section_name }}
                                                 @endif
                                             </td>
+                                            @if($dayNum == $nextSchoolDayWeekday)
+                                            <td class="text-center">
+                                                @if(!$routine)
+                                                    <span class="text-muted">—</span>
+                                                @else
+                                                @php
+                                                    $pk = $routine->class_id . '_' . $routine->section_id . '_' . optional($routine->course)->subject_id;
+                                                @endphp
+                                                @if(isset($nextDayPlans[$pk]))
+                                                    <span class="badge bg-success"><i class="bi bi-check-lg"></i></span>
+                                                @else
+                                                    <a href="{{ route('lesson-planning.lessons.create', ['class_id' => $routine->class_id, 'section_id' => $routine->section_id, 'subject_id' => optional($routine->course)->subject_id, 'scheduled_date' => $nextSchoolDay->toDateString()]) }}"
+                                                       class="badge bg-warning text-dark text-decoration-none" title="Add lesson plan for {{ $nextSchoolDay->format('d M') }}">
+                                                        <i class="bi bi-plus-lg"></i> Add
+                                                    </a>
+                                                @endif
+                                                @endif
+                                            </td>
+                                            @endif
                                         @endif
                                     </tr>
                                     @endforeach

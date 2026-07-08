@@ -9,7 +9,8 @@ class PlanLesson extends Model
     protected $fillable = [
         'session_id', 'teacher_id', 'class_id', 'section_id', 'subject_id',
         'module_id', 'module_required',
-        'date_written', 'date_execution', 'chapter_topic', 'period_timing',
+        'date_written', 'date_execution', 'scheduled_date', 'period_id',
+        'chapter_topic', 'period_timing',
         'learning_standard', 'objective', 'material_needed', 'training_component',
         'student_responses', 'hook', 'teach', 'guided_practice', 'independent_practice',
         'closure', 'homework', 'other_notes', 'remark', 'status',
@@ -17,6 +18,7 @@ class PlanLesson extends Model
 
     protected $casts = [
         'date_written'    => 'date',
+        'scheduled_date'  => 'date',
         'module_required' => 'boolean',
     ];
 

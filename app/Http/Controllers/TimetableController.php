@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\ClassSubject;
 use App\Models\ClassTeacher;
+use App\Models\PlanLesson;
 use App\Models\Promotion;
 use App\Models\Routine;
 use App\Models\SubjectTeacher;
@@ -12,6 +13,7 @@ use App\Models\TimetablePeriod;
 use App\Traits\SchoolSession;
 use App\Interfaces\SchoolClassInterface;
 use App\Interfaces\SchoolSessionInterface;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class TimetableController extends Controller
@@ -336,12 +338,30 @@ class TimetableController extends Controller
             $periodsByDay[$weekday] = TimetablePeriod::getForDay($weekday);
         }
 
+        // Find the next school day (Mon–Fri), skipping weekends
+        $nextSchoolDay = Carbon::today()->addDay();
+        while ($nextSchoolDay->isWeekend()) {
+            $nextSchoolDay->addDay();
+        }
+        $nextSchoolDayWeekday = $nextSchoolDay->isoWeekday();
+
+        // Lesson plans this teacher has set for the next school day
+        $nextDayPlans = PlanLesson::where('teacher_id', $teacherId)
+            ->where('scheduled_date', $nextSchoolDay->toDateString())
+            ->get()
+            ->keyBy(function ($p) {
+                return $p->class_id . '_' . $p->section_id . '_' . $p->subject_id;
+            });
+
         return view('timetable.teacher', [
-            'days'          => $days,
-            'grid'          => $grid,
-            'periodsByDay'  => $periodsByDay,
-            'routines'      => $routines,
-            'viewingTeacher'=> $viewingTeacher,
+            'days'               => $days,
+            'grid'               => $grid,
+            'periodsByDay'       => $periodsByDay,
+            'routines'           => $routines,
+            'viewingTeacher'     => $viewingTeacher,
+            'nextSchoolDay'      => $nextSchoolDay,
+            'nextSchoolDayWeekday' => $nextSchoolDayWeekday,
+            'nextDayPlans'       => $nextDayPlans,
         ]);
     }
 
