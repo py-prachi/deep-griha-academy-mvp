@@ -104,7 +104,7 @@
                                             @if($slot->plan_status === 'dated')
                                                 @php $linkedPlan = $nextDayPlans[$slot->plan_key] ?? null; @endphp
                                                 <a href="{{ $linkedPlan ? route('lesson-planning.print', ['lesson_id' => $linkedPlan->id]) : '#' }}"
-                                                   class="badge bg-success text-decoration-none" title="View &amp; print plan" target="_blank">
+                                                   class="badge bg-success text-decoration-none" title="View &amp; print plan">
                                                     <i class="bi bi-check-lg me-1"></i>Plan set
                                                 </a>
                                             @elseif($slot->plan_status === 'exists')
@@ -191,7 +191,7 @@
                                                 @endphp
                                                 @if(isset($nextDayPlans[$pk]))
                                                     <a href="{{ route('lesson-planning.print', ['lesson_id' => $nextDayPlans[$pk]->id]) }}"
-                                                       class="badge bg-success text-decoration-none" title="View &amp; print plan" target="_blank">
+                                                       class="badge bg-success text-decoration-none" title="View &amp; print plan">
                                                         <i class="bi bi-check-lg"></i>
                                                     </a>
                                                 @elseif(isset($anyPlansExist[$pk]))
