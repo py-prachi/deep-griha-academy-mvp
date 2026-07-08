@@ -102,12 +102,15 @@
                                         </td>
                                         <td class="text-end pe-3" style="width:150px;">
                                             @if($slot->plan_status === 'dated')
-                                                <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Plan set</span>
+                                                @php $linkedPlan = $nextDayPlans[$slot->plan_key] ?? null; @endphp
+                                                <a href="{{ $linkedPlan ? route('lesson-planning.lessons.edit', $linkedPlan->id) : '#' }}"
+                                                   class="badge bg-success text-decoration-none" title="View plan">
+                                                    <i class="bi bi-check-lg me-1"></i>Plan set
+                                                </a>
                                             @elseif($slot->plan_status === 'exists')
-                                                @php $existingPlan = $anyPlansExist[$slot->plan_key] ?? null; @endphp
-                                                <a href="{{ $existingPlan ? route('lesson-planning.lessons.edit', [$existingPlan->id, 'scheduled_date' => $nextSchoolDay->toDateString()]) : route('lesson-planning.index') }}"
-                                                   class="badge bg-secondary text-decoration-none" title="Plan exists — click to set scheduled date">
-                                                    <i class="bi bi-pencil me-1"></i>Set date
+                                                <a href="{{ route('lesson-planning.lessons.link-slot', ['class_id' => $slot->class_id, 'section_id' => $slot->section_id, 'subject_id' => $slot->subject_id, 'scheduled_date' => $nextSchoolDay->toDateString()]) }}"
+                                                   class="badge bg-secondary text-decoration-none" title="Plans exist — select one to link to this date">
+                                                    <i class="bi bi-link-45deg me-1"></i>Select plan
                                                 </a>
                                             @else
                                                 <a href="{{ route('lesson-planning.lessons.create', ['class_id' => $slot->class_id, 'section_id' => $slot->section_id, 'subject_id' => $slot->subject_id, 'scheduled_date' => $nextSchoolDay->toDateString()]) }}"
@@ -187,12 +190,14 @@
                                                     $subid = optional($routine->course)->subject_id;
                                                 @endphp
                                                 @if(isset($nextDayPlans[$pk]))
-                                                    <span class="badge bg-success"><i class="bi bi-check-lg"></i></span>
+                                                    <a href="{{ route('lesson-planning.lessons.edit', $nextDayPlans[$pk]->id) }}"
+                                                       class="badge bg-success text-decoration-none" title="View plan">
+                                                        <i class="bi bi-check-lg"></i>
+                                                    </a>
                                                 @elseif(isset($anyPlansExist[$pk]))
-                                                    @php $ep = $anyPlansExist[$pk]; @endphp
-                                                    <a href="{{ route('lesson-planning.lessons.edit', [$ep->id, 'scheduled_date' => $nextSchoolDay->toDateString()]) }}"
-                                                       class="badge bg-secondary text-decoration-none" title="Plan exists — click to set scheduled date">
-                                                        <i class="bi bi-pencil"></i>
+                                                    <a href="{{ route('lesson-planning.lessons.link-slot', ['class_id' => $cid, 'section_id' => $sid, 'subject_id' => $subid, 'scheduled_date' => $nextSchoolDay->toDateString()]) }}"
+                                                       class="badge bg-secondary text-decoration-none" title="Plans exist — select one to link">
+                                                        <i class="bi bi-link-45deg"></i>
                                                     </a>
                                                 @else
                                                     <a href="{{ route('lesson-planning.lessons.create', ['class_id' => $cid, 'section_id' => $sid, 'subject_id' => $subid, 'scheduled_date' => $nextSchoolDay->toDateString()]) }}"
