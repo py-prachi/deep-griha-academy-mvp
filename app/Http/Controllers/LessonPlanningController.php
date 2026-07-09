@@ -253,7 +253,9 @@ class LessonPlanningController extends Controller
             ->orderByDesc('date_written')
             ->get();
 
-        return view('lesson-planning.lesson-create', compact('assignment', 'modules', 'sessionId'));
+        $isAgri = strtolower(optional($assignment->subject)->name ?? '') === 'agriculture';
+        $view   = $isAgri ? 'lesson-planning.agri-create' : 'lesson-planning.lesson-create';
+        return view($view, compact('assignment', 'modules', 'sessionId'));
     }
 
     public function storeLesson(Request $request)
@@ -270,6 +272,8 @@ class LessonPlanningController extends Controller
             'date_written'        => 'nullable|date',
             'scheduled_date'      => 'nullable|date',
             'date_execution'      => 'nullable|string|max:200',
+            'lesson_type'         => 'nullable|string|max:50',
+            'practical_notes'     => 'nullable|string',
             'chapter_topic'       => 'nullable|string',
             'period_timing'       => 'nullable|string|max:100',
             'learning_standard'   => 'nullable|string',
@@ -325,7 +329,9 @@ class LessonPlanningController extends Controller
             ->orderByDesc('date_written')
             ->get();
 
-        return view('lesson-planning.lesson-edit', compact('lesson', 'modules'));
+        $isAgri = strtolower(optional($lesson->subject)->name ?? '') === 'agriculture';
+        $view   = $isAgri ? 'lesson-planning.agri-edit' : 'lesson-planning.lesson-edit';
+        return view($view, compact('lesson', 'modules'));
     }
 
     public function updateLesson(Request $request, $id)
@@ -343,6 +349,8 @@ class LessonPlanningController extends Controller
             'date_written'        => 'nullable|date',
             'scheduled_date'      => 'nullable|date',
             'date_execution'      => 'nullable|string|max:200',
+            'lesson_type'         => 'nullable|string|max:50',
+            'practical_notes'     => 'nullable|string',
             'chapter_topic'       => 'nullable|string',
             'period_timing'       => 'nullable|string|max:100',
             'learning_standard'   => 'nullable|string',

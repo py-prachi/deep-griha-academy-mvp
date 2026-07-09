@@ -42,7 +42,32 @@
 </div>
 
 @if($lesson)
-{{-- LESSON PLAN PRINT --}}
+@php $isAgri = strtolower(optional($lesson->subject)->name ?? '') === 'agriculture'; @endphp
+
+@if($isAgri)
+{{-- AGRICULTURE LESSON PLAN PRINT --}}
+<h2 style="margin-top:8px;">Agriculture Lesson Plan</h2>
+<div class="subtitle">
+    Grade {{ optional($lesson->schoolClass)->class_name }} {{ optional($lesson->section)->section_name }}
+    &mdash; Teacher: {{ optional($lesson->teacher)->first_name }} {{ optional($lesson->teacher)->last_name }}
+</div>
+
+<table>
+    <tr><th>Date of Planning</th><td>{{ $lesson->date_written ? $lesson->date_written->format('d M Y') : '—' }}</td></tr>
+    <tr><th>Scheduled Teaching Date</th><td>{{ $lesson->scheduled_date ? $lesson->scheduled_date->format('d M Y') : '—' }}</td></tr>
+    <tr><th>Date of Execution</th><td>{{ $lesson->date_execution ?: '—' }}</td></tr>
+    <tr><th>Grade</th><td>{{ optional($lesson->schoolClass)->class_name }}</td></tr>
+    <tr><th>Topic</th><td>{{ $lesson->chapter_topic ?? '—' }}</td></tr>
+    <tr><th>Practical / Theory</th><td>{{ $lesson->lesson_type ?? '—' }}</td></tr>
+    <tr><th>Objective</th><td>{{ $lesson->objective ?? '—' }}</td></tr>
+    <tr><th>Teach</th><td>{{ $lesson->teach ?? '—' }}</td></tr>
+    <tr><th>Practical Activity</th><td>{{ $lesson->practical_notes ?? '—' }}</td></tr>
+    <tr><th>Closure</th><td>{{ $lesson->closure ?? '—' }}</td></tr>
+    <tr><th>Project / HW</th><td>{{ $lesson->homework ?? '—' }}</td></tr>
+</table>
+
+@else
+{{-- REGULAR LESSON PLAN PRINT --}}
 <h2 style="margin-top:8px;">Lesson Plan</h2>
 <div class="subtitle">
     {{ optional($lesson->schoolClass)->class_name }} {{ optional($lesson->section)->section_name }}
@@ -85,6 +110,8 @@
     <tr><th>Any Other Note</th><td>{{ $lesson->other_notes ?? '—' }}</td></tr>
     <tr><th>Remark</th><td>{{ $lesson->remark ?? '—' }}</td></tr>
 </table>
+
+@endif {{-- end isAgri --}}
 
 @elseif($module)
 {{-- MODULE PRINT --}}

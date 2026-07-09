@@ -10,6 +10,7 @@ class PlanLesson extends Model
         'session_id', 'teacher_id', 'class_id', 'section_id', 'subject_id',
         'module_id', 'module_required',
         'date_written', 'date_execution', 'scheduled_date', 'period_id',
+        'lesson_type', 'practical_notes',
         'chapter_topic', 'period_timing',
         'learning_standard', 'objective', 'material_needed', 'training_component',
         'student_responses', 'hook', 'teach', 'guided_practice', 'independent_practice',
