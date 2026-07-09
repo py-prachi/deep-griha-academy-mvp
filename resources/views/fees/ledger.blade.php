@@ -118,7 +118,7 @@
                         <div class="card mb-3">
                             <div class="card-header d-flex align-items-center justify-content-between">
                                 <strong>Fee Structure Breakdown</strong>
-                                @if($student->admission && $student->admission->custom_tuition_fee !== null)
+                                @if($student->admission && $student->admission->custom_tuition_fee > 0)
                                     <span class="badge bg-info text-dark">Custom Fee Applied</span>
                                 @elseif(($discountPct ?? 0) > 0)
                                     <span class="badge bg-warning text-dark">{{ $discountPct }}% Discount Applied</span>
@@ -133,7 +133,7 @@
                                 <div class="row">
                                     <div class="col-md-4 text-center border-end">
                                         <div class="text-muted small">Tuition Fee</div>
-                                        @if($student->admission && $student->admission->custom_tuition_fee !== null)
+                                        @if($student->admission && $student->admission->custom_tuition_fee > 0)
                                             <div class="text-muted text-decoration-line-through small">Standard rate</div>
                                             <div class="fw-bold text-info">₹{{ number_format($effectiveTuition ?? 0, 2) }}</div>
                                         @elseif(($discountPct ?? 0) > 0)

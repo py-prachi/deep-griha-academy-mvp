@@ -60,7 +60,8 @@ class FeePaymentController extends Controller
         $feePayments = $this->feePaymentRepository->getFeePaymentsByStudent($student_id, $session_id);
         $totalPaid        = $feePayments->sum('amount_paid');
         $effectiveTuition = 0;
-        $customFee        = $student->admission->custom_tuition_fee ?? null;
+        $customFee        = ($student->admission->custom_tuition_fee ?? 0) > 0
+                            ? $student->admission->custom_tuition_fee : null;
 
         if ($feeStructure) {
             if ($customFee !== null) {
