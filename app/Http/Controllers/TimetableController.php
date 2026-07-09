@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ClassSubject;
 use App\Models\ClassTeacher;
 use App\Models\PlanLesson;
+use App\Models\PreschoolPlan;
 use App\Models\Promotion;
 use App\Models\Routine;
 use App\Models\SubjectTeacher;
@@ -363,16 +364,37 @@ class TimetableController extends Controller
                 return $p->class_id . '_' . $p->section_id . '_' . $p->subject_id;
             });
 
+        // PreSchool CT plan status for the next school day
+        $preschoolClasses = ['Nursery', 'LKG', 'UKG'];
+        $preschoolCtAssignment = ClassTeacher::with(['schoolClass', 'section'])
+            ->where('teacher_id', $teacherId)
+            ->where('session_id', $session_id)
+            ->whereHas('schoolClass', function ($q) use ($preschoolClasses) {
+                $q->whereIn('class_name', $preschoolClasses);
+            })
+            ->first();
+
+        $preschoolNextDayPlan = null;
+        if ($preschoolCtAssignment) {
+            $preschoolNextDayPlan = PreschoolPlan::where('teacher_id', $teacherId)
+                ->where('class_id', $preschoolCtAssignment->class_id)
+                ->where('section_id', $preschoolCtAssignment->section_id)
+                ->where('plan_date', $nextSchoolDay->toDateString())
+                ->first();
+        }
+
         return view('timetable.teacher', [
-            'days'               => $days,
-            'grid'               => $grid,
-            'periodsByDay'       => $periodsByDay,
-            'routines'           => $routines,
-            'viewingTeacher'     => $viewingTeacher,
-            'nextSchoolDay'      => $nextSchoolDay,
-            'nextSchoolDayWeekday' => $nextSchoolDayWeekday,
-            'nextDayPlans'       => $nextDayPlans,
-            'anyPlansExist'      => $anyPlansExist,
+            'days'                  => $days,
+            'grid'                  => $grid,
+            'periodsByDay'          => $periodsByDay,
+            'routines'              => $routines,
+            'viewingTeacher'        => $viewingTeacher,
+            'nextSchoolDay'         => $nextSchoolDay,
+            'nextSchoolDayWeekday'  => $nextSchoolDayWeekday,
+            'nextDayPlans'          => $nextDayPlans,
+            'anyPlansExist'         => $anyPlansExist,
+            'preschoolCtAssignment' => $preschoolCtAssignment,
+            'preschoolNextDayPlan'  => $preschoolNextDayPlan,
         ]);
     }
 

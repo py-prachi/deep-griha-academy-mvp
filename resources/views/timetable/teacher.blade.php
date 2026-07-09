@@ -30,6 +30,36 @@
 
                     @include('session-messages')
 
+                    {{-- PreSchool CT: daily plan status for next teaching day --}}
+                    @if(isset($preschoolCtAssignment) && $preschoolCtAssignment && (!isset($viewingTeacher) || !$viewingTeacher))
+                    <div class="card mb-3 border-{{ $preschoolNextDayPlan ? 'success' : 'danger' }} shadow-sm">
+                        <div class="card-header py-2 d-flex align-items-center justify-content-between bg-{{ $preschoolNextDayPlan ? 'success' : 'danger' }} bg-opacity-10">
+                            <span class="fw-semibold small">
+                                <i class="bi bi-stars me-1"></i>
+                                Pre-School Daily Plan — {{ optional($preschoolCtAssignment->schoolClass)->class_name }} {{ optional($preschoolCtAssignment->section)->section_name }}
+                                &nbsp;·&nbsp; {{ $nextSchoolDay->format('l, d M Y') }}
+                            </span>
+                            @if($preschoolNextDayPlan)
+                                <a href="{{ route('preschool-plans.print', $preschoolNextDayPlan->id) }}"
+                                   class="badge bg-success text-decoration-none" title="View &amp; print plan">
+                                    <i class="bi bi-check-lg me-1"></i>Plan set
+                                </a>
+                            @else
+                                <a href="{{ route('preschool-plans.create') }}"
+                                   class="badge bg-danger text-decoration-none">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Missing — Create plan
+                                </a>
+                            @endif
+                        </div>
+                        @if($preschoolNextDayPlan)
+                        <div class="card-body py-2 small text-muted">
+                            {{ $preschoolNextDayPlan->slots_count ?? $preschoolNextDayPlan->slots()->count() }} activities planned.
+                            <a href="{{ route('preschool-plans.edit', $preschoolNextDayPlan->id) }}" class="ms-2">Edit</a>
+                        </div>
+                        @endif
+                    </div>
+                    @endif
+
                     @if($routines->isEmpty())
                     <div class="alert alert-light border" style="max-width:480px;">
                         <i class="bi bi-info-circle me-1 text-muted"></i>
