@@ -253,7 +253,9 @@ class LessonPlanningController extends Controller
             ->orderByDesc('date_written')
             ->get();
 
-        return view('lesson-planning.lesson-create', compact('assignment', 'modules', 'sessionId'));
+        $isAgri = strtolower(optional($assignment->subject)->name ?? '') === 'agriculture';
+        $view   = $isAgri ? 'lesson-planning.agri-create' : 'lesson-planning.lesson-create';
+        return view($view, compact('assignment', 'modules', 'sessionId'));
     }
 
     public function storeLesson(Request $request)
@@ -268,7 +270,10 @@ class LessonPlanningController extends Controller
             'module_id'           => 'nullable|integer|exists:plan_modules,id',
             'module_required'     => 'required|in:0,1',
             'date_written'        => 'nullable|date',
+            'scheduled_date'      => 'nullable|date',
             'date_execution'      => 'nullable|string|max:200',
+            'lesson_type'         => 'nullable|string|max:50',
+            'practical_notes'     => 'nullable|string',
             'chapter_topic'       => 'nullable|string',
             'period_timing'       => 'nullable|string|max:100',
             'learning_standard'   => 'nullable|string',
@@ -324,7 +329,9 @@ class LessonPlanningController extends Controller
             ->orderByDesc('date_written')
             ->get();
 
-        return view('lesson-planning.lesson-edit', compact('lesson', 'modules'));
+        $isAgri = strtolower(optional($lesson->subject)->name ?? '') === 'agriculture';
+        $view   = $isAgri ? 'lesson-planning.agri-edit' : 'lesson-planning.lesson-edit';
+        return view($view, compact('lesson', 'modules'));
     }
 
     public function updateLesson(Request $request, $id)
@@ -340,7 +347,10 @@ class LessonPlanningController extends Controller
             'module_id'           => 'nullable|integer|exists:plan_modules,id',
             'module_required'     => 'required|in:0,1',
             'date_written'        => 'nullable|date',
+            'scheduled_date'      => 'nullable|date',
             'date_execution'      => 'nullable|string|max:200',
+            'lesson_type'         => 'nullable|string|max:50',
+            'practical_notes'     => 'nullable|string',
             'chapter_topic'       => 'nullable|string',
             'period_timing'       => 'nullable|string|max:100',
             'learning_standard'   => 'nullable|string',
@@ -390,6 +400,66 @@ class LessonPlanningController extends Controller
         $lesson->update(['status' => 'completed']);
 
         return back()->with('status', 'Lesson plan marked as completed.');
+    }
+
+    /**
+     * List existing plans for a timetable slot so the teacher can link one to a date.
+     */
+    public function linkSlot(Request $request)
+    {
+        $user      = auth()->user();
+        $sessionId = $this->getSchoolCurrentSession();
+
+        $classId       = (int) $request->get('class_id');
+        $sectionId     = (int) $request->get('section_id');
+        $subjectId     = (int) $request->get('subject_id');
+        $scheduledDate = $request->get('scheduled_date'); // YYYY-MM-DD
+
+        $assignment = SubjectTeacher::with(['subject', 'schoolClass', 'section'])
+            ->where('teacher_id', $user->id)
+            ->where('session_id', $sessionId)
+            ->where('class_id', $classId)
+            ->where('section_id', $sectionId)
+            ->where('subject_id', $subjectId)
+            ->first();
+
+        if (!$assignment) {
+            abort(403, 'You are not assigned to teach this subject for this class.');
+        }
+
+        // Format the target date as d/m/Y for matching against free-text date_execution
+        $dateDisplay = $scheduledDate ? \Carbon\Carbon::parse($scheduledDate)->format('j/n/Y') : null;
+
+        $plans = PlanLesson::where('teacher_id', $user->id)
+            ->where('session_id', $sessionId)
+            ->where('class_id', $classId)
+            ->where('section_id', $sectionId)
+            ->where('subject_id', $subjectId)
+            ->orderByDesc('date_written')
+            ->get();
+
+        return view('lesson-planning.link-slot', compact(
+            'assignment', 'plans', 'scheduledDate', 'dateDisplay'
+        ));
+    }
+
+    /**
+     * Set scheduled_date on an existing lesson plan (called from timetable link-slot page).
+     */
+    public function setScheduledDate(Request $request, $id)
+    {
+        $user   = auth()->user();
+        $lesson = PlanLesson::findOrFail($id);
+
+        if ($user->role !== 'admin' && $lesson->teacher_id !== $user->id) {
+            abort(403);
+        }
+
+        $data = $request->validate(['scheduled_date' => 'required|date']);
+        $lesson->update(['scheduled_date' => $data['scheduled_date']]);
+
+        return redirect()->route('timetable.teacher')
+            ->with('status', 'Lesson plan linked to ' . \Carbon\Carbon::parse($data['scheduled_date'])->format('d M Y') . '.');
     }
 
     public function printView(Request $request)

@@ -66,7 +66,7 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('lesson-planning*') ? 'active' : '' }}" href="{{ route('lesson-planning.index') }}">
                             <i class="bi bi-journal-text"></i>
-                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Lesson Planning</span>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Lesson &amp; Module Planning</span>
                         </a>
                     </li>
                     @endif
@@ -390,11 +390,11 @@
                         </a>
                     </li>
 
-                    {{-- Lesson Planning (admin: view all) --}}
+                    {{-- Lesson & Module Planning (admin: view all) --}}
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('lesson-planning*') ? 'active' : '' }}" href="{{ route('lesson-planning.index') }}">
                             <i class="bi bi-journal-text"></i>
-                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Lesson Planning</span>
+                            <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Lesson &amp; Module Planning</span>
                         </a>
                     </li>
 

@@ -19,13 +19,24 @@
         table.activity-fields th, table.activity-fields td { border: 1px solid #aaa; padding: 5px 8px; vertical-align: top; }
         table.activity-fields th { background: #f0f0f0; font-weight: bold; width: 25%; white-space: nowrap; }
         table.activity-fields td { white-space: pre-wrap; }
+        .action-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 20px; padding: 10px 12px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; }
+        .action-bar a, .action-bar button { padding: 5px 14px; border-radius: 4px; font-size: 12px; cursor: pointer; text-decoration: none; }
+        .btn-back { background: #fff; border: 1px solid #aaa; color: #333; }
+        .btn-print { background: #198754; border: 1px solid #198754; color: #fff; }
+        .pdf-hint { font-size: 11px; color: #666; margin-left: auto; }
         @media print {
             body { padding: 10px; }
-            button { display: none; }
+            .action-bar { display: none; }
         }
     </style>
 </head>
 <body>
+
+<div class="action-bar">
+    <a href="javascript:history.back()" class="btn-back">&#8592; Back</a>
+    <button onclick="window.print()" class="btn-print">&#128438; Print</button>
+    <span class="pdf-hint">To save as PDF: click Print &rarr; choose "Save as PDF" as the destination.</span>
+</div>
 
 <h2>Deep Griha Academy</h2>
 <div class="subtitle">
@@ -74,8 +85,8 @@
 </div>
 @endforeach
 
-<div style="margin-top:20px; text-align:right;">
-    <button onclick="window.print()" style="padding:6px 16px; cursor:pointer;">Print</button>
+<div class="action-bar" style="margin-top:20px; justify-content:flex-end;">
+    <button onclick="window.print()" class="btn-print">&#128438; Print / Save as PDF</button>
 </div>
 
 </body>

@@ -234,11 +234,13 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/lesson-planning/modules/{id}',              [LessonPlanningController::class, 'updateModule'])->name('lesson-planning.modules.update');
     Route::delete('/lesson-planning/modules/{id}',           [LessonPlanningController::class, 'destroyModule'])->name('lesson-planning.modules.destroy');
     Route::get('/lesson-planning/lessons/create',            [LessonPlanningController::class, 'createLesson'])->name('lesson-planning.lessons.create');
+    Route::get('/lesson-planning/lessons/link-slot',         [LessonPlanningController::class, 'linkSlot'])->name('lesson-planning.lessons.link-slot');
     Route::post('/lesson-planning/lessons',                  [LessonPlanningController::class, 'storeLesson'])->name('lesson-planning.lessons.store');
     Route::get('/lesson-planning/lessons/{id}/edit',         [LessonPlanningController::class, 'editLesson'])->name('lesson-planning.lessons.edit');
     Route::put('/lesson-planning/lessons/{id}',              [LessonPlanningController::class, 'updateLesson'])->name('lesson-planning.lessons.update');
     Route::delete('/lesson-planning/lessons/{id}',           [LessonPlanningController::class, 'destroyLesson'])->name('lesson-planning.lessons.destroy');
     Route::post('/lesson-planning/lessons/{id}/complete',   [LessonPlanningController::class, 'markComplete'])->name('lesson-planning.lessons.complete');
+    Route::post('/lesson-planning/lessons/{id}/set-date',   [LessonPlanningController::class, 'setScheduledDate'])->name('lesson-planning.lessons.set-date');
     Route::get('/lesson-planning/print',                     [LessonPlanningController::class, 'printView'])->name('lesson-planning.print');
 
     // Pre-School Plans

@@ -33,14 +33,21 @@
                                 <input type="hidden" name="subject_id" value="{{ $assignment->subject_id }}">
 
                                 <div class="row mb-3">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <label class="form-label fw-semibold">Date Written</label>
                                         <input type="date" name="date_written" class="form-control @error('date_written') is-invalid @enderror"
                                                value="{{ old('date_written') }}">
                                         @error('date_written')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Date of Execution</label>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Scheduled Teaching Date</label>
+                                        <input type="date" name="scheduled_date" class="form-control @error('scheduled_date') is-invalid @enderror"
+                                               value="{{ old('scheduled_date', request('scheduled_date')) }}">
+                                        <div class="form-text">Used for timetable plan status.</div>
+                                        @error('scheduled_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Date of Execution <span class="text-muted fw-normal">(display)</span></label>
                                         <input type="text" name="date_execution" class="form-control @error('date_execution') is-invalid @enderror"
                                                value="{{ old('date_execution') }}" placeholder="e.g. 3/4/2025 or 3/4/2025 &amp; 4/4/2025">
                                         @error('date_execution')<div class="invalid-feedback">{{ $message }}</div>@enderror

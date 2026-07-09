@@ -16,13 +16,24 @@
         th { background: #f0f0f0; font-weight: bold; width: 30%; white-space: nowrap; }
         td { white-space: pre-wrap; }
         .section-title { background: #d8e4f0; font-weight: bold; text-align: center; font-size: 13px; }
+        .action-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 20px; padding: 10px 12px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; }
+        .action-bar a, .action-bar button { padding: 5px 14px; border-radius: 4px; font-size: 12px; cursor: pointer; text-decoration: none; }
+        .btn-back { background: #fff; border: 1px solid #aaa; color: #333; }
+        .btn-print { background: #198754; border: 1px solid #198754; color: #fff; }
+        .pdf-hint { font-size: 11px; color: #666; margin-left: auto; }
         @@media print {
             body { padding: 10px; }
-            button { display: none; }
+            .action-bar { display: none; }
         }
     </style>
 </head>
 <body>
+
+<div class="action-bar">
+    <a href="javascript:history.back()" class="btn-back">&#8592; Back</a>
+    <button onclick="window.print()" class="btn-print">&#128438; Print</button>
+    <span class="pdf-hint">To save as PDF: click Print &rarr; choose "Save as PDF" as the destination.</span>
+</div>
 
 <h2>Deep Griha Academy</h2>
 <div class="subtitle">
@@ -31,7 +42,32 @@
 </div>
 
 @if($lesson)
-{{-- LESSON PLAN PRINT --}}
+@php $isAgri = strtolower(optional($lesson->subject)->name ?? '') === 'agriculture'; @endphp
+
+@if($isAgri)
+{{-- AGRICULTURE LESSON PLAN PRINT --}}
+<h2 style="margin-top:8px;">Agriculture Lesson Plan</h2>
+<div class="subtitle">
+    Grade {{ optional($lesson->schoolClass)->class_name }} {{ optional($lesson->section)->section_name }}
+    &mdash; Teacher: {{ optional($lesson->teacher)->first_name }} {{ optional($lesson->teacher)->last_name }}
+</div>
+
+<table>
+    <tr><th>Date of Planning</th><td>{{ $lesson->date_written ? $lesson->date_written->format('d M Y') : '—' }}</td></tr>
+    <tr><th>Scheduled Teaching Date</th><td>{{ $lesson->scheduled_date ? $lesson->scheduled_date->format('d M Y') : '—' }}</td></tr>
+    <tr><th>Date of Execution</th><td>{{ $lesson->date_execution ?: '—' }}</td></tr>
+    <tr><th>Grade</th><td>{{ optional($lesson->schoolClass)->class_name }}</td></tr>
+    <tr><th>Topic</th><td>{{ $lesson->chapter_topic ?? '—' }}</td></tr>
+    <tr><th>Practical / Theory</th><td>{{ $lesson->lesson_type ?? '—' }}</td></tr>
+    <tr><th>Objective</th><td>{{ $lesson->objective ?? '—' }}</td></tr>
+    <tr><th>Teach</th><td>{{ $lesson->teach ?? '—' }}</td></tr>
+    <tr><th>Practical Activity</th><td>{{ $lesson->practical_notes ?? '—' }}</td></tr>
+    <tr><th>Closure</th><td>{{ $lesson->closure ?? '—' }}</td></tr>
+    <tr><th>Project / HW</th><td>{{ $lesson->homework ?? '—' }}</td></tr>
+</table>
+
+@else
+{{-- REGULAR LESSON PLAN PRINT --}}
 <h2 style="margin-top:8px;">Lesson Plan</h2>
 <div class="subtitle">
     {{ optional($lesson->schoolClass)->class_name }} {{ optional($lesson->section)->section_name }}
@@ -41,6 +77,7 @@
 
 <table>
     <tr><th>Date Written</th><td>{{ $lesson->date_written ? $lesson->date_written->format('d M Y') : '—' }}</td></tr>
+    <tr><th>Scheduled Teaching Date</th><td>{{ $lesson->scheduled_date ? $lesson->scheduled_date->format('d M Y') : '—' }}</td></tr>
     <tr><th>Date of Execution</th><td>{{ $lesson->date_execution ?: '—' }}</td></tr>
     <tr><th>Chapter / Topic</th><td>{{ $lesson->chapter_topic ?? '—' }}</td></tr>
     <tr><th>Period Timing</th><td>{{ $lesson->period_timing ?? '—' }}</td></tr>
@@ -74,6 +111,8 @@
     <tr><th>Remark</th><td>{{ $lesson->remark ?? '—' }}</td></tr>
 </table>
 
+@endif {{-- end isAgri --}}
+
 @elseif($module)
 {{-- MODULE PRINT --}}
 <h2 style="margin-top:8px;">Module Plan</h2>
@@ -99,8 +138,8 @@
 </table>
 @endif
 
-<div style="margin-top:20px; text-align:right;">
-    <button onclick="window.print()" style="padding:6px 16px; cursor:pointer;">Print</button>
+<div style="margin-top:20px; text-align:right;" class="action-bar" style="justify-content:flex-end;">
+    <button onclick="window.print()" class="btn-print">&#128438; Print / Save as PDF</button>
 </div>
 
 </body>
