@@ -157,7 +157,7 @@ class AdmissionRepository implements AdmissionInterface
             $admission->section_id          = $data['section_id'] ?? $admission->section_id;
             $admission->sibling_admission_id = isset($data['sibling_admission_id']) && $data['sibling_admission_id'] !== ''
                 ? $data['sibling_admission_id'] : null;
-            $admission->custom_tuition_fee  = isset($data['custom_tuition_fee']) && $data['custom_tuition_fee'] !== ''
+            $admission->custom_tuition_fee  = !empty($data['custom_tuition_fee']) && (float)$data['custom_tuition_fee'] > 0
                 ? $data['custom_tuition_fee'] : null;
 
             // If already confirmed, bail out early

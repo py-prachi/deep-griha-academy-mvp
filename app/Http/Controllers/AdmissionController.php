@@ -299,7 +299,7 @@ class AdmissionController extends Controller
 
                 // Resolve effective tuition: custom override first, then fee structure lookup
                 $effectiveFee = null;
-                if ($admission->custom_tuition_fee !== null) {
+                if ($admission->custom_tuition_fee > 0) {
                     $effectiveFee = (float) $admission->custom_tuition_fee;
                 } elseif ($admission->class_id && $session) {
                     $resolvedCat  = $admission->fee_category === 'discount' ? 'general' : ($admission->fee_category ?? 'general');
