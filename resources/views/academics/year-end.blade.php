@@ -120,17 +120,40 @@
                                     <td class="text-end small">₹{{ number_format($d->total_due, 0) }}</td>
                                     <td class="text-end small text-success">₹{{ number_format($d->total_paid, 0) }}</td>
                                     <td class="text-end fw-bold text-danger">₹{{ number_format($d->balance, 0) }}</td>
-                                    <td style="min-width:360px;">
+                                    <td style="min-width:380px;">
                                         @if($settlement)
-                                            <div class="d-flex align-items-start gap-2">
+                                            {{-- Settled: show badge + remark, pencil toggles inline edit form --}}
+                                            <div id="view-{{ $d->student_id }}" class="d-flex align-items-start gap-2">
                                                 <span class="badge {{ \App\Models\FeeSettlement::$typeBadges[$settlement->settlement_type] }} mt-1">
                                                     {{ \App\Models\FeeSettlement::$typeLabels[$settlement->settlement_type] }}
                                                 </span>
                                                 <div class="small flex-grow-1">{{ $settlement->remark }}</div>
-                                                <form method="POST" action="{{ route('school.session.year-end.unsettle', $d->student_id) }}" class="d-inline">
-                                                    @csrf @method('DELETE')
-                                                    <button class="btn btn-xs btn-outline-secondary py-0 px-1" style="font-size:0.7rem;" title="Edit">
-                                                        <i class="bi bi-pencil"></i>
+                                                <button type="button"
+                                                    onclick="document.getElementById('view-{{ $d->student_id }}').classList.add('d-none'); document.getElementById('edit-{{ $d->student_id }}').classList.remove('d-none');"
+                                                    class="btn btn-xs btn-outline-secondary py-0 px-1" style="font-size:0.7rem;" title="Edit settlement">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                            </div>
+                                            {{-- Inline edit form (hidden by default, pre-filled) --}}
+                                            <div id="edit-{{ $d->student_id }}" class="d-none">
+                                                <form method="POST" action="{{ route('school.session.year-end.settle', $d->student_id) }}" class="d-flex gap-2 align-items-start flex-wrap">
+                                                    @csrf
+                                                    <input type="hidden" name="outstanding_amount" value="{{ $d->balance }}">
+                                                    <select name="settlement_type" class="form-select form-select-sm" style="width:160px;" required>
+                                                        <option value="" disabled>Type...</option>
+                                                        @foreach(\App\Models\FeeSettlement::$typeLabels as $val => $label)
+                                                        <option value="{{ $val }}" {{ $settlement->settlement_type === $val ? 'selected' : '' }}>{{ $label }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <input type="text" name="remark" class="form-control form-control-sm" placeholder="Remark (required)" required
+                                                           value="{{ $settlement->remark }}">
+                                                    <button type="submit" class="btn btn-sm btn-primary text-nowrap">
+                                                        <i class="bi bi-check2 me-1"></i> Update
+                                                    </button>
+                                                    <button type="button"
+                                                        onclick="document.getElementById('edit-{{ $d->student_id }}').classList.add('d-none'); document.getElementById('view-{{ $d->student_id }}').classList.remove('d-none');"
+                                                        class="btn btn-sm btn-outline-secondary text-nowrap">
+                                                        Cancel
                                                     </button>
                                                 </form>
                                             </div>

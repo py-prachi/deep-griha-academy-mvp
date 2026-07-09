@@ -9,12 +9,14 @@ use Illuminate\Support\Facades\DB;
 
 class FeePaymentRepository implements FeePaymentInterface
 {
-    public function getByStudent($student_user_id)
+    public function getByStudent($student_user_id, $session_id = null)
     {
-        return FeePayment::with('lineItems', 'recordedBy')
-            ->where('student_user_id', $student_user_id)
-            ->orderBy('payment_date', 'desc')
-            ->get();
+        $query = FeePayment::with('lineItems', 'recordedBy', 'session')
+            ->where('student_user_id', $student_user_id);
+        if ($session_id) {
+            $query->where('session_id', $session_id);
+        }
+        return $query->orderBy('payment_date', 'desc')->get();
     }
 
     // Fee payments only — used for balance calculation
