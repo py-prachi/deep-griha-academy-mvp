@@ -269,6 +269,8 @@
             </div>
             <form method="POST" action="{{ route('admissions.confirm', $admission->id) }}">
                 @csrf
+                {{-- Pass browsing session so promotion lands in the correct year --}}
+                <input type="hidden" name="confirm_session_id" value="{{ $current_session_id }}">
                 <div class="modal-body">
                     <p>You are confirming admission for <strong>{{ $admission->student_name }}</strong>. This will create a student account.</p>
 
