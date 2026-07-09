@@ -180,21 +180,36 @@ class Admission extends Model
 
     public static function generateDgaAdmissionNo($academicYear)
     {
+        $shortYear = substr($academicYear, 2, 2) . '-' . substr($academicYear, 7, 2);
+        $prefix    = 'DGA/' . $shortYear . '/';
+
+        // Highest sequence in the admissions table (includes soft-deleted)
         $lastAdmission = self::withTrashed()
             ->where('academic_year', $academicYear)
             ->whereNotNull('dga_admission_no')
-            ->orderBy('id', 'desc')
-            ->first();
+            ->orderByRaw('CAST(SUBSTRING_INDEX(dga_admission_no, "/", -1) AS UNSIGNED) DESC')
+            ->value('dga_admission_no');
 
-        $nextNumber = 1;
+        $fromAdmissions = 0;
         if ($lastAdmission) {
-            $parts = explode('/', $lastAdmission->dga_admission_no);
-            $nextNumber = ((int) end($parts)) + 1;
+            $parts = explode('/', $lastAdmission);
+            $fromAdmissions = (int) end($parts);
         }
 
-        $shortYear = substr($academicYear, 2, 2) . '-' . substr($academicYear, 7, 2);
+        // Highest sequence in the users table (covers imported students)
+        $lastUser = \App\Models\User::where('dga_admission_no', 'like', $prefix . '%')
+            ->orderByRaw('CAST(SUBSTRING_INDEX(dga_admission_no, "/", -1) AS UNSIGNED) DESC')
+            ->value('dga_admission_no');
 
-        return 'DGA/' . $shortYear . '/' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        $fromUsers = 0;
+        if ($lastUser) {
+            $parts = explode('/', $lastUser);
+            $fromUsers = (int) end($parts);
+        }
+
+        $nextNumber = max($fromAdmissions, $fromUsers) + 1;
+
+        return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
 
     // ── SCOPES ────────────────────────────────────────────────────────────

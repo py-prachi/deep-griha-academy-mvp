@@ -11,7 +11,7 @@ class FeePaymentRepository implements FeePaymentInterface
 {
     public function getByStudent($student_user_id)
     {
-        return FeePayment::with('lineItems', 'recordedBy')
+        return FeePayment::with('lineItems', 'recordedBy', 'session')
             ->where('student_user_id', $student_user_id)
             ->orderBy('payment_date', 'desc')
             ->get();

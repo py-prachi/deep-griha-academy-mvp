@@ -190,17 +190,18 @@ class FeePaymentController extends Controller
             && YearEndController::isCategoryBulkSettled($current_school_session_id, $student->fee_category);
 
         return view('fees.ledger', [
-            'student'             => $student,
-            'promotion'           => $promotion,
-            'feeStructure'        => $feeStructure,
-            'payments'            => $payments,
-            'totalDue'            => $calc['totalDue'],
-            'totalPaid'           => $calc['totalPaid'],
-            'balance'             => $calc['balance'],
-            'effectiveTuition'    => $calc['effectiveTuition'],
-            'discountPct'         => $discountPct,
-            'rollovers'           => $rollovers,
-            'isBulkGovtSettled'   => $isBulkGovtSettled,
+            'student'                    => $student,
+            'promotion'                  => $promotion,
+            'feeStructure'               => $feeStructure,
+            'payments'                   => $payments,
+            'totalDue'                   => $calc['totalDue'],
+            'totalPaid'                  => $calc['totalPaid'],
+            'balance'                    => $calc['balance'],
+            'effectiveTuition'           => $calc['effectiveTuition'],
+            'discountPct'                => $discountPct,
+            'rollovers'                  => $rollovers,
+            'isBulkGovtSettled'          => $isBulkGovtSettled,
+            'current_school_session_id'  => $current_school_session_id,
         ]);
     }
 
@@ -372,10 +373,11 @@ class FeePaymentController extends Controller
         $payment = $this->feePaymentRepository->findById($payment_id);
         $student = $payment->student;
 
-        $current_school_session_id = $this->getSchoolCurrentSession();
+        // Use the payment's own session to look up the correct class, not the browsing session
+        $paymentSessionId = $payment->session_id ?? $this->getSchoolCurrentSession();
         $session = $this->schoolSessionRepository->getLatestSession();
         $promotion = \App\Models\Promotion::where('student_id', $student->id)
-            ->where('session_id', $current_school_session_id)
+            ->where('session_id', $paymentSessionId)
             ->with('section.schoolClass')
             ->first();
 
@@ -398,7 +400,7 @@ class FeePaymentController extends Controller
                     $student->admission->class_id, $session->session_name, $resolvedCat
                 );
             }
-            $calc    = $this->calculateBalance($student, $feeStructure, $student->id, $discountPct, $current_school_session_id);
+            $calc    = $this->calculateBalance($student, $feeStructure, $student->id, $discountPct, $paymentSessionId);
             $balance = $calc['balance'];
         }
 
@@ -416,9 +418,9 @@ class FeePaymentController extends Controller
         $payment = $this->feePaymentRepository->findById($payment_id);
         $student = $payment->student;
 
-        $current_school_session_id = $this->getSchoolCurrentSession();
+        $paymentSessionId = $payment->session_id ?? $this->getSchoolCurrentSession();
         $promotion = \App\Models\Promotion::where('student_id', $student->id)
-            ->where('session_id', $current_school_session_id)
+            ->where('session_id', $paymentSessionId)
             ->with('section.schoolClass')
             ->first();
 

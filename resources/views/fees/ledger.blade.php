@@ -280,6 +280,7 @@
                                             <tr>
                                                 <th>Challan No</th>
                                                 <th>Date</th>
+                                                <th>Session</th>
                                                 <th>Mode</th>
                                                 <th>Items Paid For</th>
                                                 <th class="text-end">Amount</th>
@@ -288,9 +289,19 @@
                                         </thead>
                                         <tbody>
                                             @foreach($payments as $payment)
-                                            <tr>
+                                            @php $isPrevSession = $payment->session_id && $payment->session_id != $current_school_session_id; @endphp
+                                            <tr class="{{ $isPrevSession ? 'table-light text-muted' : '' }}">
                                                 <td><strong>{{ str_pad($payment->challan_no, 4, '0', STR_PAD_LEFT) }}</strong></td>
                                                 <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('d M Y') }}</td>
+                                                <td>
+                                                    @if($isPrevSession)
+                                                        <span class="badge bg-warning text-dark" title="Previous session payment">
+                                                            {{ optional($payment->session)->session_name ?? 'Prev. Session' }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-muted small">Current</span>
+                                                    @endif
+                                                </td>
                                                 <td>
                                                     <span class="badge bg-{{ $payment->payment_mode == 'cash' ? 'secondary' : ($payment->payment_mode == 'qr' ? 'info' : 'warning') }}">
                                                         {{ strtoupper($payment->payment_mode) }}

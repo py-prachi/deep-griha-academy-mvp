@@ -66,6 +66,11 @@ class FeePayment extends Model
         return $this->belongsTo(\App\Models\FeeSettlement::class, 'rollover_id');
     }
 
+    public function session()
+    {
+        return $this->belongsTo(\App\Models\SchoolSession::class, 'session_id');
+    }
+
     // ── HELPER METHODS ────────────────────────────────────────────────────
 
     // Generate next global challan number
