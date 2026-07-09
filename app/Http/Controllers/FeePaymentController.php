@@ -167,8 +167,8 @@ class FeePaymentController extends Controller
             );
         }
 
-        // All payments for history display (fee + misc + rollover) — full history
-        $payments = $this->feePaymentRepository->getByStudent($student_id);
+        // All payments for current session (fee + misc + rollover)
+        $payments = $this->feePaymentRepository->getByStudent($student_id, $current_school_session_id);
 
         // Balance uses fee payments for current session only
         $calc = $this->calculateBalance($student, $feeStructure, $student_id, $discountPct, $current_school_session_id);
@@ -190,18 +190,17 @@ class FeePaymentController extends Controller
             && YearEndController::isCategoryBulkSettled($current_school_session_id, $student->fee_category);
 
         return view('fees.ledger', [
-            'student'                    => $student,
-            'promotion'                  => $promotion,
-            'feeStructure'               => $feeStructure,
-            'payments'                   => $payments,
-            'totalDue'                   => $calc['totalDue'],
-            'totalPaid'                  => $calc['totalPaid'],
-            'balance'                    => $calc['balance'],
-            'effectiveTuition'           => $calc['effectiveTuition'],
-            'discountPct'                => $discountPct,
-            'rollovers'                  => $rollovers,
-            'isBulkGovtSettled'          => $isBulkGovtSettled,
-            'current_school_session_id'  => $current_school_session_id,
+            'student'             => $student,
+            'promotion'           => $promotion,
+            'feeStructure'        => $feeStructure,
+            'payments'            => $payments,
+            'totalDue'            => $calc['totalDue'],
+            'totalPaid'           => $calc['totalPaid'],
+            'balance'             => $calc['balance'],
+            'effectiveTuition'    => $calc['effectiveTuition'],
+            'discountPct'         => $discountPct,
+            'rollovers'           => $rollovers,
+            'isBulkGovtSettled'   => $isBulkGovtSettled,
         ]);
     }
 
