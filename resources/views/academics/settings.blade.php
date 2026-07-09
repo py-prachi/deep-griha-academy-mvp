@@ -150,6 +150,39 @@
                                 </div>
                             </div>
                         </div>
+
+                        {{-- Step 4: Confirm Pending Admissions --}}
+                        <div class="col-md-4">
+                            <div class="card h-100 border-{{ $checklist['pending_admissions'] > 0 ? 'warning' : 'success' }}">
+                                <div class="card-header bg-{{ $checklist['pending_admissions'] > 0 ? 'warning' : 'success' }} text-{{ $checklist['pending_admissions'] > 0 ? 'dark' : 'white' }} py-2">
+                                    <strong>
+                                        <span class="badge bg-white text-{{ $checklist['pending_admissions'] > 0 ? 'warning' : 'success' }} me-1">4</span>
+                                        Confirm Pending Admissions
+                                        @if($checklist['pending_admissions'] === 0)
+                                            <i class="bi bi-check-circle ms-1"></i>
+                                        @endif
+                                    </strong>
+                                </div>
+                                <div class="card-body">
+                                    @if($checklist['pending_admissions'] > 0)
+                                        <p class="text-muted small mb-2">
+                                            <strong class="text-warning">{{ $checklist['pending_admissions'] }} pending admission(s)</strong>
+                                            are waiting to be confirmed. Confirm them now so these students appear in the new session's class lists.
+                                        </p>
+                                        <div class="alert alert-warning py-2 px-3 small mb-2">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Make sure you are <strong>browsing the new session</strong> before confirming, so each student lands in the correct year.
+                                        </div>
+                                        <a href="{{ route('admissions.index', ['status' => 'pending']) }}" class="btn btn-sm btn-warning w-100">
+                                            <i class="bi bi-person-check me-1"></i> View Pending Admissions
+                                        </a>
+                                    @else
+                                        <p class="text-success small mb-2"><i class="bi bi-check-circle me-1"></i> No pending admissions — all inquiries have been confirmed or cancelled.</p>
+                                        <a href="{{ route('admissions.index') }}" class="btn btn-sm btn-outline-success w-100">View Admissions</a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {{-- ── SECTION 2: ONGOING SETUP ── --}}

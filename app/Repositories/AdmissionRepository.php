@@ -195,24 +195,30 @@ class AdmissionRepository implements AdmissionInterface
             // Assign student role
             $student->assignRole('student');
 
+            // Use the browsing session at confirmation time (so Jan/Feb pending admissions
+            // confirmed after new session is created land in the correct new session)
+            $promotionSessionId = !empty($data['confirm_session_id'])
+                ? (int) $data['confirm_session_id']
+                : $admission->session_id;
+
             // Create promotion record so student appears in existing student list
             $promotionRepository = new \App\Repositories\PromotionRepository();
             $promotionRepository->assignClassSection([
-                'session_id'     => $admission->session_id,
+                'session_id'     => $promotionSessionId,
                 'class_id'       => $admission->class_id,
                 'section_id'     => $data['section_id'],
                 'id_card_number' => $admission->dga_admission_no ?? $admission->general_id ?? '',
             ], $student->id);
 
             // Auto-assign next roll number if roll numbers are already in use for this class+section
-            $maxRoll = \App\Models\Promotion::where('session_id', $admission->session_id)
+            $maxRoll = \App\Models\Promotion::where('session_id', $promotionSessionId)
                 ->where('class_id', $admission->class_id)
                 ->where('section_id', $data['section_id'])
                 ->max('roll_number');
 
             if ($maxRoll !== null) {
                 \App\Models\Promotion::where('student_id', $student->id)
-                    ->where('session_id', $admission->session_id)
+                    ->where('session_id', $promotionSessionId)
                     ->update(['roll_number' => $maxRoll + 1]);
             }
 

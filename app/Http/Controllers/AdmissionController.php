@@ -115,10 +115,11 @@ class AdmissionController extends Controller
                             : collect();
 
         return view('admissions.show', [
-            'admission'      => $admission,
-            'school_classes' => $school_classes,
-            'sections'       => $sections,
-            'doc_labels'     => \App\Models\AdmissionDocument::typeLabels(),
+            'admission'          => $admission,
+            'school_classes'     => $school_classes,
+            'sections'           => $sections,
+            'doc_labels'         => \App\Models\AdmissionDocument::typeLabels(),
+            'current_session_id' => $current_session_id,
         ]);
     }
 

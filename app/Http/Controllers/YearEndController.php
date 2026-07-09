@@ -151,13 +151,16 @@ class YearEndController extends Controller
         $latestHasRollNos    = Promotion::where('session_id', $latest_session_id)
             ->whereNotNull('roll_number')->exists();
 
+        $pendingAdmissions = \App\Models\Admission::whereIn('status', ['inquiry', 'pending'])->count();
+
         return [
-            'fees_settled'      => $unsettled === 0,
-            'unsettled_count'   => $unsettled,
-            'classes_cloned'    => $latestHasClasses,
-            'students_promoted' => $latestHasPromotions,
-            'teachers_assigned' => $latestHasTeachers,
-            'roll_nos_assigned' => $latestHasRollNos,
+            'fees_settled'       => $unsettled === 0,
+            'unsettled_count'    => $unsettled,
+            'classes_cloned'     => $latestHasClasses,
+            'students_promoted'  => $latestHasPromotions,
+            'teachers_assigned'  => $latestHasTeachers,
+            'roll_nos_assigned'  => $latestHasRollNos,
+            'pending_admissions' => $pendingAdmissions,
         ];
     }
 }
