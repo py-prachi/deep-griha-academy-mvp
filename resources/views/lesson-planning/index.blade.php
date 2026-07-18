@@ -88,7 +88,7 @@
                                                 <td class="small">{{ Str::limit($module->duration_and_flow, 40) ?? '—' }}</td>
                                                 <td class="text-center">
                                                     <a href="{{ route('lesson-planning.print', ['module_id' => $module->id]) }}"
-                                                       target="_blank" class="btn btn-xs btn-outline-secondary py-0 px-1" title="Print">
+                                                       class="btn btn-xs btn-outline-secondary py-0 px-1" title="Print">
                                                         <i class="bi bi-printer"></i>
                                                     </a>
                                                     <a href="{{ route('lesson-planning.modules.edit', $module->id) }}"
@@ -141,7 +141,7 @@
                                                 </td>
                                                 <td class="text-center">
                                                     <a href="{{ route('lesson-planning.print', ['lesson_id' => $lesson->id]) }}"
-                                                       target="_blank" class="btn btn-xs btn-outline-secondary py-0 px-1" title="Print">
+                                                       class="btn btn-xs btn-outline-secondary py-0 px-1" title="Print">
                                                         <i class="bi bi-printer"></i>
                                                     </a>
                                                     <a href="{{ route('lesson-planning.lessons.edit', $lesson->id) }}"
