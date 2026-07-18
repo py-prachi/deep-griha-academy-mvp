@@ -25,7 +25,7 @@
 
                     <div class="card shadow-sm" style="max-width:800px;">
                         <div class="card-body">
-                            <form method="POST" action="{{ route('lesson-planning.lessons.update', $lesson->id) }}">
+                            <form method="POST" action="{{ route('lesson-planning.lessons.update', $lesson->id) }}" id="agri-form">
                                 @csrf @method('PUT')
                                 <input type="hidden" name="module_required" value="0">
 
@@ -119,4 +119,8 @@
         </div>
     </div>
 </div>
+@include('lesson-planning._draft-autosave', [
+    'formId' => 'agri-form',
+    'draftKey' => 'dga_draft_agri_edit_' . $lesson->id,
+])
 @endsection

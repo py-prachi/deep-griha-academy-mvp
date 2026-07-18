@@ -13,6 +13,20 @@
 
                     @include('session-messages')
 
+                    @if(session('status'))
+                    <script>
+                        // A save/update just succeeded — any locally-cached draft for lesson
+                        // planning forms is stale now, so drop it to avoid a false "restore?" prompt.
+                        (function () {
+                            try {
+                                Object.keys(localStorage)
+                                    .filter(function (k) { return k.indexOf('dga_draft_') === 0; })
+                                    .forEach(function (k) { localStorage.removeItem(k); });
+                            } catch (e) {}
+                        })();
+                    </script>
+                    @endif
+
                     {{-- ── SUBJECT TEACHER SECTION ── --}}
                     @if($subjectAssignments->isNotEmpty())
                     <h6 class="text-uppercase text-muted small fw-bold mb-2 border-bottom pb-1">

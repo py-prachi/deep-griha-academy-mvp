@@ -25,7 +25,7 @@
 
                     <div class="card shadow-sm" style="max-width:800px;">
                         <div class="card-body">
-                            <form method="POST" action="{{ route('lesson-planning.lessons.store') }}">
+                            <form method="POST" action="{{ route('lesson-planning.lessons.store') }}" id="agri-form">
                                 @csrf
                                 <input type="hidden" name="class_id"       value="{{ $assignment->class_id }}">
                                 <input type="hidden" name="section_id"     value="{{ $assignment->section_id }}">
@@ -123,4 +123,8 @@
         </div>
     </div>
 </div>
+@include('lesson-planning._draft-autosave', [
+    'formId' => 'agri-form',
+    'draftKey' => 'dga_draft_agri_create_' . $assignment->class_id . '_' . $assignment->section_id . '_' . $assignment->subject_id,
+])
 @endsection
