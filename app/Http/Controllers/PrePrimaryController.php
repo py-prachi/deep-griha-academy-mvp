@@ -272,7 +272,7 @@ class PrePrimaryController extends Controller
         }
 
         $promotionRepository = new PromotionRepository();
-        $allPromotions = $promotionRepository->getAll($session_id, $class_id, $section_id)
+        $allPromotions = $promotionRepository->getAllActive($session_id, $class_id, $section_id)
             ->sortBy('roll_number')
             ->values();
 
@@ -466,7 +466,7 @@ class PrePrimaryController extends Controller
         }
 
         $promotionRepository = new PromotionRepository();
-        $promotions = $promotionRepository->getAll($session_id, $class_id, $section_id)
+        $promotions = $promotionRepository->getAllActive($session_id, $class_id, $section_id)
             ->sortBy('roll_number');
 
         $rawNarratives = StudentObservation::where('session_id', $session_id)
@@ -685,7 +685,7 @@ class PrePrimaryController extends Controller
         $skills = self::SKILLS[$ppType];
 
         $promotionRepository = new PromotionRepository();
-        $promotions = $promotionRepository->getAll($session_id, $class_id, $section_id)
+        $promotions = $promotionRepository->getAllActive($session_id, $class_id, $section_id)
             ->sortBy('roll_number');
 
         // Load all grades for this class/section

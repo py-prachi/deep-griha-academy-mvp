@@ -292,7 +292,7 @@ class MarksController extends Controller
 
         // Students in this class/section, sorted by roll number ascending
         $promotionRepository = new PromotionRepository();
-        $promotions = $promotionRepository->getAll($session_id, $class_id, $section_id)->sortBy('roll_number')->values();
+        $promotions = $promotionRepository->getAllActive($session_id, $class_id, $section_id)->sortBy('roll_number')->values();
 
         // Existing marks keyed by student_id
         $existingMarks = StudentTermMark::where('subject_id', $subject_id)
@@ -511,7 +511,7 @@ class MarksController extends Controller
 
         // Students in this section
         $promotionRepository = new PromotionRepository();
-        $promotions = $promotionRepository->getAll($session_id, $class_id, $section_id);
+        $promotions = $promotionRepository->getAllActive($session_id, $class_id, $section_id);
         $studentCount = $promotions->count();
         $studentIds = $promotions->pluck('student_id')->toArray();
 
@@ -759,7 +759,7 @@ class MarksController extends Controller
         $section     = $this->sectionRepository->findById($section_id);
 
         $promotionRepo = new PromotionRepository();
-        $promotions    = $promotionRepo->getAll($session_id, $class_id, $section_id);
+        $promotions    = $promotionRepo->getAllActive($session_id, $class_id, $section_id);
 
         $existing = StudentObservation::where('class_id', $class_id)
             ->where('section_id', $section_id)
@@ -959,7 +959,7 @@ class MarksController extends Controller
             ->values();
 
         $promotionRepo = new PromotionRepository();
-        $promotions    = $promotionRepo->getAll($session_id, $class_id, $section_id);
+        $promotions    = $promotionRepo->getAllActive($session_id, $class_id, $section_id);
 
         $publishedTerms = ReportCardPublished::where('class_id', $class_id)
             ->where('section_id', $section_id)

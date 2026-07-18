@@ -87,7 +87,7 @@ class DiagnosticController extends Controller
         }
 
         $promotionRepo = new PromotionRepository();
-        $promotions    = $promotionRepo->getAll($sessionId, $classId, $sectionId)
+        $promotions    = $promotionRepo->getAllActive($sessionId, $classId, $sectionId)
             ->sortBy('roll_number')
             ->values();
 
@@ -217,7 +217,7 @@ class DiagnosticController extends Controller
         }
 
         $promotionRepo = new PromotionRepository();
-        $promotions    = $promotionRepo->getAll($sessionId, $classId, $sectionId)
+        $promotions    = $promotionRepo->getAllActive($sessionId, $classId, $sectionId)
             ->sortBy('roll_number')
             ->values();
 
