@@ -18,6 +18,10 @@
                                 @if($school_section) — {{ $school_section->section_name }} @endif
                             </span>
                         </h5>
+                        <a href="{{ route('attendance.history', ['class_id' => request()->query('class_id'), 'section_id' => request()->query('section_id', 0)]) }}"
+                           class="btn btn-sm btn-outline-secondary ms-auto">
+                            <i class="bi bi-calendar-range me-1"></i> View Attendance History
+                        </a>
                     </div>
 
                     <p class="text-muted small mb-3">{{ now()->format('d M Y') }}</p>

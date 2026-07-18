@@ -48,10 +48,26 @@
                         $classLabel   = $first->schoolClass->class_name ?? '';
                         $sectionLabel = $first->section->section_name ?? '';
                     @endphp
-                    <p class="text-muted small mb-2">
-                        Showing <strong>{{ $studentList->count() }}</strong> student(s) —
-                        {{ $classLabel }}{{ $sectionLabel ? ' — ' . $sectionLabel : '' }}
-                    </p>
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                        <p class="text-muted small mb-0">
+                            Showing <strong>{{ $studentList->count() }}</strong> student(s) —
+                            {{ $classLabel }}{{ $sectionLabel ? ' — ' . $sectionLabel : '' }}
+                        </p>
+                        <div class="d-flex gap-2">
+                            @if(auth()->user()->role === 'teacher' && ($isCTClass ?? false))
+                            <a href="{{ route('attendance.create.show', ['class_id' => request()->query('class_id'), 'section_id' => request()->query('section_id')]) }}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-calendar2-check me-1"></i> Take Attendance
+                            </a>
+                            @endif
+                            @if(auth()->user()->role === 'admin' || ($isCTClass ?? false))
+                            <a href="{{ route('attendance.history', ['class_id' => request()->query('class_id'), 'section_id' => request()->query('section_id')]) }}"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-calendar-range me-1"></i> Attendance History
+                            </a>
+                            @endif
+                        </div>
+                    </div>
                     @if(auth()->user()->role === 'teacher' && !($isCTClass ?? false))
                     <div class="alert alert-info py-2 small mb-2">
                         <i class="bi bi-info-circle me-1"></i>

@@ -111,6 +111,10 @@ class AttendanceController extends Controller
      */
 public function create(Request $request)
 {
+    if (auth()->user()->role === 'admin') {
+        abort(403, 'Admin can only view attendance. Taking attendance is done by the Class Teacher.');
+    }
+
     if ($request->query('class_id') === null) {
         abort(404);
     }
@@ -126,6 +130,17 @@ public function create(Request $request)
         $class_id   = $request->query('class_id');
         $section_id = $request->query('section_id', 0);
         $course_id  = $request->query('course_id');
+
+        // Only the Class Teacher for this class/section may take attendance —
+        // not just any subject teacher.
+        $isCt = ClassTeacher::where('teacher_id', auth()->id())
+            ->where('session_id', $current_school_session_id)
+            ->where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->exists();
+        if (!$isCt) {
+            abort(403, 'Only the Class Teacher for this class/section can take attendance.');
+        }
 
         // ✅ STUDENTS
         $student_list = $this->userRepository
@@ -170,6 +185,19 @@ public function create(Request $request)
      */
     public function store(AttendanceStoreRequest $request)
     {
+        if (auth()->user()->role === 'admin') {
+            abort(403, 'Admin can only view attendance. Taking attendance is done by the Class Teacher.');
+        }
+
+        $isCt = ClassTeacher::where('teacher_id', auth()->id())
+            ->where('session_id', $request->input('session_id'))
+            ->where('class_id', $request->input('class_id'))
+            ->where('section_id', $request->input('section_id'))
+            ->exists();
+        if (!$isCt) {
+            abort(403, 'Only the Class Teacher for this class/section can take attendance.');
+        }
+
         try {
             $attendanceRepository = new AttendanceRepository();
             $attendanceRepository->saveAttendance($request->validated());
@@ -355,6 +383,100 @@ public function showStudentAttendance(Request $request, $id)
 }
 
 
+
+    /**
+     * Class-wide attendance history over a date range.
+     * CT: locked to their own class/section. Admin: pick any class/section via query params.
+     */
+    public function history(Request $request)
+    {
+        $user = auth()->user();
+        $current_school_session_id = $this->getSchoolCurrentSession();
+
+        $class_id   = $request->query('class_id');
+        $section_id = $request->query('section_id');
+
+        if ($user->role === 'teacher') {
+            $ct = ClassTeacher::where('teacher_id', $user->id)
+                ->where('session_id', $current_school_session_id)
+                ->first();
+
+            if (!$ct) {
+                abort(403, 'Only a Class Teacher can view class attendance history.');
+            }
+
+            $class_id   = $ct->class_id;
+            $section_id = $ct->section_id;
+        } elseif (!$class_id) {
+            abort(404);
+        }
+
+        $today = Carbon::today();
+        $range = $request->query('range', '7days');
+
+        if ($request->query('from') && $request->query('to')) {
+            $from  = Carbon::parse($request->query('from'))->startOfDay();
+            $to    = Carbon::parse($request->query('to'))->startOfDay();
+            $range = 'custom';
+        } elseif ($range === 'week') {
+            $from = $today->copy()->startOfWeek();
+            $to   = $today->copy()->endOfWeek();
+        } elseif ($range === 'month') {
+            $from = $today->copy()->startOfMonth();
+            $to   = $today->copy();
+        } else {
+            $range = '7days';
+            $from  = $today->copy()->subDays(6);
+            $to    = $today->copy();
+        }
+
+        // Cap the range so the grid can't grow unbounded
+        if ($from->diffInDays($to) > 62) {
+            $from = $to->copy()->subDays(62);
+        }
+        if ($from->gt($to)) {
+            [$from, $to] = [$to, $from];
+        }
+
+        $school_class   = $this->schoolClassRepository->findById($class_id);
+        $school_section = $section_id ? $this->sectionRepository->findById($section_id) : null;
+
+        $student_list = $this->userRepository
+            ->getAllStudents($current_school_session_id, $class_id, $section_id)
+            ->sortBy('roll_number')
+            ->values();
+
+        $attendanceRepository = new AttendanceRepository();
+        $attendances = $attendanceRepository->getSectionAttendanceRange(
+            $class_id, $section_id, $current_school_session_id,
+            $from->toDateString(), $to->toDateString()
+        );
+
+        // student_id => 'Y-m-d' => status
+        $grid = [];
+        foreach ($attendances as $att) {
+            $grid[$att->student_id][$att->created_at->format('Y-m-d')] = $att->status;
+        }
+
+        $dates = [];
+        for ($cursor = $from->copy(); $cursor->lte($to); $cursor->addDay()) {
+            $dates[] = $cursor->copy();
+        }
+
+        return view('attendances.history', [
+            'school_class'   => $school_class,
+            'school_section' => $school_section,
+            'student_list'   => $student_list,
+            'dates'          => $dates,
+            'grid'           => $grid,
+            'from'           => $from,
+            'to'             => $to,
+            'range'          => $range,
+            'class_id'       => $class_id,
+            'section_id'     => $section_id,
+            'is_ct'          => $user->role === 'teacher',
+        ]);
+    }
 
     public function update(Request $request, $attendance_id)
 {

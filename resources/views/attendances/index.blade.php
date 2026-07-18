@@ -44,12 +44,11 @@
     View Attendance
 </a>
 
-<a href="{{ url('attendances/take', [
+<a href="{{ url('attendances/history', [
     'class_id'   => $school_class->id,
     'section_id' => $course->section_id,
-    'course_id'  => $course->id,
 ]) }}">
-    Take Attendance
+    Attendance History
 </a>
 
                                                     </div>   
@@ -75,11 +74,11 @@
     View Attendance
 </a>
 
-<a href="{{ url('attendances/take', [
+<a href="{{ url('attendances/history', [
     'class_id'   => $school_class->id,
     'section_id' => $school_section->id,
 ]) }}">
-    Take Attendance
+    Attendance History
 </a>
 
                                                                     </div>
