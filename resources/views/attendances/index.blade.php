@@ -52,6 +52,13 @@
     Take Attendance
 </a>
 
+<a href="{{ url('attendances/history', [
+    'class_id'   => $school_class->id,
+    'section_id' => $course->section_id,
+]) }}">
+    Attendance History
+</a>
+
                                                     </div>   
                                                     @endif
                                                 @endforeach
@@ -80,6 +87,13 @@
     'section_id' => $school_section->id,
 ]) }}">
     Take Attendance
+</a>
+
+<a href="{{ url('attendances/history', [
+    'class_id'   => $school_class->id,
+    'section_id' => $school_section->id,
+]) }}">
+    Attendance History
 </a>
 
                                                                     </div>
