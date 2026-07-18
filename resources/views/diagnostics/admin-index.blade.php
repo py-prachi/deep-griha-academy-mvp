@@ -90,7 +90,7 @@
                     @if($selClassId && $selSectionId && $selSubjectId && $selAssessmentType)
                     @php
                         $promotionRepo = new \App\Repositories\PromotionRepository();
-                        $promotions    = $promotionRepo->getAll($sessionId, $selClassId, $selSectionId)
+                        $promotions    = $promotionRepo->getAllActive($sessionId, $selClassId, $selSectionId)
                             ->sortBy('roll_number')->values();
 
                         $results = \App\Models\DiagnosticResult::where('session_id', $sessionId)

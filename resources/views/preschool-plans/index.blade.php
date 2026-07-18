@@ -29,7 +29,7 @@
 
                     @if(!$ctAssignment)
                     <div class="alert alert-warning">
-                        You are not assigned as class teacher for a pre-school class (Nursery/LKG/UKG) in the current session.
+                        You are not assigned as class teacher for a pre-school class (Nursery/Lower KG/Upper KG) in the current session.
                         Ask the admin to assign you via <a href="{{ route('academics.teacher-assignments') }}">Teacher Assignments</a>.
                     </div>
                     @elseif($plans->isEmpty())
