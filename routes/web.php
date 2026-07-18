@@ -97,6 +97,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/attendances', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::get('/attendances/view', [AttendanceController::class, 'show'])->name('attendance.list.show');
     Route::get('/attendances/take', [AttendanceController::class, 'create'])->name('attendance.create.show');
+    Route::get('/attendances/history', [AttendanceController::class, 'history'])->name('attendance.history');
     Route::post('/attendances', [AttendanceController::class, 'store'])->name('attendances.store');
 
     // Classes and sections

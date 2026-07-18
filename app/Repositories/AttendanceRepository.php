@@ -96,6 +96,20 @@ class AttendanceRepository implements AttendanceInterface {
 }
 
 
+    public function getSectionAttendanceRange($class_id, $section_id, $session_id, $from, $to)
+    {
+        try {
+            return Attendance::where('class_id', $class_id)
+                ->where('section_id', $section_id)
+                ->where('session_id', $session_id)
+                ->whereDate('created_at', '>=', $from)
+                ->whereDate('created_at', '<=', $to)
+                ->get();
+        } catch (\Exception $e) {
+            throw new \Exception('Failed to get attendance range. ' . $e->getMessage());
+        }
+    }
+
     public function getStudentAttendance($session_id, $student_id) {
         try {
             return Attendance::with(['section','course'])
