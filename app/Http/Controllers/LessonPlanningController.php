@@ -23,8 +23,6 @@ class LessonPlanningController extends Controller
         $this->schoolSessionRepository = $schoolSessionRepository;
     }
 
-    private $preschoolClasses = ['Nursery', 'LKG', 'UKG'];
-
     public function index()
     {
         $user      = auth()->user();
@@ -33,7 +31,8 @@ class LessonPlanningController extends Controller
         if ($user->role === 'admin') {
             $classes = SchoolClass::whereHas('sections', function ($q) use ($sessionId) {
                 $q->where('session_id', $sessionId);
-            })->whereNotIn('class_name', ['Nursery', 'LKG', 'UKG'])
+            })->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
+              ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%'])
               ->orderBy('id')
               ->get();
 
@@ -75,7 +74,8 @@ class LessonPlanningController extends Controller
             ->where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
             ->whereHas('schoolClass', function ($q) {
-                $q->whereNotIn('class_name', ['Nursery', 'LKG', 'UKG']);
+                $q->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
+                  ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
             })
             ->get()
             ->sortBy(function ($st) {
@@ -105,7 +105,8 @@ class LessonPlanningController extends Controller
             ->where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
             ->whereHas('schoolClass', function ($q) {
-                $q->whereNotIn('class_name', ['Nursery', 'LKG', 'UKG']);
+                $q->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
+                  ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
             })
             ->first();
 

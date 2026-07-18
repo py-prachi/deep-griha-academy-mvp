@@ -16,8 +16,6 @@ class PreschoolPlanController extends Controller
 
     protected $schoolSessionRepository;
 
-    private $preschoolClasses = ['Nursery', 'LKG', 'UKG'];
-
     public function __construct(SchoolSessionInterface $schoolSessionRepository)
     {
         $this->schoolSessionRepository = $schoolSessionRepository;
@@ -31,7 +29,10 @@ class PreschoolPlanController extends Controller
         if ($user->role === 'admin') {
             $classes = SchoolClass::whereHas('sections', function ($q) use ($sessionId) {
                 $q->where('session_id', $sessionId);
-            })->whereIn('class_name', ['Nursery', 'LKG', 'UKG'])
+            })->where(function ($q) {
+                $q->whereRaw('LOWER(class_name) LIKE ?', ['%nursery%'])
+                  ->orWhereRaw('LOWER(class_name) LIKE ?', ['%kg%']);
+            })
               ->orderBy('id')
               ->get();
 
@@ -59,7 +60,8 @@ class PreschoolPlanController extends Controller
             ->where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
             ->whereHas('schoolClass', function ($q) {
-                $q->whereIn('class_name', ['Nursery', 'LKG', 'UKG']);
+                $q->whereRaw('LOWER(class_name) LIKE ?', ['%nursery%'])
+                  ->orWhereRaw('LOWER(class_name) LIKE ?', ['%kg%']);
             })
             ->first();
 
@@ -89,7 +91,8 @@ class PreschoolPlanController extends Controller
             ->where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
             ->whereHas('schoolClass', function ($q) {
-                $q->whereIn('class_name', ['Nursery', 'LKG', 'UKG']);
+                $q->whereRaw('LOWER(class_name) LIKE ?', ['%nursery%'])
+                  ->orWhereRaw('LOWER(class_name) LIKE ?', ['%kg%']);
             })
             ->firstOrFail();
 
@@ -104,7 +107,8 @@ class PreschoolPlanController extends Controller
         $ctAssignment = ClassTeacher::where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
             ->whereHas('schoolClass', function ($q) {
-                $q->whereIn('class_name', ['Nursery', 'LKG', 'UKG']);
+                $q->whereRaw('LOWER(class_name) LIKE ?', ['%nursery%'])
+                  ->orWhereRaw('LOWER(class_name) LIKE ?', ['%kg%']);
             })
             ->firstOrFail();
 
