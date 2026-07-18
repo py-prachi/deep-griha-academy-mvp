@@ -44,14 +44,6 @@
     View Attendance
 </a>
 
-<a href="{{ url('attendances/take', [
-    'class_id'   => $school_class->id,
-    'section_id' => $course->section_id,
-    'course_id'  => $course->id,
-]) }}">
-    Take Attendance
-</a>
-
 <a href="{{ url('attendances/history', [
     'class_id'   => $school_class->id,
     'section_id' => $course->section_id,
@@ -80,13 +72,6 @@
     'section_id' => $school_section->id,
 ]) }}">
     View Attendance
-</a>
-
-<a href="{{ url('attendances/take', [
-    'class_id'   => $school_class->id,
-    'section_id' => $school_section->id,
-]) }}">
-    Take Attendance
 </a>
 
 <a href="{{ url('attendances/history', [

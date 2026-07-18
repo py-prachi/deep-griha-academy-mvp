@@ -111,6 +111,10 @@ class AttendanceController extends Controller
      */
 public function create(Request $request)
 {
+    if (auth()->user()->role === 'admin') {
+        abort(403, 'Admin can only view attendance. Taking attendance is done by the Class Teacher.');
+    }
+
     if ($request->query('class_id') === null) {
         abort(404);
     }
@@ -126,6 +130,17 @@ public function create(Request $request)
         $class_id   = $request->query('class_id');
         $section_id = $request->query('section_id', 0);
         $course_id  = $request->query('course_id');
+
+        // Only the Class Teacher for this class/section may take attendance —
+        // not just any subject teacher.
+        $isCt = ClassTeacher::where('teacher_id', auth()->id())
+            ->where('session_id', $current_school_session_id)
+            ->where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->exists();
+        if (!$isCt) {
+            abort(403, 'Only the Class Teacher for this class/section can take attendance.');
+        }
 
         // ✅ STUDENTS
         $student_list = $this->userRepository
@@ -170,6 +185,19 @@ public function create(Request $request)
      */
     public function store(AttendanceStoreRequest $request)
     {
+        if (auth()->user()->role === 'admin') {
+            abort(403, 'Admin can only view attendance. Taking attendance is done by the Class Teacher.');
+        }
+
+        $isCt = ClassTeacher::where('teacher_id', auth()->id())
+            ->where('session_id', $request->input('session_id'))
+            ->where('class_id', $request->input('class_id'))
+            ->where('section_id', $request->input('section_id'))
+            ->exists();
+        if (!$isCt) {
+            abort(403, 'Only the Class Teacher for this class/section can take attendance.');
+        }
+
         try {
             $attendanceRepository = new AttendanceRepository();
             $attendanceRepository->saveAttendance($request->validated());
