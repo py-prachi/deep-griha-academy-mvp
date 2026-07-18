@@ -205,4 +205,8 @@
     });
 })();
 </script>
+@include('lesson-planning._draft-autosave', [
+    'formId' => 'lesson-form',
+    'draftKey' => 'dga_draft_lesson_create_' . $assignment->class_id . '_' . $assignment->section_id . '_' . $assignment->subject_id,
+])
 @endsection

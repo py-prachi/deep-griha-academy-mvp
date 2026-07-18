@@ -95,7 +95,7 @@
                                     <td class="small">{{ optional($module->teacher)->first_name }} {{ optional($module->teacher)->last_name }}</td>
                                     <td class="text-center">
                                         <a href="{{ route('lesson-planning.print', ['module_id' => $module->id]) }}"
-                                           target="_blank" class="btn btn-xs btn-outline-secondary py-0 px-1">
+                                           class="btn btn-xs btn-outline-secondary py-0 px-1">
                                             <i class="bi bi-printer"></i>
                                         </a>
                                     </td>
@@ -133,7 +133,7 @@
                                     <td class="small">{{ optional($lesson->teacher)->first_name }} {{ optional($lesson->teacher)->last_name }}</td>
                                     <td class="text-center">
                                         <a href="{{ route('lesson-planning.print', ['lesson_id' => $lesson->id]) }}"
-                                           target="_blank" class="btn btn-xs btn-outline-secondary py-0 px-1">
+                                           class="btn btn-xs btn-outline-secondary py-0 px-1">
                                             <i class="bi bi-printer"></i>
                                         </a>
                                     </td>

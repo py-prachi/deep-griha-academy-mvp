@@ -97,7 +97,7 @@ class HomeController extends Controller
                 $ppType = PrePrimaryController::getPrePrimaryType($ct->schoolClass->class_name ?? '');
 
                 // Students in CT's class
-                $students = $promotionRepository->getAll($current_school_session_id, $ct->class_id, $ct->section_id)
+                $students = $promotionRepository->getAllActive($current_school_session_id, $ct->class_id, $ct->section_id)
                     ->sortBy('roll_number');
 
                 // Today's attendance for the class

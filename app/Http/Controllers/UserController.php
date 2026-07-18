@@ -108,11 +108,12 @@ class UserController extends Controller
                 // Student list: always Promotion objects (so view's ->student and ->section work)
                 if ($class_id != 0 && in_array($class_id, $allowedClassIds)) {
                     if ($section_id != 0) {
-                        $studentList = $promotionRepository->getAll($current_school_session_id, $class_id, $section_id);
+                        $studentList = $promotionRepository->getAllActive($current_school_session_id, $class_id, $section_id);
                     } else {
                         $studentList = \App\Models\Promotion::with(['student', 'section', 'schoolClass'])
                             ->where('session_id', $current_school_session_id)
                             ->where('class_id', $class_id)
+                            ->whereHas('student', fn($q) => $q->whereNotIn('student_status', ['exited', 'graduated']))
                             ->get();
                     }
                 } elseif ($ctAssignment) {
@@ -121,6 +122,7 @@ class UserController extends Controller
                         ->where('session_id', $current_school_session_id)
                         ->where('class_id', $ctAssignment->class_id)
                         ->where('section_id', $ctAssignment->section_id)
+                        ->whereHas('student', fn($q) => $q->whereNotIn('student_status', ['exited', 'graduated']))
                         ->get();
                 } else {
                     // Subject teacher with no filter: show nothing, prompt to select

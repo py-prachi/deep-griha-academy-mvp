@@ -26,7 +26,7 @@
 
                     <div class="card shadow-sm" style="max-width:900px;">
                         <div class="card-body">
-                            <form method="POST" action="{{ route('lesson-planning.lessons.update', $lesson->id) }}">
+                            <form method="POST" action="{{ route('lesson-planning.lessons.update', $lesson->id) }}" id="lesson-form">
                                 @csrf @method('PUT')
 
                                 <div class="row mb-3">
@@ -204,4 +204,8 @@
     });
 })();
 </script>
+@include('lesson-planning._draft-autosave', [
+    'formId' => 'lesson-form',
+    'draftKey' => 'dga_draft_lesson_edit_' . $lesson->id,
+])
 @endsection
