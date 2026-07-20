@@ -1,6 +1,6 @@
 @php
     $marksSubjects  = $subjects->where('mark_type', 'marks')->values();
-    $gradeSubjects  = $subjects->where('mark_type', 'grade_only')->values();
+    $gradeSubjects  = $subjects->whereIn('mark_type', ['grade_only', 'oral_practical_project'])->values();
     $showTerm1      = in_array(1, $publishedTerms);
     $showTerm2      = in_array(2, $publishedTerms);
     $bothTerms      = $showTerm1 && $showTerm2;

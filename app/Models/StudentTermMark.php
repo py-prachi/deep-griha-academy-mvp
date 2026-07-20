@@ -11,7 +11,7 @@ class StudentTermMark extends Model
         'oral_internal', 'activity_internal', 'test', 'hw',
         'oral_written', 'activity_written', 'writing',
         'internal_total', 'written_total', 'grand_total',
-        'grade', 'absent_components', 'entered_by', 'entered_at', 'verified_by', 'verified_at',
+        'grade', 'absent_components', 'remark', 'entered_by', 'entered_at', 'verified_by', 'verified_at',
     ];
 
     // Decode absent_components JSON automatically

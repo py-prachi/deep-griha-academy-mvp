@@ -77,7 +77,7 @@ class SubjectController extends Controller
             'name'      => $request->name,
             'code'      => $request->code ?? null,
             'is_active' => $request->has('is_active'),
-            'mark_type' => in_array($request->mark_type, ['marks', 'grade_only']) ? $request->mark_type : 'marks',
+            'mark_type' => in_array($request->mark_type, ['marks', 'grade_only', 'oral_practical_project']) ? $request->mark_type : 'marks',
         ]);
 
         return redirect()->route('subjects.index')->with('status', 'Subject updated.');

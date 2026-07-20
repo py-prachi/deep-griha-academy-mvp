@@ -17,6 +17,8 @@
                             <span class="badge bg-secondary ms-1">Term {{ $term }}</span>
                             @if($subject->mark_type === 'grade_only')
                                 <span class="badge bg-info ms-1">Grade Only</span>
+                            @elseif($subject->mark_type === 'oral_practical_project')
+                                <span class="badge bg-info ms-1">Oral / Practical / Project</span>
                             @endif
                         </h5>
                     </div>
@@ -41,6 +43,19 @@
                             <span><strong>Written /{{ $config['written_max'] }}:</strong>
                                 Oral /{{ $config['oral_written'] }} + Activity /{{ $config['activity_written'] }} + Writing /{{ $config['writing'] }}</span>
                             <span class="text-muted">Tick <strong>AB</strong> below any mark if student was absent for that component.</span>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($subject->mark_type === 'oral_practical_project')
+                    <div class="alert alert-light py-2 small border mb-3" style="max-width:960px;">
+                        <div class="mb-1">
+                            <strong>Enter Oral, Practical and Project marks. Total and Grade are calculated automatically.</strong>
+                        </div>
+                        <div class="d-flex gap-3 flex-wrap">
+                            <span><strong>Total /{{ $config['grand_max'] }}:</strong>
+                                Oral /{{ $config['oral'] }} + Practical /{{ $config['practical'] }} + Project /{{ $config['project'] }}</span>
+                            <span class="text-muted">Tick <strong>AB</strong> if the student was absent for the whole assessment.</span>
                         </div>
                     </div>
                     @endif
@@ -122,6 +137,12 @@
                                     <th rowspan="2" class="text-center" style="vertical-align:middle;background:#dbeafe;color:#1e40af;">Writ<br><small>/{{ $config['written_max'] }}</small><br><small style="font-size:0.6rem;font-weight:normal;opacity:0.7;">&#8721; auto</small></th>
                                     <th rowspan="2" class="text-center" style="vertical-align:middle;background:#d1fae5;color:#065f46;">Total<br><small>/100</small><br><small style="font-size:0.6rem;font-weight:normal;opacity:0.7;">&#8721; auto</small></th>
                                     <th rowspan="2" class="text-center" style="vertical-align:middle;background:#d1fae5;color:#065f46;">Grade<br><small style="font-size:0.6rem;font-weight:normal;opacity:0.7;">auto</small></th>
+                                    @elseif($subject->mark_type === 'oral_practical_project')
+                                    <th colspan="3" class="text-center border-end">Marks</th>
+                                    <th rowspan="2" class="text-center" style="vertical-align:middle;background:#d1fae5;color:#065f46;">Total<br><small>/{{ $config['grand_max'] }}</small><br><small style="font-size:0.6rem;font-weight:normal;opacity:0.7;">&#8721; auto</small></th>
+                                    <th rowspan="2" class="text-center" style="vertical-align:middle;background:#d1fae5;color:#065f46;">Grade<br><small style="font-size:0.6rem;font-weight:normal;opacity:0.7;">auto</small></th>
+                                    <th rowspan="2" class="text-center" style="vertical-align:middle;min-width:140px;">Remark</th>
+                                    <th rowspan="2" class="text-center text-danger" style="vertical-align:middle;">Absent</th>
                                     @else
                                     <th rowspan="2" class="text-center" style="vertical-align:middle;">Grade</th>
                                     <th rowspan="2" class="text-center text-danger" style="vertical-align:middle;">Absent</th>
@@ -136,6 +157,12 @@
                                     <th class="text-center" title="Oral Written">Oral<br><small>/{{ $config['oral_written'] }}</small></th>
                                     <th class="text-center" title="Activity Written">Act<br><small>/{{ $config['activity_written'] }}</small></th>
                                     <th class="text-center border-end" title="Writing">Writing<br><small>/{{ $config['writing'] }}</small></th>
+                                </tr>
+                                @elseif($subject->mark_type === 'oral_practical_project')
+                                <tr>
+                                    <th class="text-center" title="Oral">Oral<br><small>/{{ $config['oral'] }}</small></th>
+                                    <th class="text-center" title="Practical">Practical<br><small>/{{ $config['practical'] }}</small></th>
+                                    <th class="text-center border-end" title="Project">Project<br><small>/{{ $config['project'] }}</small></th>
                                 </tr>
                                 @endif
                             </thead>
@@ -254,6 +281,51 @@
                                         {{ $existing ? $existing->grade : '—' }}
                                     </td>
 
+                                    @elseif($subject->mark_type === 'oral_practical_project')
+                                    @php
+                                        $oppComponents = [
+                                            'oral'      => ['max' => $config['oral'],      'val' => $existing->oral_internal ?? null],
+                                            'practical' => ['max' => $config['practical'], 'val' => $existing->activity_internal ?? null],
+                                            'project'   => ['max' => $config['project'],   'val' => $existing->test ?? null],
+                                        ];
+                                    @endphp
+                                    @foreach($oppComponents as $comp => $cfg)
+                                    <td class="p-1{{ $comp === 'project' ? ' border-end' : '' }}" style="min-width:52px;">
+                                        <input type="number" step="0.5" min="0" max="{{ $cfg['max'] }}"
+                                            class="form-control form-control-sm mark-input p-1 text-center"
+                                            name="marks[{{ $student->id }}][{{ $comp }}]"
+                                            value="{{ (!$isFullyAbsent && $cfg['val'] !== null) ? $cfg['val'] : '' }}"
+                                            {{ $isFullyAbsent ? 'disabled' : '' }}
+                                            data-max="{{ $cfg['max'] }}"
+                                            data-comp="{{ $comp }}"
+                                            data-had-existing="{{ $existing ? '1' : '0' }}"
+                                            style="{{ $isFullyAbsent ? 'display:none;' : '' }}">
+                                    </td>
+                                    @endforeach
+                                    <td class="text-center fw-bold grand-total" style="background:#d1fae5;color:#065f46;cursor:default;min-width:48px;" title="Auto sum">
+                                        {{ $existing ? $existing->grand_total : '—' }}
+                                    </td>
+                                    <td class="text-center fw-bold grade-display" style="background:#d1fae5;color:#065f46;cursor:default;min-width:48px;" title="Grade">
+                                        {{ $existing ? $existing->grade : '—' }}
+                                    </td>
+                                    <td class="p-1">
+                                        <input type="text"
+                                            class="form-control form-control-sm p-1"
+                                            name="marks[{{ $student->id }}][remark]"
+                                            value="{{ $existing->remark ?? '' }}"
+                                            {{ $isFullyAbsent ? 'disabled' : '' }}
+                                            placeholder="Remark">
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" class="form-check-input grade-absent-check"
+                                            name="marks[{{ $student->id }}][absent]"
+                                            value="1"
+                                            {{ $isFullyAbsent ? 'checked' : '' }}
+                                            title="Student was absent">
+                                        @if($isFullyAbsent)
+                                            <div><span class="badge bg-warning text-dark mt-1">AB</span></div>
+                                        @endif
+                                    </td>
                                     @else
                                     {{-- Grade only: single absent flag --}}
                                     <td>
@@ -331,29 +403,42 @@ function recalcRow(tr) {
         inputs[inp.dataset.comp] = inp;
     });
 
-    var intComps  = ['oral_internal','activity_internal','test','hw'];
-    var writComps = ['oral_written','activity_written','writing'];
-    var intTotal = 0, writTotal = 0;
+    var grand;
+    var intCell  = tr.querySelector('td.int-total');
+    var writCell = tr.querySelector('td.writ-total');
 
-    intComps.forEach(function(c) {
-        var inp = inputs[c];
-        if (inp && !inp.disabled) intTotal += parseFloat(inp.value) || 0;
-    });
-    writComps.forEach(function(c) {
-        var inp = inputs[c];
-        if (inp && !inp.disabled) writTotal += parseFloat(inp.value) || 0;
-    });
+    if (inputs.oral || inputs.practical || inputs.project) {
+        // Oral / Practical / Project subjects (PE, Agriculture) — single total, no int/writ split
+        var oppComps = ['oral','practical','project'];
+        var total = 0;
+        oppComps.forEach(function(c) {
+            var inp = inputs[c];
+            if (inp && !inp.disabled) total += parseFloat(inp.value) || 0;
+        });
+        grand = total;
+    } else {
+        var intComps  = ['oral_internal','activity_internal','test','hw'];
+        var writComps = ['oral_written','activity_written','writing'];
+        var intTotal = 0, writTotal = 0;
 
-    var grand = intTotal + writTotal;
+        intComps.forEach(function(c) {
+            var inp = inputs[c];
+            if (inp && !inp.disabled) intTotal += parseFloat(inp.value) || 0;
+        });
+        writComps.forEach(function(c) {
+            var inp = inputs[c];
+            if (inp && !inp.disabled) writTotal += parseFloat(inp.value) || 0;
+        });
+
+        grand = intTotal + writTotal;
+        if (intCell)  intCell.textContent  = fmt(intTotal);
+        if (writCell) writCell.textContent = fmt(writTotal);
+    }
+
     var pct   = grandMax > 0 ? (grand / grandMax * 100) : 0;
-
-    var intCell   = tr.querySelector('td.int-total');
-    var writCell  = tr.querySelector('td.writ-total');
     var totCell   = tr.querySelector('td.grand-total');
     var gradeCell = tr.querySelector('td.grade-display');
 
-    if (intCell)   intCell.textContent   = fmt(intTotal);
-    if (writCell)  writCell.textContent  = fmt(writTotal);
     if (totCell)   totCell.textContent   = fmt(grand);
     if (gradeCell) gradeCell.textContent = grand > 0 ? calcGrade(pct) : '—';
 }
@@ -411,11 +496,20 @@ document.querySelectorAll('.comp-absent-check').forEach(function(chk) {
     });
 });
 
-// ── Grade-only absent checkbox ──
+// ── Grade-only / Oral-Practical-Project absent checkbox ──
 document.querySelectorAll('.grade-absent-check').forEach(function(chk) {
     chk.addEventListener('change', function() {
-        var select = this.closest('tr').querySelector('select');
+        var tr     = this.closest('tr');
+        var select = tr.querySelector('select');
         if (select) select.disabled = this.checked;
+
+        var checked = this.checked;
+        tr.querySelectorAll('input.mark-input[data-comp]').forEach(function(inp) {
+            inp.disabled = checked;
+            inp.style.display = checked ? 'none' : '';
+        });
+
+        recalcRow(tr);
     });
 });
 </script>

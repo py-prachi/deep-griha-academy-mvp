@@ -137,6 +137,8 @@
                                     <td>{{ $subject->name }}
                                         @if($subject->mark_type === 'grade_only')
                                             <small class="text-muted">(grade)</small>
+                                        @elseif($subject->mark_type === 'oral_practical_project')
+                                            <small class="text-muted">(oral/practical/project)</small>
                                         @endif
                                     </td>
                                     @foreach([1,2] as $term)
