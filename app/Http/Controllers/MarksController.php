@@ -81,6 +81,15 @@ class MarksController extends Controller
         ],
     ];
 
+    // Fixed component maxes for 'oral_practical_project' subjects (PE, Agriculture) —
+    // same breakdown for every class, unlike CLASS_GROUP_CONFIG above.
+    const ORAL_PRACTICAL_PROJECT_CONFIG = [
+        'oral'      => 30,
+        'practical' => 40,
+        'project'   => 30,
+        'grand_max' => 100,
+    ];
+
     // Grading scale
     const GRADE_SCALE = [
         ['min' => 91, 'max' => 100, 'grade' => 'A1'],
@@ -288,7 +297,9 @@ class MarksController extends Controller
         $section    = $this->sectionRepository->findById($section_id);
 
         $classGroup = self::getClassGroup($schoolClass->class_name);
-        $config     = self::CLASS_GROUP_CONFIG[$classGroup];
+        $config     = $subject->mark_type === 'oral_practical_project'
+            ? self::ORAL_PRACTICAL_PROJECT_CONFIG
+            : self::CLASS_GROUP_CONFIG[$classGroup];
 
         // Students in this class/section, sorted by roll number ascending
         $promotionRepository = new PromotionRepository();
@@ -352,7 +363,9 @@ class MarksController extends Controller
         $subject     = Subject::findOrFail($subject_id);
         $schoolClass = $this->schoolClassRepository->findById($class_id);
         $classGroup  = self::getClassGroup($schoolClass->class_name);
-        $config      = self::CLASS_GROUP_CONFIG[$classGroup];
+        $config      = $subject->mark_type === 'oral_practical_project'
+            ? self::ORAL_PRACTICAL_PROJECT_CONFIG
+            : self::CLASS_GROUP_CONFIG[$classGroup];
 
         // Save exam dates (one per component, shared across all students)
         $examDates = $request->input('exam_dates', []);
@@ -423,6 +436,48 @@ class MarksController extends Controller
                     'grade'              => self::calcGrade($pct),
                     'absent_components'  => !empty($absentComponents) ? $absentComponents : null,
                 ];
+            } elseif ($subject->mark_type === 'oral_practical_project') {
+                // Oral / Practical / Project breakdown (PE, Agriculture) — same shape for every
+                // class. Reuses the oral_internal/activity_internal/test columns to avoid a
+                // parallel table: oral_internal=Oral, activity_internal=Practical, test=Project.
+                $isAbsent = !empty($row['absent']) && !is_array($row['absent']);
+                $remark   = $row['remark'] ?? null;
+
+                if ($isAbsent) {
+                    $data = [
+                        'oral_internal'      => 0,
+                        'activity_internal'  => 0,
+                        'test'               => 0,
+                        'internal_total'     => 0,
+                        'grand_total'        => 0,
+                        'grade'              => 'AB',
+                        'remark'             => $remark,
+                        'absent_components'  => ['exam'],
+                    ];
+                } else {
+                    $oral      = isset($row['oral'])      && $row['oral']      !== '' ? (float)$row['oral']      : null;
+                    $practical = isset($row['practical']) && $row['practical'] !== '' ? (float)$row['practical'] : null;
+                    $project   = isset($row['project'])   && $row['project']   !== '' ? (float)$row['project']   : null;
+
+                    // Skip students where nothing was entered at all
+                    if ($oral === null && $practical === null && $project === null && empty($remark)) {
+                        continue;
+                    }
+
+                    $total = ($oral ?? 0) + ($practical ?? 0) + ($project ?? 0);
+                    $pct   = $config['grand_max'] > 0 ? ($total / $config['grand_max'] * 100) : 0;
+
+                    $data = [
+                        'oral_internal'      => $oral,
+                        'activity_internal'  => $practical,
+                        'test'               => $project,
+                        'internal_total'     => $total,
+                        'grand_total'        => $total,
+                        'grade'              => self::calcGrade($pct),
+                        'remark'             => $remark,
+                        'absent_components'  => null,
+                    ];
+                }
             } else {
                 // grade_only subject — single absent flag for the whole assessment
                 $isAbsent = !empty($row['absent']) && !is_array($row['absent']);

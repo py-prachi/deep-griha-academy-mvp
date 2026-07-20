@@ -48,6 +48,8 @@
                                                 <td class="text-center">
                                                     @if($subject->mark_type === 'grade_only')
                                                         <span class="badge bg-info" title="Grade entered directly — no mark breakdown">Grade</span>
+                                                    @elseif($subject->mark_type === 'oral_practical_project')
+                                                        <span class="badge bg-info" title="Oral/Practical/Project marks — total and grade auto-calculated">O/P/P</span>
                                                     @else
                                                         <span class="badge bg-light text-dark border">Marks</span>
                                                     @endif
@@ -182,7 +184,8 @@
                         <label class="form-label form-label-sm">Mark Type <small class="text-muted">(admin only)</small></label>
                         <select name="mark_type" id="editMarkType" class="form-select form-select-sm">
                             <option value="marks">Marks (Oral/Activity/Test/HW/Writing)</option>
-                            <option value="grade_only">Grade Only (PE, Tabla, Dance etc.)</option>
+                            <option value="grade_only">Grade Only (Library, Computer, Tabla etc.)</option>
+                            <option value="oral_practical_project">Oral/Practical/Project (PE, Agriculture)</option>
                         </select>
                     </div>
                     <div class="form-check">

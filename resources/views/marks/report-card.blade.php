@@ -20,7 +20,7 @@
 
                     @php
                         $marksSubjects = $subjects->where('mark_type', 'marks');
-                        $gradeSubjects = $subjects->where('mark_type', 'grade_only');
+                        $gradeSubjects = $subjects->whereIn('mark_type', ['grade_only', 'oral_practical_project']);
                         $anyPublished = !empty($publishedTerms);
                     @endphp
 

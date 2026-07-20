@@ -42,9 +42,34 @@
 </div>
 
 @if($lesson)
-@php $isAgri = strtolower(optional($lesson->subject)->name ?? '') === 'agriculture'; @endphp
+@php
+    $subjectNameLower = strtolower(optional($lesson->subject)->name ?? '');
+    $isAgri   = $subjectNameLower === 'agriculture';
+    $isSports = $subjectNameLower === 'physical education';
+@endphp
 
-@if($isAgri)
+@if($isSports)
+{{-- SPORTS LESSON PLAN PRINT --}}
+<h2 style="margin-top:8px;">Sports Lesson Plan</h2>
+<div class="subtitle">
+    Grade {{ optional($lesson->schoolClass)->class_name }} {{ optional($lesson->section)->section_name }}
+    &mdash; Teacher: {{ optional($lesson->teacher)->first_name }} {{ optional($lesson->teacher)->last_name }}
+</div>
+
+<table>
+    <tr><th>Date of Planning</th><td>{{ $lesson->date_written ? $lesson->date_written->format('d M Y') : '—' }}</td></tr>
+    <tr><th>Scheduled Teaching Date</th><td>{{ $lesson->scheduled_date ? $lesson->scheduled_date->format('d M Y') : '—' }}</td></tr>
+    <tr><th>Date of Execution</th><td>{{ $lesson->date_execution ?: '—' }}</td></tr>
+    <tr><th>Grade</th><td>{{ optional($lesson->schoolClass)->class_name }}</td></tr>
+    <tr><th>Time</th><td>{{ $lesson->period_timing ?? '—' }}</td></tr>
+    <tr><th>Name of the Game</th><td>{{ $lesson->chapter_topic ?? '—' }}</td></tr>
+    <tr><th>Outdoor / Indoor</th><td>{{ $lesson->lesson_type ?? '—' }}</td></tr>
+    <tr><th>Objective</th><td>{{ $lesson->objective ?? '—' }}</td></tr>
+    <tr><th>Introduction</th><td>{{ $lesson->hook ?? '—' }}</td></tr>
+    <tr><th>Practical</th><td>{{ $lesson->practical_notes ?? '—' }}</td></tr>
+</table>
+
+@elseif($isAgri)
 {{-- AGRICULTURE LESSON PLAN PRINT --}}
 <h2 style="margin-top:8px;">Agriculture Lesson Plan</h2>
 <div class="subtitle">

@@ -29,11 +29,12 @@ class LessonPlanningController extends Controller
         $sessionId = $this->getSchoolCurrentSession();
 
         if ($user->role === 'admin') {
+            // Preschool classes are included here since Physical Education (Sports) plans
+            // for Nursery/LKG/UKG live in this module too — other subjects simply won't
+            // have any SubjectTeacher assignment for those classes.
             $classes = SchoolClass::whereHas('sections', function ($q) use ($sessionId) {
                 $q->where('session_id', $sessionId);
-            })->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
-              ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%'])
-              ->orderBy('id')
+            })->orderBy('id')
               ->get();
 
             $subjects = Subject::orderBy('sort_order')->get();
@@ -70,12 +71,19 @@ class LessonPlanningController extends Controller
         }
 
         // Teacher view
+        // Preschool classes are excluded for every subject except Physical Education
+        // (Sports), which also runs lesson plans for Nursery/LKG/UKG.
+        $sportsSubjectId = Subject::where('name', 'Physical Education')->value('id');
+
         $subjectAssignments = SubjectTeacher::with(['subject', 'schoolClass', 'section'])
             ->where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
-            ->whereHas('schoolClass', function ($q) {
-                $q->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
-                  ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
+            ->where(function ($q) use ($sportsSubjectId) {
+                $q->where('subject_id', $sportsSubjectId)
+                  ->orWhereHas('schoolClass', function ($qq) {
+                      $qq->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
+                         ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
+                  });
             })
             ->get()
             ->sortBy(function ($st) {
@@ -100,14 +108,12 @@ class LessonPlanningController extends Controller
                 return $l->class_id . '_' . $l->section_id . '_' . $l->subject_id;
             });
 
-        // CT view (read-only)
+        // CT view (read-only) — not restricted by class here; a preschool CT will
+        // simply only ever see Physical Education entries for their class, since
+        // that's the only subject with plans there.
         $ctAssignment = ClassTeacher::with(['schoolClass', 'section'])
             ->where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
-            ->whereHas('schoolClass', function ($q) {
-                $q->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
-                  ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
-            })
             ->first();
 
         $ctLessons = null;
@@ -254,8 +260,10 @@ class LessonPlanningController extends Controller
             ->orderByDesc('date_written')
             ->get();
 
-        $isAgri = strtolower(optional($assignment->subject)->name ?? '') === 'agriculture';
-        $view   = $isAgri ? 'lesson-planning.agri-create' : 'lesson-planning.lesson-create';
+        $subjectName = strtolower(optional($assignment->subject)->name ?? '');
+        $isAgri      = $subjectName === 'agriculture';
+        $isSports    = $subjectName === 'physical education';
+        $view        = $isAgri ? 'lesson-planning.agri-create' : ($isSports ? 'lesson-planning.sports-create' : 'lesson-planning.lesson-create');
         return view($view, compact('assignment', 'modules', 'sessionId'));
     }
 
@@ -330,8 +338,10 @@ class LessonPlanningController extends Controller
             ->orderByDesc('date_written')
             ->get();
 
-        $isAgri = strtolower(optional($lesson->subject)->name ?? '') === 'agriculture';
-        $view   = $isAgri ? 'lesson-planning.agri-edit' : 'lesson-planning.lesson-edit';
+        $subjectName = strtolower(optional($lesson->subject)->name ?? '');
+        $isAgri      = $subjectName === 'agriculture';
+        $isSports    = $subjectName === 'physical education';
+        $view        = $isAgri ? 'lesson-planning.agri-edit' : ($isSports ? 'lesson-planning.sports-edit' : 'lesson-planning.lesson-edit');
         return view($view, compact('lesson', 'modules'));
     }
 
