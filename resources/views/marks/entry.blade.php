@@ -1,4 +1,7 @@
 @extends('layouts.app')
+@php
+    $isComponentGrading = isset(\App\Http\Controllers\MarksController::COMPONENT_GRADING_TYPES[$subject->mark_type]);
+@endphp
 @section('content')
 <div class="container">
     <div class="row justify-content-start">
@@ -17,8 +20,8 @@
                             <span class="badge bg-secondary ms-1">Term {{ $term }}</span>
                             @if($subject->mark_type === 'grade_only')
                                 <span class="badge bg-info ms-1">Grade Only</span>
-                            @elseif($subject->mark_type === 'oral_practical_project')
-                                <span class="badge bg-info ms-1">Oral / Practical / Project</span>
+                            @elseif($isComponentGrading)
+                                <span class="badge bg-info ms-1">{{ $config['label'] }}</span>
                             @endif
                         </h5>
                     </div>
@@ -47,14 +50,17 @@
                     </div>
                     @endif
 
-                    @if($subject->mark_type === 'oral_practical_project')
+                    @if($isComponentGrading)
                     <div class="alert alert-light py-2 small border mb-3" style="max-width:960px;">
                         <div class="mb-1">
-                            <strong>Enter Oral, Practical and Project marks. Total and Grade are calculated automatically.</strong>
+                            <strong>Enter {{ $config['label'] }} marks. Total and Grade are calculated automatically.</strong>
                         </div>
                         <div class="d-flex gap-3 flex-wrap">
                             <span><strong>Total /{{ $config['grand_max'] }}:</strong>
-                                Oral /{{ $config['oral'] }} + Practical /{{ $config['practical'] }} + Project /{{ $config['project'] }}</span>
+                                @foreach($config['fields'] as $fieldKey => $fieldCfg)
+                                    {{ $fieldCfg['label'] }} /{{ $fieldCfg['max'] }}{{ !$loop->last ? ' + ' : '' }}
+                                @endforeach
+                            </span>
                             <span class="text-muted">Tick <strong>AB</strong> if the student was absent for the whole assessment.</span>
                         </div>
                     </div>
@@ -137,8 +143,8 @@
                                     <th rowspan="2" class="text-center" style="vertical-align:middle;background:#dbeafe;color:#1e40af;">Writ<br><small>/{{ $config['written_max'] }}</small><br><small style="font-size:0.6rem;font-weight:normal;opacity:0.7;">&#8721; auto</small></th>
                                     <th rowspan="2" class="text-center" style="vertical-align:middle;background:#d1fae5;color:#065f46;">Total<br><small>/100</small><br><small style="font-size:0.6rem;font-weight:normal;opacity:0.7;">&#8721; auto</small></th>
                                     <th rowspan="2" class="text-center" style="vertical-align:middle;background:#d1fae5;color:#065f46;">Grade<br><small style="font-size:0.6rem;font-weight:normal;opacity:0.7;">auto</small></th>
-                                    @elseif($subject->mark_type === 'oral_practical_project')
-                                    <th colspan="3" class="text-center border-end">Marks</th>
+                                    @elseif($isComponentGrading)
+                                    <th colspan="{{ count($config['fields']) }}" class="text-center border-end">Marks</th>
                                     <th rowspan="2" class="text-center" style="vertical-align:middle;background:#d1fae5;color:#065f46;">Total<br><small>/{{ $config['grand_max'] }}</small><br><small style="font-size:0.6rem;font-weight:normal;opacity:0.7;">&#8721; auto</small></th>
                                     <th rowspan="2" class="text-center" style="vertical-align:middle;background:#d1fae5;color:#065f46;">Grade<br><small style="font-size:0.6rem;font-weight:normal;opacity:0.7;">auto</small></th>
                                     <th rowspan="2" class="text-center" style="vertical-align:middle;min-width:140px;">Remark</th>
@@ -158,11 +164,11 @@
                                     <th class="text-center" title="Activity Written">Act<br><small>/{{ $config['activity_written'] }}</small></th>
                                     <th class="text-center border-end" title="Writing">Writing<br><small>/{{ $config['writing'] }}</small></th>
                                 </tr>
-                                @elseif($subject->mark_type === 'oral_practical_project')
+                                @elseif($isComponentGrading)
                                 <tr>
-                                    <th class="text-center" title="Oral">Oral<br><small>/{{ $config['oral'] }}</small></th>
-                                    <th class="text-center" title="Practical">Practical<br><small>/{{ $config['practical'] }}</small></th>
-                                    <th class="text-center border-end" title="Project">Project<br><small>/{{ $config['project'] }}</small></th>
+                                    @foreach($config['fields'] as $fieldKey => $fieldCfg)
+                                    <th class="text-center{{ $loop->last ? ' border-end' : '' }}" title="{{ $fieldCfg['label'] }}">{{ $fieldCfg['label'] }}<br><small>/{{ $fieldCfg['max'] }}</small></th>
+                                    @endforeach
                                 </tr>
                                 @endif
                             </thead>
@@ -281,23 +287,17 @@
                                         {{ $existing ? $existing->grade : '—' }}
                                     </td>
 
-                                    @elseif($subject->mark_type === 'oral_practical_project')
-                                    @php
-                                        $oppComponents = [
-                                            'oral'      => ['max' => $config['oral'],      'val' => $existing->oral_internal ?? null],
-                                            'practical' => ['max' => $config['practical'], 'val' => $existing->activity_internal ?? null],
-                                            'project'   => ['max' => $config['project'],   'val' => $existing->test ?? null],
-                                        ];
-                                    @endphp
-                                    @foreach($oppComponents as $comp => $cfg)
-                                    <td class="p-1{{ $comp === 'project' ? ' border-end' : '' }}" style="min-width:52px;">
-                                        <input type="number" step="0.5" min="0" max="{{ $cfg['max'] }}"
+                                    @elseif($isComponentGrading)
+                                    @foreach($config['fields'] as $fieldKey => $fieldCfg)
+                                    @php $fieldVal = $existing->{$fieldCfg['column']} ?? null; @endphp
+                                    <td class="p-1{{ $loop->last ? ' border-end' : '' }}" style="min-width:52px;">
+                                        <input type="number" step="0.5" min="0" max="{{ $fieldCfg['max'] }}"
                                             class="form-control form-control-sm mark-input p-1 text-center"
-                                            name="marks[{{ $student->id }}][{{ $comp }}]"
-                                            value="{{ (!$isFullyAbsent && $cfg['val'] !== null) ? $cfg['val'] : '' }}"
+                                            name="marks[{{ $student->id }}][{{ $fieldKey }}]"
+                                            value="{{ (!$isFullyAbsent && $fieldVal !== null) ? $fieldVal : '' }}"
                                             {{ $isFullyAbsent ? 'disabled' : '' }}
-                                            data-max="{{ $cfg['max'] }}"
-                                            data-comp="{{ $comp }}"
+                                            data-max="{{ $fieldCfg['max'] }}"
+                                            data-comp="{{ $fieldKey }}"
                                             data-had-existing="{{ $existing ? '1' : '0' }}"
                                             style="{{ $isFullyAbsent ? 'display:none;' : '' }}">
                                     </td>
@@ -407,11 +407,14 @@ function recalcRow(tr) {
     var intCell  = tr.querySelector('td.int-total');
     var writCell = tr.querySelector('td.writ-total');
 
-    if (inputs.oral || inputs.practical || inputs.project) {
-        // Oral / Practical / Project subjects (PE, Agriculture) — single total, no int/writ split
-        var oppComps = ['oral','practical','project'];
+    var knownMarksComps = ['oral_internal','activity_internal','test','hw','oral_written','activity_written','writing'];
+    var isMarksType = knownMarksComps.some(function(c) { return inputs.hasOwnProperty(c); });
+
+    if (!isMarksType && Object.keys(inputs).length > 0) {
+        // Component-grading subjects (PE, Agriculture, ...) — single total, no int/writ split.
+        // Sums whatever fields this subject defines, regardless of name/count.
         var total = 0;
-        oppComps.forEach(function(c) {
+        Object.keys(inputs).forEach(function(c) {
             var inp = inputs[c];
             if (inp && !inp.disabled) total += parseFloat(inp.value) || 0;
         });

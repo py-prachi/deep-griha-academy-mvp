@@ -1,6 +1,6 @@
 @php
     $marksSubjects  = $subjects->where('mark_type', 'marks')->values();
-    $gradeSubjects  = $subjects->whereIn('mark_type', ['grade_only', 'oral_practical_project'])->values();
+    $gradeSubjects  = $subjects->where('mark_type', '!==', 'marks')->values();
     $showTerm1      = in_array(1, $publishedTerms);
     $showTerm2      = in_array(2, $publishedTerms);
     $bothTerms      = $showTerm1 && $showTerm2;
@@ -106,7 +106,7 @@
             <tr>
                 @php $spanCols = 1 + ($showTerm1 ? 3 : 0) + ($showTerm2 ? 3 : 0); @endphp
                 <td colspan="{{ $spanCols }}" style="background:#f9f9f9;font-size:10px;color:#555;padding:3px 6px;">
-                    Co-Scholastic Activities (Grade only)
+                    Co-Scholastic Activities
                 </td>
             </tr>
             @foreach($gradeSubjects as $subject)

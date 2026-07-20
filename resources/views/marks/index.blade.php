@@ -48,7 +48,7 @@
                                         @foreach($subjects as $s)
                                             @php $canEdit = in_array($s->id, $ctEditableSubjectIds ?? []); @endphp
                                             <option value="{{ $s->id }}">
-                                                {{ $s->name }}@if($s->mark_type === 'grade_only') (Grade only)@elseif($s->mark_type === 'oral_practical_project') (O/P/P)@endif
+                                                {{ $s->name }}@if($s->mark_type === 'grade_only') (Grade only)@elseif(isset(\App\Http\Controllers\MarksController::COMPONENT_GRADING_TYPES[$s->mark_type])) ({{ \App\Http\Controllers\MarksController::COMPONENT_GRADING_TYPES[$s->mark_type]['abbr'] }})@endif
                                                 @if($canEdit) ✏@else 👁@endif
                                             </option>
                                         @endforeach
@@ -85,7 +85,7 @@
                                         @foreach($otherSubjects as $s)
                                             <option value="{{ $s->id }}"
                                                 data-assignments="{{ json_encode($subjectAssignments->get($s->id, collect())->filter(function($a) use ($ct) { return $a['class_id'] != $ct->class_id; })->values()->all()) }}">
-                                                {{ $s->name }}@if($s->mark_type === 'grade_only') (Grade only)@elseif($s->mark_type === 'oral_practical_project') (O/P/P)@endif
+                                                {{ $s->name }}@if($s->mark_type === 'grade_only') (Grade only)@elseif(isset(\App\Http\Controllers\MarksController::COMPONENT_GRADING_TYPES[$s->mark_type])) ({{ \App\Http\Controllers\MarksController::COMPONENT_GRADING_TYPES[$s->mark_type]['abbr'] }})@endif
                                             </option>
                                         @endforeach
                                     </select>
@@ -129,7 +129,7 @@
                                             <option value="{{ $s->id }}"
                                                 data-assignments="{{ json_encode($subjectAssignments->get($s->id, collect())->values()->all()) }}">
                                                 {{ $s->name }}
-                                                @if($s->mark_type === 'grade_only')(Grade only)@elseif($s->mark_type === 'oral_practical_project')(O/P/P)@endif
+                                                @if($s->mark_type === 'grade_only')(Grade only)@elseif(isset(\App\Http\Controllers\MarksController::COMPONENT_GRADING_TYPES[$s->mark_type]))({{ \App\Http\Controllers\MarksController::COMPONENT_GRADING_TYPES[$s->mark_type]['abbr'] }})@endif
                                             </option>
                                         @endforeach
                                     </select>
@@ -171,7 +171,7 @@
                                         @foreach($subjects as $s)
                                             <option value="{{ $s->id }}">
                                                 {{ $s->name }}
-                                                @if($s->mark_type === 'grade_only')(Grade only)@elseif($s->mark_type === 'oral_practical_project')(O/P/P)@endif
+                                                @if($s->mark_type === 'grade_only')(Grade only)@elseif(isset(\App\Http\Controllers\MarksController::COMPONENT_GRADING_TYPES[$s->mark_type]))({{ \App\Http\Controllers\MarksController::COMPONENT_GRADING_TYPES[$s->mark_type]['abbr'] }})@endif
                                             </option>
                                         @endforeach
                                     </select>

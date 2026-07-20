@@ -81,13 +81,35 @@ class MarksController extends Controller
         ],
     ];
 
-    // Fixed component maxes for 'oral_practical_project' subjects (PE, Agriculture) —
-    // same breakdown for every class, unlike CLASS_GROUP_CONFIG above.
-    const ORAL_PRACTICAL_PROJECT_CONFIG = [
-        'oral'      => 30,
-        'practical' => 40,
-        'project'   => 30,
-        'grand_max' => 100,
+    // Component-breakdown mark types: a fixed set of named marks that sum to a total,
+    // with an auto-derived grade and a remark — same breakdown for every class, unlike
+    // CLASS_GROUP_CONFIG above. Each field maps onto an existing student_term_marks
+    // column so no per-type table is needed (oral_internal/activity_internal/test/hw
+    // are otherwise only used by the 'marks' type's internal-assessment columns).
+    const COMPONENT_GRADING_TYPES = [
+        'oral_practical_project' => [
+            'label'     => 'Oral / Practical / Project',
+            'abbr'      => 'O/P/P',
+            'grand_max' => 100,
+            'fields'    => [
+                'oral'      => ['label' => 'Oral',      'max' => 30, 'column' => 'oral_internal'],
+                'practical' => ['label' => 'Practical', 'max' => 40, 'column' => 'activity_internal'],
+                'project'   => ['label' => 'Project',   'max' => 30, 'column' => 'test'],
+            ],
+        ],
+        // Agriculture: Oral/Practical/Overall Observation/Homework, matching the
+        // school's existing Agriculture marks register.
+        'oral_practical_obs_hw' => [
+            'label'     => 'Oral / Practical / Overall Observation / Homework',
+            'abbr'      => 'O/P/Ob/HW',
+            'grand_max' => 100,
+            'fields'    => [
+                'oral'                => ['label' => 'Oral',                'max' => 10, 'column' => 'oral_internal'],
+                'practical'           => ['label' => 'Practical',           'max' => 50, 'column' => 'activity_internal'],
+                'overall_observation' => ['label' => 'Overall Observation', 'max' => 30, 'column' => 'test'],
+                'homework'            => ['label' => 'Homework',            'max' => 10, 'column' => 'hw'],
+            ],
+        ],
     ];
 
     // Grading scale
@@ -297,8 +319,8 @@ class MarksController extends Controller
         $section    = $this->sectionRepository->findById($section_id);
 
         $classGroup = self::getClassGroup($schoolClass->class_name);
-        $config     = $subject->mark_type === 'oral_practical_project'
-            ? self::ORAL_PRACTICAL_PROJECT_CONFIG
+        $config     = isset(self::COMPONENT_GRADING_TYPES[$subject->mark_type])
+            ? self::COMPONENT_GRADING_TYPES[$subject->mark_type]
             : self::CLASS_GROUP_CONFIG[$classGroup];
 
         // Students in this class/section, sorted by roll number ascending
@@ -363,8 +385,8 @@ class MarksController extends Controller
         $subject     = Subject::findOrFail($subject_id);
         $schoolClass = $this->schoolClassRepository->findById($class_id);
         $classGroup  = self::getClassGroup($schoolClass->class_name);
-        $config      = $subject->mark_type === 'oral_practical_project'
-            ? self::ORAL_PRACTICAL_PROJECT_CONFIG
+        $config      = isset(self::COMPONENT_GRADING_TYPES[$subject->mark_type])
+            ? self::COMPONENT_GRADING_TYPES[$subject->mark_type]
             : self::CLASS_GROUP_CONFIG[$classGroup];
 
         // Save exam dates (one per component, shared across all students)
@@ -436,47 +458,44 @@ class MarksController extends Controller
                     'grade'              => self::calcGrade($pct),
                     'absent_components'  => !empty($absentComponents) ? $absentComponents : null,
                 ];
-            } elseif ($subject->mark_type === 'oral_practical_project') {
-                // Oral / Practical / Project breakdown (PE, Agriculture) — same shape for every
-                // class. Reuses the oral_internal/activity_internal/test columns to avoid a
-                // parallel table: oral_internal=Oral, activity_internal=Practical, test=Project.
+            } elseif (isset(self::COMPONENT_GRADING_TYPES[$subject->mark_type])) {
+                // Component-breakdown subjects (PE, Agriculture) — a fixed set of named
+                // marks summing to a total, same shape for every class. Field->column
+                // mapping comes from COMPONENT_GRADING_TYPES so each subject can define
+                // its own components without a parallel table.
                 $isAbsent = !empty($row['absent']) && !is_array($row['absent']);
                 $remark   = $row['remark'] ?? null;
+                $fields   = $config['fields'];
 
                 if ($isAbsent) {
-                    $data = [
-                        'oral_internal'      => 0,
-                        'activity_internal'  => 0,
-                        'test'               => 0,
-                        'internal_total'     => 0,
-                        'grand_total'        => 0,
-                        'grade'              => 'AB',
-                        'remark'             => $remark,
-                        'absent_components'  => ['exam'],
-                    ];
+                    $data = ['grade' => 'AB', 'remark' => $remark, 'absent_components' => ['exam']];
+                    foreach ($fields as $fieldKey => $fieldCfg) {
+                        $data[$fieldCfg['column']] = 0;
+                    }
+                    $data['internal_total'] = 0;
+                    $data['grand_total']    = 0;
                 } else {
-                    $oral      = isset($row['oral'])      && $row['oral']      !== '' ? (float)$row['oral']      : null;
-                    $practical = isset($row['practical']) && $row['practical'] !== '' ? (float)$row['practical'] : null;
-                    $project   = isset($row['project'])   && $row['project']   !== '' ? (float)$row['project']   : null;
+                    $vals    = [];
+                    $anyVal  = false;
+                    foreach ($fields as $fieldKey => $fieldCfg) {
+                        $vals[$fieldKey] = isset($row[$fieldKey]) && $row[$fieldKey] !== '' ? (float)$row[$fieldKey] : null;
+                        if ($vals[$fieldKey] !== null) $anyVal = true;
+                    }
 
                     // Skip students where nothing was entered at all
-                    if ($oral === null && $practical === null && $project === null && empty($remark)) {
+                    if (!$anyVal && empty($remark)) {
                         continue;
                     }
 
-                    $total = ($oral ?? 0) + ($practical ?? 0) + ($project ?? 0);
+                    $total = array_sum(array_map(fn($v) => $v ?? 0, $vals));
                     $pct   = $config['grand_max'] > 0 ? ($total / $config['grand_max'] * 100) : 0;
 
-                    $data = [
-                        'oral_internal'      => $oral,
-                        'activity_internal'  => $practical,
-                        'test'               => $project,
-                        'internal_total'     => $total,
-                        'grand_total'        => $total,
-                        'grade'              => self::calcGrade($pct),
-                        'remark'             => $remark,
-                        'absent_components'  => null,
-                    ];
+                    $data = ['grade' => self::calcGrade($pct), 'remark' => $remark, 'absent_components' => null];
+                    foreach ($fields as $fieldKey => $fieldCfg) {
+                        $data[$fieldCfg['column']] = $vals[$fieldKey];
+                    }
+                    $data['internal_total'] = $total;
+                    $data['grand_total']    = $total;
                 }
             } else {
                 // grade_only subject — single absent flag for the whole assessment
