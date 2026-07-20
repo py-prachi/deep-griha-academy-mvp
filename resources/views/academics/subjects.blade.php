@@ -48,8 +48,9 @@
                                                 <td class="text-center">
                                                     @if($subject->mark_type === 'grade_only')
                                                         <span class="badge bg-info" title="Grade entered directly — no mark breakdown">Grade</span>
-                                                    @elseif($subject->mark_type === 'oral_practical_project')
-                                                        <span class="badge bg-info" title="Oral/Practical/Project marks — total and grade auto-calculated">O/P/P</span>
+                                                    @elseif(isset(\App\Http\Controllers\MarksController::COMPONENT_GRADING_TYPES[$subject->mark_type]))
+                                                        @php $__cg = \App\Http\Controllers\MarksController::COMPONENT_GRADING_TYPES[$subject->mark_type]; @endphp
+                                                        <span class="badge bg-info" title="{{ $__cg['label'] }} — total and grade auto-calculated">{{ $__cg['abbr'] }}</span>
                                                     @else
                                                         <span class="badge bg-light text-dark border">Marks</span>
                                                     @endif
@@ -185,7 +186,8 @@
                         <select name="mark_type" id="editMarkType" class="form-select form-select-sm">
                             <option value="marks">Marks (Oral/Activity/Test/HW/Writing)</option>
                             <option value="grade_only">Grade Only (Library, Computer, Tabla etc.)</option>
-                            <option value="oral_practical_project">Oral/Practical/Project (PE, Agriculture)</option>
+                            <option value="oral_practical_project">Oral/Practical/Project (PE)</option>
+                            <option value="oral_practical_obs_hw">Oral/Practical/Overall Observation/Homework (Agriculture)</option>
                         </select>
                     </div>
                     <div class="form-check">

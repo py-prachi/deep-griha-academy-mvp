@@ -137,8 +137,8 @@
                                     <td>{{ $subject->name }}
                                         @if($subject->mark_type === 'grade_only')
                                             <small class="text-muted">(grade)</small>
-                                        @elseif($subject->mark_type === 'oral_practical_project')
-                                            <small class="text-muted">(oral/practical/project)</small>
+                                        @elseif(isset(\App\Http\Controllers\MarksController::COMPONENT_GRADING_TYPES[$subject->mark_type]))
+                                            <small class="text-muted">({{ \App\Http\Controllers\MarksController::COMPONENT_GRADING_TYPES[$subject->mark_type]['abbr'] }})</small>
                                         @endif
                                     </td>
                                     @foreach([1,2] as $term)
