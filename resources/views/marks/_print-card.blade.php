@@ -126,6 +126,15 @@
                 <td class="grade-cell">{{ $m2 ? ($m2->grade ?? '—') : '—' }}</td>
                 @endif
             </tr>
+            @if(($m1 && $m1->remark) || ($m2 && $m2->remark))
+            <tr>
+                <td colspan="{{ $spanCols }}" style="font-size:9px;color:#555;padding:1px 6px 4px 14px;">
+                    @if($showTerm1 && $m1 && $m1->remark)<em>Term I:</em> {{ $m1->remark }}@endif
+                    @if($showTerm1 && $m1 && $m1->remark && $showTerm2 && $m2 && $m2->remark)&nbsp;&nbsp;|&nbsp;&nbsp;@endif
+                    @if($showTerm2 && $m2 && $m2->remark)<em>Term II:</em> {{ $m2->remark }}@endif
+                </td>
+            </tr>
+            @endif
             @endforeach
             @endif
         </tbody>

@@ -289,17 +289,20 @@
 
                                     @elseif($isComponentGrading)
                                     @foreach($config['fields'] as $fieldKey => $fieldCfg)
-                                    @php $fieldVal = $existing->{$fieldCfg['column']} ?? null; @endphp
+                                    @php
+                                        $fieldVal   = $existing->{$fieldCfg['column']} ?? null;
+                                        $incomplete = $existing && !$isFullyAbsent && $fieldVal === null;
+                                    @endphp
                                     <td class="p-1{{ $loop->last ? ' border-end' : '' }}" style="min-width:52px;">
                                         <input type="number" step="0.5" min="0" max="{{ $fieldCfg['max'] }}"
-                                            class="form-control form-control-sm mark-input p-1 text-center"
+                                            class="form-control form-control-sm mark-input p-1 text-center{{ $incomplete ? ' border-warning' : '' }}"
                                             name="marks[{{ $student->id }}][{{ $fieldKey }}]"
                                             value="{{ (!$isFullyAbsent && $fieldVal !== null) ? $fieldVal : '' }}"
                                             {{ $isFullyAbsent ? 'disabled' : '' }}
                                             data-max="{{ $fieldCfg['max'] }}"
                                             data-comp="{{ $fieldKey }}"
                                             data-had-existing="{{ $existing ? '1' : '0' }}"
-                                            style="{{ $isFullyAbsent ? 'display:none;' : '' }}">
+                                            style="{{ $isFullyAbsent ? 'display:none;' : ($incomplete ? 'background:#fff8e1;' : '') }}">
                                     </td>
                                     @endforeach
                                     <td class="text-center fw-bold grand-total" style="background:#d1fae5;color:#065f46;cursor:default;min-width:48px;" title="Auto sum">
