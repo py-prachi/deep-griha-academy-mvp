@@ -18,9 +18,8 @@ class DiagnosticResult extends Model
         'unit_test_2' => 'Unit Test 2',
         'first_term'  => 'First Term',
         'unit_test_3' => 'Unit Test 3',
-        'second_term' => 'Second Term',
         'unit_test_4' => 'Unit Test 4',
-        'annual'      => 'Annual',
+        'second_term' => 'Second Term',
     ];
 
     public function subject()
