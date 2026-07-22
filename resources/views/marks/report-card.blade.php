@@ -90,7 +90,7 @@
 
                                     @if($gradeSubjects->isNotEmpty())
                                     <tr class="table-light">
-                                        <td colspan="12" class="small text-muted py-1 ps-2">Grade-only subjects</td>
+                                        <td colspan="12" class="small text-muted py-1 ps-2">Co-Scholastic Activities</td>
                                     </tr>
                                     @foreach($gradeSubjects as $subject)
                                     @php $rows = $marks->get($subject->id); $m = $rows ? $rows->firstWhere('term', $term) : null; @endphp
@@ -101,6 +101,11 @@
                                             @if($m) {{ $m->grade ?? '—' }} @else <span class="text-muted">—</span> @endif
                                         </td>
                                     </tr>
+                                    @if($m && $m->remark)
+                                    <tr>
+                                        <td colspan="12" class="small text-muted ps-3 pb-2" style="font-style:italic;">{{ $m->remark }}</td>
+                                    </tr>
+                                    @endif
                                     @endforeach
                                     @endif
                                 </tbody>

@@ -427,7 +427,10 @@ class MarksController extends Controller
                     if (in_array($comp, $absentComponents)) {
                         $vals[$comp] = 0;
                     } else {
-                        $vals[$comp] = isset($row[$comp]) && $row[$comp] !== '' ? (float)$row[$comp] : null;
+                        $raw = isset($row[$comp]) && $row[$comp] !== '' ? (float)$row[$comp] : null;
+                        // Clamp to the configured max so an out-of-range submission can't
+                        // push the percentage past 100% (which would flip calcGrade() to 'E').
+                        $vals[$comp] = $raw !== null ? max(0, min($raw, $config[$comp])) : null;
                     }
                 }
 
@@ -478,8 +481,14 @@ class MarksController extends Controller
                     $vals    = [];
                     $anyVal  = false;
                     foreach ($fields as $fieldKey => $fieldCfg) {
-                        $vals[$fieldKey] = isset($row[$fieldKey]) && $row[$fieldKey] !== '' ? (float)$row[$fieldKey] : null;
-                        if ($vals[$fieldKey] !== null) $anyVal = true;
+                        $raw = isset($row[$fieldKey]) && $row[$fieldKey] !== '' ? (float)$row[$fieldKey] : null;
+                        // Clamp to the configured max so an out-of-range submission can't
+                        // push the percentage past 100% (which would flip calcGrade() to 'E').
+                        if ($raw !== null) {
+                            $raw = max(0, min($raw, $fieldCfg['max']));
+                            $anyVal = true;
+                        }
+                        $vals[$fieldKey] = $raw;
                     }
 
                     // Skip students where nothing was entered at all
@@ -487,15 +496,20 @@ class MarksController extends Controller
                         continue;
                     }
 
-                    $total = array_sum(array_map(fn($v) => $v ?? 0, $vals));
-                    $pct   = $config['grand_max'] > 0 ? ($total / $config['grand_max'] * 100) : 0;
+                    if ($anyVal) {
+                        $total = array_sum(array_map(fn($v) => $v ?? 0, $vals));
+                        $pct   = $config['grand_max'] > 0 ? ($total / $config['grand_max'] * 100) : 0;
+                        $data  = ['grade' => self::calcGrade($pct), 'internal_total' => $total, 'grand_total' => $total];
+                    } else {
+                        // Remark-only save: no marks entered yet, so don't record a grade.
+                        $data = ['grade' => null, 'internal_total' => null, 'grand_total' => null];
+                    }
 
-                    $data = ['grade' => self::calcGrade($pct), 'remark' => $remark, 'absent_components' => null];
+                    $data['remark']            = $remark;
+                    $data['absent_components'] = null;
                     foreach ($fields as $fieldKey => $fieldCfg) {
                         $data[$fieldCfg['column']] = $vals[$fieldKey];
                     }
-                    $data['internal_total'] = $total;
-                    $data['grand_total']    = $total;
                 }
             } else {
                 // grade_only subject — single absent flag for the whole assessment
@@ -607,9 +621,10 @@ class MarksController extends Controller
         $statusGrid = [];
         foreach ([1, 2] as $term) {
             foreach ($subjects as $subject) {
-                $isGradeOnly   = $subject->mark_type !== 'marks';
-                $fullCount     = 0;
-                $partialCount  = 0;
+                $componentFields = self::COMPONENT_GRADING_TYPES[$subject->mark_type]['fields'] ?? null;
+                $isGradeOnly      = $subject->mark_type === 'grade_only';
+                $fullCount        = 0;
+                $partialCount     = 0;
 
                 foreach ($studentIds as $sid) {
                     $markCollection = $allMarks->get($subject->id . '-' . $term . '-' . $sid);
@@ -619,7 +634,25 @@ class MarksController extends Controller
                         continue; // no row saved — not started for this student
                     }
 
-                    if ($isGradeOnly) {
+                    if ($componentFields) {
+                        // Component-grading subjects (PE, Agriculture): complete only if
+                        // every field is filled, or the whole assessment is marked absent.
+                        $isAbsent  = $mark->isComponentAbsent('exam');
+                        $allFilled = true;
+                        if (!$isAbsent) {
+                            foreach ($componentFields as $fieldCfg) {
+                                if ($mark->{$fieldCfg['column']} === null) {
+                                    $allFilled = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if ($allFilled) {
+                            $fullCount++;
+                        } else {
+                            $partialCount++;
+                        }
+                    } elseif ($isGradeOnly) {
                         if ($mark->grade) {
                             $fullCount++;
                         } else {
