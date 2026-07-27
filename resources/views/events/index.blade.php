@@ -20,7 +20,7 @@
                     </div>
                     <p class="text-muted small mb-3">Click <strong>Log Activity</strong> to record an activity, or click and drag on the calendar to pick a date.</p>
                     <div class="row bg-white p-4 shadow-sm">
-                        @include('components.events.event-calendar', ['editable' => 'true', 'selectable' => 'true'])
+                        @include('components.events.event-calendar', ['editable' => 'false', 'selectable' => 'true'])
                     </div>
                 </div>
             </div>

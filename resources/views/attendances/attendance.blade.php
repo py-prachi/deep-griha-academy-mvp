@@ -118,6 +118,10 @@
                     @endif
 
 
+                    @php
+                        $isAdmin    = auth()->user()->role === 'admin';
+                        $canManage  = $isAdmin || $isCt;
+                    @endphp
                     <div class="row mt-4">
                         <div class="col bg-white border shadow-sm p-3">
                             <table class="table table-sm">
@@ -125,13 +129,17 @@
                                     <tr>
                                         <th scope="col">Date</th>
                                         <th scope="col">Status</th>
-                                        @if(in_array(auth()->user()->role, ['admin', 'teacher']))
+                                        @if($canManage)
                                         <th scope="col">Action</th>
                                         @endif
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($attendances as $attendance)
+                                        @php
+                                            $recordDate = \Carbon\Carbon::parse($attendance->created_at)->startOfDay();
+                                            $withinEditWindow = $isAdmin || $recordDate->gte($editableFrom);
+                                        @endphp
                                         <tr>
                                             <td>{{ \Carbon\Carbon::parse($attendance->created_at)->format('d M Y') }}</td>
                                             <td>
@@ -141,13 +149,17 @@
                                                     <span class="badge bg-danger">Absent</span>
                                                 @endif
                                             </td>
-                                            @if(in_array(auth()->user()->role, ['admin', 'teacher']))
+                                            @if($canManage)
                                             <td>
+                                                @if($withinEditWindow)
                                                 <form method="POST" action="{{ route('attendance.update', $attendance->id) }}" class="d-inline">
                                                     @csrf
                                                     <input type="checkbox" name="present" {{ $attendance->status == "on" ? 'checked' : '' }} class="form-check-input me-1">
                                                     <button type="submit" class="btn btn-sm btn-outline-primary py-0 px-2">Update</button>
                                                 </form>
+                                                @else
+                                                    <span class="text-muted small">Contact Admin to edit</span>
+                                                @endif
                                             </td>
                                             @endif
                                         </tr>

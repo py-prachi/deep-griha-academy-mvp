@@ -27,7 +27,7 @@ class EventController extends Controller
                 ->whereDate('end', '<=', $request->end)
                 ->where('session_id', $current_school_session_id)
                 ->where('publish_to_calendar', true)
-                ->get(['id', 'title', 'start', 'end', 'activity_type', 'description',
+                ->get(['id', 'title', 'start', 'end', 'activity_type', 'grade', 'description',
                        'purpose', 'location', 'duration', 'participants', 'participant_count',
                        'skills_values', 'photo_url', 'outcome', 'created_by']);
             return response()->json($data);
@@ -50,6 +50,7 @@ class EventController extends Controller
                     'end'               => $request->end,
                     'session_id'        => $current_school_session_id,
                     'activity_type'     => $request->activity_type,
+                    'grade'             => $request->grade,
                     'description'       => $request->description,
                     'purpose'           => $request->purpose,
                     'location'          => $request->location,
@@ -75,6 +76,7 @@ class EventController extends Controller
                     'start'             => $request->start,
                     'end'               => $request->end,
                     'activity_type'     => $request->activity_type,
+                    'grade'             => $request->grade,
                     'description'       => $request->description,
                     'purpose'           => $request->purpose,
                     'location'          => $request->location,
@@ -107,35 +109,16 @@ class EventController extends Controller
     {
         $user = auth()->user();
 
-        $query = Event::with('creator');
-
-        if ($request->filled('activity_type')) {
-            $query->where('activity_type', 'like', '%' . $request->activity_type . '%');
-        }
-        if ($request->filled('date_from')) {
-            $query->whereDate('start', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('start', '<=', $request->date_to);
-        }
-        if ($user->role !== 'admin') {
-            $query->where('created_by', $user->id);
-        } elseif ($request->filled('created_by')) {
-            $query->where('created_by', $request->created_by);
-        }
-
-        $events = $query->orderBy('start', 'desc')->paginate(20)->withQueryString();
-        $teachers = $user->role === 'admin'
-            ? User::where('role', 'teacher')->orderBy('first_name')->get()
-            : collect();
+        $events = $this->buildEventQuery($request)->paginate(20)->withQueryString();
+        $teachers = User::where('role', 'teacher')->orderBy('first_name')->get();
 
         return view('events.report', compact('events', 'teachers'));
     }
 
+    // Everyone (admin and teachers) can browse all logged activities in view mode.
+    // Pass created_by to narrow to a single teacher (e.g. the "My Activities" shortcut).
     private function buildEventQuery(Request $request)
     {
-        $user = auth()->user();
-
         $query = Event::with('creator');
 
         if ($request->filled('activity_type')) {
@@ -147,9 +130,7 @@ class EventController extends Controller
         if ($request->filled('date_to')) {
             $query->whereDate('start', '<=', $request->date_to);
         }
-        if ($user->role !== 'admin') {
-            $query->where('created_by', $user->id);
-        } elseif ($request->filled('created_by')) {
+        if ($request->filled('created_by')) {
             $query->where('created_by', $request->created_by);
         }
 
@@ -180,10 +161,6 @@ class EventController extends Controller
     {
         $event = Event::with('creator')->findOrFail($id);
         $user  = auth()->user();
-
-        if ($user->role !== 'admin' && $event->created_by !== $user->id) {
-            abort(403);
-        }
 
         $pdf = Pdf::loadView('events.event-pdf', compact('event', 'user'))
             ->setPaper('a4', 'portrait');

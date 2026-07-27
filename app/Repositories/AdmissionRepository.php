@@ -210,17 +210,15 @@ class AdmissionRepository implements AdmissionInterface
                 'id_card_number' => $admission->dga_admission_no ?? $admission->general_id ?? '',
             ], $student->id);
 
-            // Auto-assign next roll number if roll numbers are already in use for this class+section
+            // Auto-assign next roll number for this class+section (1 if none assigned yet)
             $maxRoll = \App\Models\Promotion::where('session_id', $promotionSessionId)
                 ->where('class_id', $admission->class_id)
                 ->where('section_id', $data['section_id'])
-                ->max('roll_number');
+                ->max('roll_number') ?? 0;
 
-            if ($maxRoll !== null) {
-                \App\Models\Promotion::where('student_id', $student->id)
-                    ->where('session_id', $promotionSessionId)
-                    ->update(['roll_number' => $maxRoll + 1]);
-            }
+            \App\Models\Promotion::where('student_id', $student->id)
+                ->where('session_id', $promotionSessionId)
+                ->update(['roll_number' => $maxRoll + 1]);
 
             // Link student back to admission
             $admission->student_user_id = $student->id;

@@ -9,7 +9,7 @@
 {{-- ── HEADER ── --}}
 <div class="rc-header">
     <div class="school-name">DEEP GRIHA ACADEMY</div>
-    <div class="school-address">Tadiwala Road, Pune – 411 001 &nbsp;|&nbsp; Tel: (020) 26055540</div>
+    <div class="school-address">Deulgaon Gada, Pune – 412203 &nbsp;|&nbsp; Tel: (020) 26055540</div>
     <div class="rc-title">Progress Report Card</div>
 </div>
 

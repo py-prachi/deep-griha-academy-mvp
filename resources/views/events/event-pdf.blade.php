@@ -40,7 +40,7 @@
     <h1>Deep Griha Academy</h1>
     <h2>{{ $event->title }}</h2>
     <p>Generated on {{ now()->format('d M Y, h:i A') }}
-        @if($user->role === 'admin') &bull; Logged by: {{ optional($event->creator)->full_name ?? '—' }} @endif
+        &bull; Logged by: {{ optional($event->creator)->full_name ?? '—' }}
     </p>
 </div>
 
@@ -65,23 +65,30 @@
         </div>
         <div class="grid-row">
             <div class="grid-cell">
-                <div class="field-label">Location</div>
-                <div class="field-value">{{ $event->location ?: '—' }}</div>
+                <div class="field-label">Grade</div>
+                <div class="field-value">{{ $event->grade ?: '—' }}</div>
             </div>
             <div class="grid-cell">
-                <div class="field-label">Duration</div>
-                <div class="field-value">{{ $event->duration ?: '—' }}</div>
+                <div class="field-label">Location</div>
+                <div class="field-value">{{ $event->location ?: '—' }}</div>
             </div>
         </div>
         <div class="grid-row">
             <div class="grid-cell">
+                <div class="field-label">Duration</div>
+                <div class="field-value">{{ $event->duration ?: '—' }}</div>
+            </div>
+            <div class="grid-cell">
                 <div class="field-label">Participants</div>
                 <div class="field-value">{{ $event->participants ?: '—' }}</div>
             </div>
+        </div>
+        <div class="grid-row">
             <div class="grid-cell">
                 <div class="field-label">Participant Count</div>
                 <div class="field-value">{{ $event->participant_count ?: '—' }}</div>
             </div>
+            <div class="grid-cell"></div>
         </div>
     </div>
 </div>

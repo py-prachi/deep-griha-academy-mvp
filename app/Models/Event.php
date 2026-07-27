@@ -11,7 +11,7 @@ class Event extends Model
 
     protected $fillable = [
         'title', 'start', 'end', 'session_id',
-        'activity_type', 'description', 'purpose', 'location', 'duration',
+        'activity_type', 'grade', 'description', 'purpose', 'location', 'duration',
         'participants', 'participant_count', 'skills_values', 'photo_url', 'outcome',
         'publish_to_calendar', 'created_by',
     ];

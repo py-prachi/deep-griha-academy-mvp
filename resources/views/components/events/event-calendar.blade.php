@@ -21,6 +21,10 @@
                         <span class="text-muted">Date</span>
                         <div class="fw-semibold" id="det_date"></div>
                     </div>
+                    <div class="col-md-6" id="det_grade_row">
+                        <span class="text-muted">Grade</span>
+                        <div class="fw-semibold" id="det_grade"></div>
+                    </div>
                     <div class="col-md-6" id="det_location_row">
                         <span class="text-muted">Location</span>
                         <div id="det_location"></div>
@@ -66,9 +70,6 @@
                 <button type="button" class="btn btn-outline-danger btn-sm" id="btn_delete_event">
                     <i class="bi bi-trash me-1"></i> Delete
                 </button>
-                <button type="button" class="btn btn-primary btn-sm" id="btn_edit_event">
-                    <i class="bi bi-pencil me-1"></i> Edit
-                </button>
             </div>
             @endif
         </div>
@@ -93,6 +94,12 @@
                         <div class="col-12">
                             <label class="form-label">Activity / Event's Name</label>
                             <input type="text" class="form-control" name="activity_type" placeholder="e.g. Academics, Awareness Sessions">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Grade</label>
+                            <select class="form-select" name="grade" id="create_grade">
+                                @include('components.events.grade-options')
+                            </select>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Date of activity/event <span class="text-danger">*</span></label>
@@ -153,83 +160,6 @@
     </div>
 </div>
 
-{{-- Edit modal --}}
-<div class="modal fade" id="editEventModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Activity</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editEventForm">
-                    @csrf
-                    <input type="hidden" id="edit_event_id" name="id">
-                    <input type="hidden" id="edit_start" name="start">
-                    <input type="hidden" id="edit_end" name="end">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label">Activity / Event's Name</label>
-                            <input type="text" class="form-control" id="edit_activity_type" name="activity_type">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Date of activity/event <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="edit_activity_date" required>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Description of activity/event</label>
-                            <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Purpose of activity/event</label>
-                            <textarea class="form-control" id="edit_purpose" name="purpose" rows="2"></textarea>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Place of activity/event</label>
-                            <input type="text" class="form-control" id="edit_location" name="location">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Duration of activity/event</label>
-                            <input type="text" class="form-control" id="edit_duration" name="duration">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Attendee's details</label>
-                            <input type="text" class="form-control" id="edit_participants" name="participants">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">No. of Attendants</label>
-                            <input type="number" class="form-control" id="edit_participant_count" name="participant_count" min="1">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Please mention if any training/DGS core values components applied</label>
-                            <input type="text" class="form-control" id="edit_skills_values" name="skills_values">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Pic (Google Drive link)</label>
-                            <input type="url" class="form-control" id="edit_photo_url" name="photo_url">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Remarks</label>
-                            <textarea class="form-control" id="edit_outcome" name="outcome" rows="2"></textarea>
-                        </div>
-                        <div class="col-12">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="publish_to_calendar" id="edit_publish" value="1">
-                                <label class="form-check-label" for="edit_publish">
-                                    Publish to school calendar <span class="text-muted small">(visible to all teachers &amp; students)</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" form="editEventForm" class="btn btn-primary"><i class="bi bi-check2 me-1"></i> Update Activity</button>
-            </div>
-        </div>
-    </div>
-</div>
 @endif
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -275,21 +205,6 @@
                 calendar.fullCalendar('unselect');
             },
 
-            eventResize: function (event, delta) {
-                $.ajax({
-                    url: SITEURL + '/calendar-crud-ajax',
-                    data: {
-                        title: event.title,
-                        start: $.fullCalendar.formatDate(event.start, "Y-MM-DD"),
-                        end:   $.fullCalendar.formatDate(event.end,   "Y-MM-DD"),
-                        id:    event.id,
-                        type:  'edit'
-                    },
-                    type: "POST",
-                    success: function () { displayMessage("Event updated"); }
-                });
-            },
-
             eventClick: function (event) {
                 currentEvent = event;
                 var canEdit = isAdmin || (event.created_by == currentUserId);
@@ -302,6 +217,7 @@
                 $('#det_date').text(start === end ? start : start + ' – ' + end);
 
                 setDetRow('det_type_row',         'det_type',         event.activity_type);
+                setDetRow('det_grade_row',        'det_grade',        event.grade);
                 setDetRow('det_location_row',     'det_location',     event.location);
                 setDetRow('det_duration_row',     'det_duration',     event.duration);
                 setDetRow('det_participants_row', 'det_participants',  event.participants);
@@ -361,7 +277,7 @@
                 success: function (data) {
                     calendar.fullCalendar('renderEvent', {
                         id: data.id, title: data.title, start: data.start, end: data.end,
-                        activity_type: data.activity_type, description: data.description,
+                        activity_type: data.activity_type, grade: data.grade, description: data.description,
                         purpose: data.purpose, location: data.location, duration: data.duration,
                         participants: data.participants, participant_count: data.participant_count,
                         skills_values: data.skills_values, photo_url: data.photo_url,
@@ -372,62 +288,6 @@
                     displayMessage("Activity logged.");
                 },
                 error: function () { displayError("Failed to save. Please try again."); }
-            });
-        });
-
-        // Open edit modal from detail modal
-        $('#btn_edit_event').on('click', function () {
-            if (!currentEvent) return;
-            bootstrap.Modal.getInstance(document.getElementById('eventDetailModal')).hide();
-            $('#edit_event_id').val(currentEvent.id);
-            $('#edit_start').val($.fullCalendar.formatDate(currentEvent.start, "Y-MM-DD HH:mm:ss"));
-            $('#edit_end').val(currentEvent.end ? $.fullCalendar.formatDate(currentEvent.end, "Y-MM-DD HH:mm:ss") : $.fullCalendar.formatDate(currentEvent.start, "Y-MM-DD HH:mm:ss"));
-            $('#edit_activity_date').val(moment(currentEvent.start).format('YYYY-MM-DD'));
-            $('#edit_title').val(currentEvent.title);
-            $('#edit_activity_type').val(currentEvent.activity_type || '');
-            $('#edit_location').val(currentEvent.location || '');
-            $('#edit_duration').val(currentEvent.duration || '');
-            $('#edit_participant_count').val(currentEvent.participant_count || '');
-            $('#edit_participants').val(currentEvent.participants || '');
-            $('#edit_description').val(currentEvent.description || '');
-            $('#edit_purpose').val(currentEvent.purpose || '');
-            $('#edit_skills_values').val(currentEvent.skills_values || '');
-            $('#edit_outcome').val(currentEvent.outcome || '');
-            $('#edit_photo_url').val(currentEvent.photo_url || '');
-            $('#edit_publish').prop('checked', !!currentEvent.publish_to_calendar);
-            setTimeout(function () {
-                new bootstrap.Modal(document.getElementById('editEventModal')).show();
-            }, 300);
-        });
-
-        // Edit form submit
-        $('#editEventForm').on('submit', function (e) {
-            e.preventDefault();
-            var d = $('#edit_activity_date').val();
-            if (d) { $('#edit_start').val(d + ' 00:00:00'); $('#edit_end').val(d + ' 00:00:00'); }
-            var formData = new FormData(this);
-            formData.append('type', 'edit');
-            $.ajax({
-                url: SITEURL + '/calendar-crud-ajax',
-                data: formData,
-                type: 'POST',
-                contentType: false,
-                processData: false,
-                success: function (data) {
-                    calendar.fullCalendar('removeEvents', data.id);
-                    calendar.fullCalendar('renderEvent', {
-                        id: data.id, title: data.title, start: data.start, end: data.end,
-                        activity_type: data.activity_type, description: data.description,
-                        purpose: data.purpose, location: data.location, duration: data.duration,
-                        participants: data.participants, participant_count: data.participant_count,
-                        skills_values: data.skills_values, photo_url: data.photo_url,
-                        outcome: data.outcome, publish_to_calendar: data.publish_to_calendar,
-                        created_by: data.created_by,
-                    }, true);
-                    bootstrap.Modal.getInstance(document.getElementById('editEventModal')).hide();
-                    displayMessage("Activity updated.");
-                },
-                error: function () { displayError("Failed to update. Please try again."); }
             });
         });
 
