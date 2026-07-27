@@ -366,6 +366,16 @@ public function showStudentAttendance(Request $request, $id)
     $school_class   = $class_id   ? $this->schoolClassRepository->findById($class_id)   : null;
     $school_section = $section_id ? $this->sectionRepository->findById($section_id)     : null;
 
+    // Teachers may only edit attendance for their own CT class/section.
+    $isCt = $user->role === 'teacher' && ClassTeacher::where('teacher_id', $user->id)
+        ->where('session_id', $current_school_session_id)
+        ->where('class_id', $class_id)
+        ->where('section_id', $section_id)
+        ->exists();
+
+    // Editable window for teachers: today and yesterday only. Admin: unrestricted.
+    $editableFrom = Carbon::today()->subDay();
+
     return view('attendances.attendance', [
         'attendances'               => $attendances,
         'student'                   => $student,
@@ -379,6 +389,8 @@ public function showStudentAttendance(Request $request, $id)
         'has_promotion'             => $has_promotion,
         'school_class'              => $school_class,
         'school_section'            => $school_section,
+        'isCt'                      => $isCt,
+        'editableFrom'              => $editableFrom,
     ]);
 }
 
@@ -479,22 +491,47 @@ public function showStudentAttendance(Request $request, $id)
     }
 
     public function update(Request $request, $attendance_id)
-{
-    if (!in_array(auth()->user()->role, ['admin', 'teacher'])) {
-    abort(403);
-}
+    {
+        $user = auth()->user();
 
-    $attendanceRepository = new AttendanceRepository();
+        if (!in_array($user->role, ['admin', 'teacher'])) {
+            abort(403);
+        }
 
-    $status = $request->has('present') ? 'on' : 'off';
+        $attendance = Attendance::findOrFail($attendance_id);
 
-    $attendanceRepository->updateAttendance(
-        $attendance_id,
-        $status
-    );
+        // Teachers may only edit attendance for their own CT class/section,
+        // and only for today or yesterday. Older records must go through Admin.
+        if ($user->role === 'teacher') {
+            $current_school_session_id = $this->getSchoolCurrentSession();
 
-    return back()->with('status', 'Attendance updated successfully');
-}
+            $isCt = ClassTeacher::where('teacher_id', $user->id)
+                ->where('session_id', $current_school_session_id)
+                ->where('class_id', $attendance->class_id)
+                ->where('section_id', $attendance->section_id)
+                ->exists();
+            if (!$isCt) {
+                abort(403, 'Only the Class Teacher for this class/section can edit this attendance.');
+            }
+
+            $recordDate = Carbon::parse($attendance->created_at)->startOfDay();
+            $earliestEditable = Carbon::today()->subDay();
+            if ($recordDate->lt($earliestEditable)) {
+                abort(403, 'Attendance older than yesterday can only be corrected by an Admin. Please contact Admin.');
+            }
+        }
+
+        $attendanceRepository = new AttendanceRepository();
+
+        $status = $request->has('present') ? 'on' : 'off';
+
+        $attendanceRepository->updateAttendance(
+            $attendance_id,
+            $status
+        );
+
+        return back()->with('status', 'Attendance updated successfully');
+    }
 
 
 }

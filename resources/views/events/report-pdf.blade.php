@@ -53,18 +53,17 @@
     <thead>
         <tr>
             <th style="width:7%">Date</th>
-            <th style="width:14%">Activity / Event Name</th>
-            <th style="width:10%">Type</th>
+            <th style="width:13%">Activity / Event Name</th>
+            <th style="width:9%">Type</th>
+            <th style="width:7%">Grade</th>
             <th style="width:8%">Location</th>
             <th style="width:6%">Duration</th>
-            <th style="width:13%">Participants</th>
+            <th style="width:12%">Participants</th>
             <th style="width:4%">Count</th>
-            <th style="width:16%">Description</th>
-            <th style="width:14%">Purpose / Action</th>
-            <th style="width:10%">Remarks</th>
-            @if($user->role === 'admin')
+            <th style="width:14%">Description</th>
+            <th style="width:12%">Purpose / Action</th>
+            <th style="width:9%">Remarks</th>
             <th style="width:8%">Logged By</th>
-            @endif
         </tr>
     </thead>
     <tbody>
@@ -78,6 +77,7 @@
             </td>
             <td><strong>{{ $event->title }}</strong></td>
             <td>{{ $event->activity_type ?: '—' }}</td>
+            <td>{{ $event->grade ?: '—' }}</td>
             <td>{{ $event->location ?: '—' }}</td>
             <td>{{ $event->duration ?: '—' }}</td>
             <td>{{ $event->participants ?: '—' }}</td>
@@ -85,9 +85,7 @@
             <td>{{ $event->description ?: '—' }}</td>
             <td>{{ $event->purpose ?: '—' }}</td>
             <td>{{ $event->outcome ?: '—' }}</td>
-            @if($user->role === 'admin')
             <td>{{ optional($event->creator)->full_name ?? '—' }}</td>
-            @endif
         </tr>
         @endforeach
     </tbody>

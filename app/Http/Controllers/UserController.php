@@ -124,6 +124,8 @@ class UserController extends Controller
                         ->where('section_id', $ctAssignment->section_id)
                         ->whereHas('student', fn($q) => $q->whereNotIn('student_status', ['exited', 'graduated']))
                         ->get();
+                    $class_id   = $ctAssignment->class_id;
+                    $section_id = $ctAssignment->section_id;
                 } else {
                     // Subject teacher with no filter: show nothing, prompt to select
                     $studentList = collect();

@@ -313,7 +313,7 @@
                 <div class="card mb-4">
                     <div class="card-header py-2 small fw-semibold d-flex justify-content-between align-items-center">
                         <span><i class="bi bi-calendar-event me-1"></i> Log Activity</span>
-                        <a href="{{ route('events.report') }}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:0.75rem;">
+                        <a href="{{ route('events.report', ['created_by' => auth()->id()]) }}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:0.75rem;">
                             <i class="bi bi-list-ul me-1"></i> My Activities
                         </a>
                     </div>
@@ -360,7 +360,7 @@
                         <div class="card">
                             <div class="card-header py-2 small fw-semibold d-flex justify-content-between align-items-center">
                                 <span><i class="bi bi-calendar-event me-1"></i> Log Activity</span>
-                                <a href="{{ route('events.report') }}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:0.75rem;">
+                                <a href="{{ route('events.report', ['created_by' => auth()->id()]) }}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:0.75rem;">
                                     <i class="bi bi-list-ul me-1"></i> My Activities
                                 </a>
                             </div>
