@@ -118,7 +118,9 @@
                         </ul>
                     </li>
 
-                    {{-- Marks — shown based on CT class type --}}
+                    {{-- Marks — Pre-Primary and Class 1-8 sections are independent, since a
+                         teacher can be CT/subject-teacher of both at once (e.g. CT of UKG
+                         who also teaches a Class 1 subject) and needs both. --}}
                     @php
                         $menuSession = session('browse_session_id') ?: optional(\App\Models\SchoolSession::orderBy('id','desc')->first())->id;
                         // A teacher may be CT for more than one class (e.g. one teacher
@@ -127,15 +129,23 @@
                             ->where('teacher_id', Auth::user()->id)
                             ->where('session_id', $menuSession)
                             ->get();
-                        $menuCT = $menuCTs->first();
-                        $menuIsMultiCt = $menuCTs->count() > 1;
-                        $menuIsAnySubjectTeacher = \App\Models\SubjectTeacher::where('teacher_id', Auth::user()->id)->where('session_id', $menuSession)->exists();
-                        $menuIsPP = $menuCT
-                            ? \App\Http\Controllers\PrePrimaryController::getPrePrimaryType(optional($menuCT->schoolClass)->class_name ?? '')
-                            : null;
-                        $menuIs18 = $menuCT && !$menuIsPP;
-                        // Also check if subject teacher (non-CT) — show Class 1-8 marks
-                        $menuIsSubjectTeacher = !$menuCT && \App\Models\SubjectTeacher::where('teacher_id', Auth::user()->id)->where('session_id', $menuSession)->exists();
+                        $menuPreprimaryCTs = $menuCTs->filter(fn($a) =>
+                            \App\Http\Controllers\PrePrimaryController::getPrePrimaryType(optional($a->schoolClass)->class_name ?? '')
+                        );
+                        $menuIsPP        = $menuPreprimaryCTs->isNotEmpty();
+                        $menuIsMultiPPCt = $menuPreprimaryCTs->count() > 1;
+                        $menuFirstPPCt   = $menuPreprimaryCTs->first();
+                        $menuIsClass18CT = $menuCTs->count() > $menuPreprimaryCTs->count();
+                        // Reuses the same "has a real Class 1-8 subject assignment" check as
+                        // the Lesson Planning link, so a pre-primary-only subject assignment
+                        // (e.g. English for LKG) doesn't wrongly unlock Class 1-8 Marks.
+                        $menuIsAnyClass18SubjectTeacher = \App\Models\SubjectTeacher::where('teacher_id', Auth::user()->id)
+                            ->where('session_id', $menuSession)
+                            ->whereHas('schoolClass', function($q){
+                                $q->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
+                                  ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
+                            })
+                            ->exists();
                     @endphp
                     <li class="nav-item">
                         <a type="button" href="#teacher-marks-submenu" data-bs-toggle="collapse"
@@ -146,36 +156,35 @@
                         </a>
                         <ul class="nav collapse {{ request()->is('marks2*') || request()->is('preprimary*') ? 'show' : 'hide' }} bg-white" id="teacher-marks-submenu">
                             @if($menuIsPP)
-                            {{-- Pre-primary CT: only pre-primary entry. If CT for more than one
+                            {{-- Pre-primary CT: skill entry + remarks. If CT for more than one
                                  pre-school class, link to the bare route so the class picker shows. --}}
                             <li class="nav-item w-100">
                                 <a class="nav-link {{ request()->is('preprimary/entry*') ? 'active' : '' }}"
-                                    href="{{ $menuIsMultiCt ? route('preprimary.entry') : route('preprimary.entry', ['class_id' => $menuCT->class_id, 'section_id' => $menuCT->section_id]) }}">
+                                    href="{{ $menuIsMultiPPCt ? route('preprimary.entry') : route('preprimary.entry', ['class_id' => $menuFirstPPCt->class_id, 'section_id' => $menuFirstPPCt->section_id]) }}">
                                     <i class="bi bi-check2-square me-2"></i> Skill Entry
                                 </a>
                             </li>
                             <li class="nav-item w-100">
                                 <a class="nav-link {{ request()->is('preprimary/narratives*') ? 'active' : '' }}"
-                                    href="{{ $menuIsMultiCt ? route('preprimary.narratives') : route('preprimary.narratives', ['class_id' => $menuCT->class_id, 'section_id' => $menuCT->section_id]) }}">
+                                    href="{{ $menuIsMultiPPCt ? route('preprimary.narratives') : route('preprimary.narratives', ['class_id' => $menuFirstPPCt->class_id, 'section_id' => $menuFirstPPCt->section_id]) }}">
                                     <i class="bi bi-chat-left-text me-2"></i> Remarks
                                 </a>
                             </li>
-                            @else
+                            @endif
                             {{-- Class 1-8: Enter Marks only for subject teachers; CT-only gets View only --}}
-                            @if($menuIsAnySubjectTeacher)
+                            @if($menuIsAnyClass18SubjectTeacher)
                             <li class="nav-item w-100">
                                 <a class="nav-link {{ request()->is('marks2') && !request()->is('marks2/review*') ? 'active' : '' }}" href="{{ route('marks.index') }}">
                                     <i class="bi bi-pencil me-2"></i> Enter Marks
                                 </a>
                             </li>
                             @endif
-                            @if($menuIs18 || $menuIsAnySubjectTeacher)
+                            @if($menuIsClass18CT || $menuIsAnyClass18SubjectTeacher)
                             <li class="nav-item w-100">
                                 <a class="nav-link {{ request()->is('marks2/review*') ? 'active' : '' }}" href="{{ route('marks.review') }}">
                                     <i class="bi bi-grid-3x3-gap me-2"></i> Marks Review
                                 </a>
                             </li>
-                            @endif
                             @endif
                         </ul>
                     </li>

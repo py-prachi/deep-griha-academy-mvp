@@ -181,7 +181,9 @@
                     @endif
 
                     {{-- ── CLASS TEACHER VIEW (read-only) ── --}}
-                    @if($ctAssignment)
+                    {{-- A teacher may be CT for more than one Class 1-8 class — show a block per class. --}}
+                    @foreach($ctAssignments as $ctAssignment)
+                    @php $ctLessons = $ctLessonsByAssignment[$ctAssignment->id] ?? null; @endphp
                     <h6 class="text-uppercase text-muted small fw-bold mb-2 border-bottom pb-1 mt-4">
                         <i class="bi bi-eye me-1"></i>
                         My Class — {{ $ctAssignment->schoolClass->class_name }} {{ $ctAssignment->section->section_name }}
@@ -228,9 +230,9 @@
                     @else
                         <div class="alert alert-light text-muted">No lesson plans have been added for your class yet.</div>
                     @endif
-                    @endif
+                    @endforeach
 
-                    @if($subjectAssignments->isEmpty() && !$ctAssignment)
+                    @if($subjectAssignments->isEmpty() && $ctAssignments->isEmpty())
                     <div class="alert alert-warning">
                         You have no subject assignments for Class 1–8 in the current session.
                         Ask the admin to assign you via <a href="{{ route('academics.teacher-assignments') }}">Teacher Assignments</a>.
