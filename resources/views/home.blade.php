@@ -143,19 +143,34 @@
                     $tGreeting = $tHour < 12 ? 'morning' : ($tHour < 17 ? 'afternoon' : 'evening');
                 @endphp
                 <h5 class="mb-0 fw-bold fw-bold" style="color:#1B3A6B;">Good {{ $tGreeting }}, {{ auth()->user()->first_name }}!</h5>
-                @if($ct)
+                @if($ctAssignments->isNotEmpty())
                 <p class="text-muted small mb-2">
                     Class Teacher &mdash;
-                    <strong>{{ $ct->schoolClass->class_name ?? '' }}</strong>
-                    @if($ct->section) &mdash; {{ $ct->section->section_name }} @endif
+                    @foreach($ctAssignments as $i => $ctHeaderRow)
+                        <strong>{{ $ctHeaderRow->schoolClass->class_name ?? '' }}</strong>
+                        @if($ctHeaderRow->section) &mdash; {{ $ctHeaderRow->section->section_name }} @endif
+                        {{ !$loop->last ? ', ' : '' }}
+                    @endforeach
                     &nbsp;|&nbsp; {{ \Carbon\Carbon::today()->format('l, d M Y') }}
                 </p>
                 @else
                 <p class="text-muted small mb-2">{{ \Carbon\Carbon::today()->format('l, d M Y') }} &nbsp;|&nbsp; Subject Teacher</p>
                 @endif
 
-                @if($ct)
-                {{-- Row 1: Quick action cards --}}
+                @if($ctAssignments->isNotEmpty())
+                {{-- Row 1: Quick action cards — one set per class teacher assignment --}}
+                @foreach($ctAssignments as $ct)
+                @php
+                    $ppType          = $ppTypes[$ct->id] ?? null;
+                    $students        = $studentsByCt[$ct->id] ?? collect();
+                    $attendanceToday = $attendanceByCt[$ct->id] ?? collect();
+                    $marksStatus     = $marksStatusByCt[$ct->id] ?? null;
+                @endphp
+                @if($ctAssignments->count() > 1)
+                <h6 class="text-muted small fw-semibold mb-2 mt-1">
+                    {{ $ct->schoolClass->class_name ?? '' }} {{ optional($ct->section)->section_name }}
+                </h6>
+                @endif
                 <div class="row g-3 mb-4">
 
                     {{-- Attendance card --}}
@@ -165,9 +180,6 @@
                         $lateToday     = $attendanceToday->where('status', 'late')->count();
                         $markedToday   = $attendanceToday->count();
                         $totalStudents = $students->count();
-                        $attRoute = $ppType
-                            ? route('attendance.create.show', ['class_id' => $ct->class_id, 'section_id' => $ct->section_id])
-                            : route('attendance.create.show', ['class_id' => $ct->class_id, 'section_id' => $ct->section_id]);
                     @endphp
                     <div class="col-md-4">
                         <div class="card h-100">
@@ -275,6 +287,7 @@
                         </div>
                     </div>
                 </div>
+                @endforeach
 
                 {{-- Row 2: Notices --}}
                 <div class="row g-3 mb-4">

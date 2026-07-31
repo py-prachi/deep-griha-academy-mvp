@@ -74,35 +74,35 @@
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Objective</label>
-                                    <textarea name="objective" rows="3" class="form-control @error('objective') is-invalid @enderror"
+                                    <textarea name="objective" rows="6" style="min-height:150px;" class="form-control @error('objective') is-invalid @enderror"
                                               placeholder="What students will learn...">{{ old('objective') }}</textarea>
                                     @error('objective')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Teach</label>
-                                    <textarea name="teach" rows="3" class="form-control @error('teach') is-invalid @enderror"
+                                    <textarea name="teach" rows="6" style="min-height:150px;" class="form-control @error('teach') is-invalid @enderror"
                                               placeholder="How you will teach this...">{{ old('teach') }}</textarea>
                                     @error('teach')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Practical Activity</label>
-                                    <textarea name="practical_notes" rows="3" class="form-control @error('practical_notes') is-invalid @enderror"
+                                    <textarea name="practical_notes" rows="6" style="min-height:150px;" class="form-control @error('practical_notes') is-invalid @enderror"
                                               placeholder="Describe the practical activity...">{{ old('practical_notes') }}</textarea>
                                     @error('practical_notes')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Closure</label>
-                                    <textarea name="closure" rows="2" class="form-control @error('closure') is-invalid @enderror"
+                                    <textarea name="closure" rows="6" style="min-height:140px;" class="form-control @error('closure') is-invalid @enderror"
                                               placeholder="How will you close the session...">{{ old('closure') }}</textarea>
                                     @error('closure')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-4">
                                     <label class="form-label fw-semibold">Project / HW</label>
-                                    <textarea name="homework" rows="2" class="form-control @error('homework') is-invalid @enderror"
+                                    <textarea name="homework" rows="6" style="min-height:140px;" class="form-control @error('homework') is-invalid @enderror"
                                               placeholder="Any homework or project assigned...">{{ old('homework') }}</textarea>
                                     @error('homework')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>

@@ -19,6 +19,31 @@
                     </div>
                     @endif
 
+                    @if(!empty($ct_assignments))
+                    <p class="text-muted small mb-3">You are the Class Teacher for more than one class — pick one below.</p>
+                    <div class="row">
+                        @foreach ($ct_assignments as $assignment)
+                        <div class="col-12">
+                            <div class="card my-3">
+                                <div class="card-header bg-transparent">
+                                    <i class="bi bi-diagram-2"></i>
+                                    {{ $assignment->schoolClass->class_name }} {{ $assignment->section->section_name }}
+                                </div>
+                                <div class="card-body text-dark">
+                                    <div class="list-group mb-2">
+                                        <a href="{{ route('attendance.create.show', ['class_id' => $assignment->class_id, 'section_id' => $assignment->section_id]) }}">
+                                            Take Attendance
+                                        </a>
+                                        <a href="{{ route('attendance.history', ['class_id' => $assignment->class_id, 'section_id' => $assignment->section_id]) }}">
+                                            Attendance History
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    @else
                     <div class="row">
                         <div class="col">
                             <div class="row">
@@ -97,6 +122,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
                 </div>
             </div>
             @include('layouts.footer')

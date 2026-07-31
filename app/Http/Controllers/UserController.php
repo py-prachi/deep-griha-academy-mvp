@@ -73,10 +73,11 @@ class UserController extends Controller
             $promotionRepository = new PromotionRepository();
 
             if ($user->role === 'teacher') {
-                // 1. CT assignment
-                $ctAssignment = ClassTeacher::where('teacher_id', $user->id)
+                // 1. CT assignment(s) — a teacher may be CT for more than one
+                // class (e.g. one teacher covering both Nursery and Lower KG).
+                $ctAssignments = ClassTeacher::where('teacher_id', $user->id)
                     ->where('session_id', $current_school_session_id)
-                    ->first();
+                    ->get();
 
                 // 2. Subject teacher classes
                 $subjectClassIds = SubjectTeacher::where('teacher_id', $user->id)
@@ -85,11 +86,7 @@ class UserController extends Controller
                     ->unique()
                     ->toArray();
 
-                $allowedClassIds = $subjectClassIds;
-                if ($ctAssignment) {
-                    $allowedClassIds[] = $ctAssignment->class_id;
-                }
-                $allowedClassIds = array_unique($allowedClassIds);
+                $allowedClassIds = array_unique(array_merge($subjectClassIds, $ctAssignments->pluck('class_id')->all()));
 
                 if (empty($allowedClassIds)) {
                     return view('students.list', [
@@ -116,32 +113,34 @@ class UserController extends Controller
                             ->whereHas('student', fn($q) => $q->whereNotIn('student_status', ['exited', 'graduated']))
                             ->get();
                     }
-                } elseif ($ctAssignment) {
-                    // CT with no filter selected: default to their own class+section
+                } elseif ($ctAssignments->count() === 1) {
+                    // CT of exactly one class with no filter selected: default to it
+                    $defaultCt = $ctAssignments->first();
                     $studentList = \App\Models\Promotion::with(['student', 'section', 'schoolClass'])
                         ->where('session_id', $current_school_session_id)
-                        ->where('class_id', $ctAssignment->class_id)
-                        ->where('section_id', $ctAssignment->section_id)
+                        ->where('class_id', $defaultCt->class_id)
+                        ->where('section_id', $defaultCt->section_id)
                         ->whereHas('student', fn($q) => $q->whereNotIn('student_status', ['exited', 'graduated']))
                         ->get();
-                    $class_id   = $ctAssignment->class_id;
-                    $section_id = $ctAssignment->section_id;
+                    $class_id   = $defaultCt->class_id;
+                    $section_id = $defaultCt->section_id;
                 } else {
-                    // Subject teacher with no filter: show nothing, prompt to select
+                    // No filter selected — either a subject teacher (no CT class)
+                    // or a CT of more than one class (ambiguous): show nothing, prompt to select
                     $studentList = collect();
                 }
 
-                // Is the currently viewed class the teacher's own CT class?
-                $isCTClass = $ctAssignment
-                    && (int)$class_id === (int)$ctAssignment->class_id
-                    && (int)$section_id === (int)$ctAssignment->section_id;
+                // Is the currently viewed class one of the teacher's own CT classes?
+                $isCTClass = $ctAssignments->contains(fn($a) =>
+                    (int)$class_id === (int)$a->class_id && (int)$section_id === (int)$a->section_id
+                );
 
                 return view('students.list', [
                     'studentList'    => $studentList,
                     'school_classes' => $school_classes,
                     'teacher_scoped' => true,
                     'isCTClass'      => $isCTClass,
-                    'ctAssignment'   => $ctAssignment,
+                    'ctAssignments'  => $ctAssignments,
                 ]);
             }
 

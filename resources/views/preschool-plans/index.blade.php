@@ -11,7 +11,7 @@
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <h4 class="mb-0"><i class="bi bi-stars me-1"></i> Pre-School Daily Plans</h4>
                         @if($ctAssignment)
-                        <a href="{{ route('preschool-plans.create') }}" class="btn btn-sm btn-primary">
+                        <a href="{{ route('preschool-plans.create', ['class_id' => $ctAssignment->class_id, 'section_id' => $ctAssignment->section_id]) }}" class="btn btn-sm btn-primary">
                             <i class="bi bi-plus-circle me-1"></i> Add Daily Plan
                         </a>
                         @endif
@@ -20,6 +20,9 @@
                     <p class="text-muted small mb-3">
                         {{ $ctAssignment->schoolClass->class_name }} {{ $ctAssignment->section->section_name }}
                         — day-by-day activity plans
+                        @if($ctAssignments->count() > 1)
+                            &bull; <a href="{{ route('preschool-plans.index') }}">switch class</a>
+                        @endif
                     </p>
                     @else
                     <p class="text-muted small mb-3">Pre-school daily activity plans.</p>
@@ -27,7 +30,25 @@
 
                     @include('session-messages')
 
-                    @if(!$ctAssignment)
+                    @if(!$ctAssignment && $ctAssignments->count() > 1)
+                    <p class="text-muted small mb-3">You are the Class Teacher for more than one pre-school class — pick one below.</p>
+                    <div class="row">
+                        @foreach ($ctAssignments as $assignment)
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title mb-2">
+                                        <i class="bi bi-diagram-2 me-1"></i>
+                                        {{ $assignment->schoolClass->class_name }} {{ $assignment->section->section_name }}
+                                    </h6>
+                                    <a href="{{ route('preschool-plans.index', ['class_id' => $assignment->class_id, 'section_id' => $assignment->section_id]) }}"
+                                       class="btn btn-sm btn-outline-primary">View Plans</a>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    @elseif(!$ctAssignment)
                     <div class="alert alert-warning">
                         You are not assigned as class teacher for a pre-school class (Nursery/Lower KG/Upper KG) in the current session.
                         Ask the admin to assign you via <a href="{{ route('academics.teacher-assignments') }}">Teacher Assignments</a>.

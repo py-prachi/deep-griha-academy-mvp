@@ -55,20 +55,38 @@ class PreschoolPlanController extends Controller
             ));
         }
 
-        // CT teacher view
-        $ctAssignment = ClassTeacher::with(['schoolClass', 'section'])
+        // CT teacher view — a teacher may be CT for more than one pre-school
+        // class (e.g. one teacher covering both Nursery and Lower KG).
+        $ctAssignments = ClassTeacher::with(['schoolClass', 'section'])
             ->where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
             ->whereHas('schoolClass', function ($q) {
                 $q->whereRaw('LOWER(class_name) LIKE ?', ['%nursery%'])
                   ->orWhereRaw('LOWER(class_name) LIKE ?', ['%kg%']);
             })
-            ->first();
+            ->get();
+
+        if ($ctAssignments->isEmpty()) {
+            return view('preschool-plans.index', [
+                'ctAssignment'   => null,
+                'ctAssignments'  => collect(),
+                'plans'          => collect(),
+            ]);
+        }
+
+        $selClassId   = request('class_id');
+        $selSectionId = request('section_id');
+
+        $ctAssignment = $selClassId && $selSectionId
+            ? $ctAssignments->first(fn($a) => (int)$a->class_id === (int)$selClassId && (int)$a->section_id === (int)$selSectionId)
+            : ($ctAssignments->count() === 1 ? $ctAssignments->first() : null);
 
         if (!$ctAssignment) {
+            // Multiple classes and none selected (or an invalid one requested) — let them pick.
             return view('preschool-plans.index', [
-                'ctAssignment' => null,
-                'plans'        => collect(),
+                'ctAssignment'  => null,
+                'ctAssignments' => $ctAssignments,
+                'plans'         => collect(),
             ]);
         }
 
@@ -79,22 +97,37 @@ class PreschoolPlanController extends Controller
             ->orderByDesc('plan_date')
             ->get();
 
-        return view('preschool-plans.index', compact('ctAssignment', 'plans'));
+        return view('preschool-plans.index', [
+            'ctAssignment'  => $ctAssignment,
+            'ctAssignments' => $ctAssignments,
+            'plans'         => $plans,
+        ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $user      = auth()->user();
         $sessionId = $this->getSchoolCurrentSession();
 
-        $ctAssignment = ClassTeacher::with(['schoolClass', 'section'])
+        $ctAssignments = ClassTeacher::with(['schoolClass', 'section'])
             ->where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
             ->whereHas('schoolClass', function ($q) {
                 $q->whereRaw('LOWER(class_name) LIKE ?', ['%nursery%'])
                   ->orWhereRaw('LOWER(class_name) LIKE ?', ['%kg%']);
             })
-            ->firstOrFail();
+            ->get();
+
+        $selClassId   = $request->query('class_id');
+        $selSectionId = $request->query('section_id');
+
+        $ctAssignment = $selClassId && $selSectionId
+            ? $ctAssignments->first(fn($a) => (int)$a->class_id === (int)$selClassId && (int)$a->section_id === (int)$selSectionId)
+            : ($ctAssignments->count() === 1 ? $ctAssignments->first() : null);
+
+        if (!$ctAssignment) {
+            abort(404);
+        }
 
         return view('preschool-plans.create', compact('ctAssignment', 'sessionId'));
     }
@@ -104,13 +137,21 @@ class PreschoolPlanController extends Controller
         $user      = auth()->user();
         $sessionId = $this->getSchoolCurrentSession();
 
-        $ctAssignment = ClassTeacher::where('teacher_id', $user->id)
+        $ctAssignments = ClassTeacher::where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
             ->whereHas('schoolClass', function ($q) {
                 $q->whereRaw('LOWER(class_name) LIKE ?', ['%nursery%'])
                   ->orWhereRaw('LOWER(class_name) LIKE ?', ['%kg%']);
             })
-            ->firstOrFail();
+            ->get();
+
+        $ctAssignment = $request->filled(['class_id', 'section_id'])
+            ? $ctAssignments->first(fn($a) => (int)$a->class_id === (int)$request->class_id && (int)$a->section_id === (int)$request->section_id)
+            : ($ctAssignments->count() === 1 ? $ctAssignments->first() : null);
+
+        if (!$ctAssignment) {
+            abort(403, 'You are not the Class Teacher for that class.');
+        }
 
         $data = $request->validate([
             'plan_date'                       => 'required|date',
@@ -144,7 +185,10 @@ class PreschoolPlanController extends Controller
             }
         }
 
-        return redirect()->route('preschool-plans.index')
+        return redirect()->route('preschool-plans.index', [
+                'class_id'   => $ctAssignment->class_id,
+                'section_id' => $ctAssignment->section_id,
+            ])
             ->with('status', 'Daily plan created successfully.');
     }
 
@@ -198,7 +242,10 @@ class PreschoolPlanController extends Controller
             }
         }
 
-        return redirect()->route('preschool-plans.index')
+        return redirect()->route('preschool-plans.index', [
+                'class_id'   => $plan->class_id,
+                'section_id' => $plan->section_id,
+            ])
             ->with('status', 'Daily plan updated successfully.');
     }
 

@@ -46,18 +46,26 @@
                     {{-- Lesson Planning (Class 1-8) --}}
                     @php
                         $menuSessionId2 = session('browse_session_id') ?: optional(\App\Models\SchoolSession::orderBy('id','desc')->first())->id;
+                        // Match by LOWER(class_name) LIKE, not exact strings — actual class
+                        // names are "Nursery", "Lower KG", "Upper KG", not "LKG"/"UKG".
                         $showLessonPlanning = auth()->user()->role === 'admin' || (
                             auth()->user()->role === 'teacher' &&
                             \App\Models\SubjectTeacher::where('teacher_id', auth()->id())
                                 ->where('session_id', $menuSessionId2)
-                                ->whereHas('schoolClass', function($q){ $q->whereNotIn('class_name', ['Nursery','LKG','UKG']); })
+                                ->whereHas('schoolClass', function($q){
+                                    $q->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
+                                      ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
+                                })
                                 ->exists()
                         );
                         $showPreschoolPlan = auth()->user()->role === 'admin' || (
                             auth()->user()->role === 'teacher' &&
                             \App\Models\ClassTeacher::where('teacher_id', auth()->id())
                                 ->where('session_id', $menuSessionId2)
-                                ->whereHas('schoolClass', function($q){ $q->whereIn('class_name', ['Nursery','LKG','UKG']); })
+                                ->whereHas('schoolClass', function($q){
+                                    $q->whereRaw('LOWER(class_name) LIKE ?', ['%nursery%'])
+                                      ->orWhereRaw('LOWER(class_name) LIKE ?', ['%kg%']);
+                                })
                                 ->exists()
                         );
                     @endphp
@@ -113,10 +121,14 @@
                     {{-- Marks — shown based on CT class type --}}
                     @php
                         $menuSession = session('browse_session_id') ?: optional(\App\Models\SchoolSession::orderBy('id','desc')->first())->id;
-                        $menuCT = \App\Models\ClassTeacher::with('schoolClass')
+                        // A teacher may be CT for more than one class (e.g. one teacher
+                        // covering both Nursery and Lower KG) — don't assume just one.
+                        $menuCTs = \App\Models\ClassTeacher::with('schoolClass')
                             ->where('teacher_id', Auth::user()->id)
                             ->where('session_id', $menuSession)
-                            ->first();
+                            ->get();
+                        $menuCT = $menuCTs->first();
+                        $menuIsMultiCt = $menuCTs->count() > 1;
                         $menuIsAnySubjectTeacher = \App\Models\SubjectTeacher::where('teacher_id', Auth::user()->id)->where('session_id', $menuSession)->exists();
                         $menuIsPP = $menuCT
                             ? \App\Http\Controllers\PrePrimaryController::getPrePrimaryType(optional($menuCT->schoolClass)->class_name ?? '')
@@ -134,16 +146,17 @@
                         </a>
                         <ul class="nav collapse {{ request()->is('marks2*') || request()->is('preprimary*') ? 'show' : 'hide' }} bg-white" id="teacher-marks-submenu">
                             @if($menuIsPP)
-                            {{-- Pre-primary CT: only pre-primary entry --}}
+                            {{-- Pre-primary CT: only pre-primary entry. If CT for more than one
+                                 pre-school class, link to the bare route so the class picker shows. --}}
                             <li class="nav-item w-100">
                                 <a class="nav-link {{ request()->is('preprimary/entry*') ? 'active' : '' }}"
-                                    href="{{ route('preprimary.entry', ['class_id' => $menuCT->class_id, 'section_id' => $menuCT->section_id]) }}">
+                                    href="{{ $menuIsMultiCt ? route('preprimary.entry') : route('preprimary.entry', ['class_id' => $menuCT->class_id, 'section_id' => $menuCT->section_id]) }}">
                                     <i class="bi bi-check2-square me-2"></i> Skill Entry
                                 </a>
                             </li>
                             <li class="nav-item w-100">
                                 <a class="nav-link {{ request()->is('preprimary/narratives*') ? 'active' : '' }}"
-                                    href="{{ route('preprimary.narratives', ['class_id' => $menuCT->class_id, 'section_id' => $menuCT->section_id]) }}">
+                                    href="{{ $menuIsMultiCt ? route('preprimary.narratives') : route('preprimary.narratives', ['class_id' => $menuCT->class_id, 'section_id' => $menuCT->section_id]) }}">
                                     <i class="bi bi-chat-left-text me-2"></i> Remarks
                                 </a>
                             </li>

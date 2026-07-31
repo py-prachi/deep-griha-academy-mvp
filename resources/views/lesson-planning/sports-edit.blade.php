@@ -80,19 +80,19 @@
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Objective</label>
-                                    <textarea name="objective" rows="2" class="form-control @error('objective') is-invalid @enderror">{{ old('objective', $lesson->objective) }}</textarea>
+                                    <textarea name="objective" rows="6" style="min-height:140px;" class="form-control @error('objective') is-invalid @enderror">{{ old('objective', $lesson->objective) }}</textarea>
                                     @error('objective')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Introduction</label>
-                                    <textarea name="hook" rows="3" class="form-control @error('hook') is-invalid @enderror">{{ old('hook', $lesson->hook) }}</textarea>
+                                    <textarea name="hook" rows="6" style="min-height:150px;" class="form-control @error('hook') is-invalid @enderror">{{ old('hook', $lesson->hook) }}</textarea>
                                     @error('hook')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-4">
                                     <label class="form-label fw-semibold">Practical</label>
-                                    <textarea name="practical_notes" rows="3" class="form-control @error('practical_notes') is-invalid @enderror">{{ old('practical_notes', $lesson->practical_notes) }}</textarea>
+                                    <textarea name="practical_notes" rows="6" style="min-height:150px;" class="form-control @error('practical_notes') is-invalid @enderror">{{ old('practical_notes', $lesson->practical_notes) }}</textarea>
                                     @error('practical_notes')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 

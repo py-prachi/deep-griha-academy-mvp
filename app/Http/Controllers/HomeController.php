@@ -82,27 +82,33 @@ class HomeController extends Controller
 
         // ── TEACHER DASHBOARD ──
         if ($user->role === 'teacher') {
-            $ct = ClassTeacher::with(['schoolClass', 'section'])
+            // A teacher may be CT for more than one class (e.g. one teacher
+            // covering both Nursery and Lower KG) — build the dashboard data
+            // per assignment so nothing gets silently dropped.
+            $ctAssignments = ClassTeacher::with(['schoolClass', 'section'])
                 ->where('teacher_id', $user->id)
                 ->where('session_id', $current_school_session_id)
-                ->first();
+                ->get();
 
             $promotionRepository = new PromotionRepository();
-            $students = collect();
-            $attendanceToday = collect();
-            $ppType = null;
-            $marksStatus = null;
+            $attRepo = new AttendanceRepository();
 
-            if ($ct) {
+            $ppTypes          = [];
+            $studentsByCt     = [];
+            $attendanceByCt   = [];
+            $marksStatusByCt  = [];
+
+            foreach ($ctAssignments as $ct) {
                 $ppType = PrePrimaryController::getPrePrimaryType($ct->schoolClass->class_name ?? '');
+                $ppTypes[$ct->id] = $ppType;
 
-                // Students in CT's class
+                // Students in this class
                 $students = $promotionRepository->getAllActive($current_school_session_id, $ct->class_id, $ct->section_id)
                     ->sortBy('roll_number');
+                $studentsByCt[$ct->id] = $students;
 
                 // Today's attendance for the class
-                $attRepo = new AttendanceRepository();
-                $attendanceToday = $attRepo->getSectionAttendance($ct->class_id, $ct->section_id, $current_school_session_id)
+                $attendanceByCt[$ct->id] = $attRepo->getSectionAttendance($ct->class_id, $ct->section_id, $current_school_session_id)
                     ->keyBy('student_id');
 
                 // Marks entry status (only for Class 1-8)
@@ -130,18 +136,19 @@ class HomeController extends Controller
                             'subjects' => $subjects->count(),
                         ];
                     }
+                    $marksStatusByCt[$ct->id] = $marksStatus;
                 }
             }
 
             return view('home', [
-                'notices'        => $notices,
-                'isStudent'      => false,
-                'isTeacher'      => true,
-                'ct'             => $ct,
-                'ppType'         => $ppType,
-                'students'       => $students,
-                'attendanceToday'=> $attendanceToday,
-                'marksStatus'    => $marksStatus,
+                'notices'         => $notices,
+                'isStudent'       => false,
+                'isTeacher'       => true,
+                'ctAssignments'   => $ctAssignments,
+                'ppTypes'         => $ppTypes,
+                'studentsByCt'    => $studentsByCt,
+                'attendanceByCt'  => $attendanceByCt,
+                'marksStatusByCt' => $marksStatusByCt,
             ]);
         }
 

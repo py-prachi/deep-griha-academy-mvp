@@ -63,15 +63,17 @@ class LessonPlanController extends Controller
             ->sortBy(fn($p) => array_search($p->month, $this->monthOrder()))
             ->groupBy(fn($p) => $p->class_id . '_' . $p->subject_id);
 
-        // CT: view plans for their class (all subjects, all teachers)
-        $ctAssignment = ClassTeacher::with(['schoolClass', 'section'])
+        // CT: view plans for their class(es) — all subjects, all teachers.
+        // A teacher may be CT for more than one class (e.g. one teacher
+        // covering both Nursery and Lower KG), so show a block per class.
+        $ctAssignments = ClassTeacher::with(['schoolClass', 'section'])
             ->where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
-            ->first();
+            ->get();
 
-        $ctPlans = null;
-        if ($ctAssignment) {
-            $ctPlans = LessonPlan::with(['subject', 'teacher'])
+        $ctPlansByAssignment = [];
+        foreach ($ctAssignments as $ctAssignment) {
+            $ctPlansByAssignment[$ctAssignment->id] = LessonPlan::with(['subject', 'teacher'])
                 ->where('session_id', $sessionId)
                 ->where('class_id', $ctAssignment->class_id)
                 ->where('section_id', $ctAssignment->section_id)
@@ -81,7 +83,7 @@ class LessonPlanController extends Controller
         }
 
         return view('lesson-plans.index', compact(
-            'subjectAssignments', 'myPlans', 'ctAssignment', 'ctPlans', 'sessionId'
+            'subjectAssignments', 'myPlans', 'ctAssignments', 'ctPlansByAssignment', 'sessionId'
         ));
     }
 

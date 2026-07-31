@@ -85,7 +85,7 @@
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Chapter / Topic</label>
-                                    <textarea name="chapter_topic" rows="2" class="form-control @error('chapter_topic') is-invalid @enderror">{{ old('chapter_topic', $lesson->chapter_topic) }}</textarea>
+                                    <textarea name="chapter_topic" rows="6" style="min-height:140px;" class="form-control @error('chapter_topic') is-invalid @enderror">{{ old('chapter_topic', $lesson->chapter_topic) }}</textarea>
                                     @error('chapter_topic')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
@@ -98,43 +98,43 @@
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Learning Standard</label>
-                                    <textarea name="learning_standard" rows="2" class="form-control @error('learning_standard') is-invalid @enderror">{{ old('learning_standard', $lesson->learning_standard) }}</textarea>
+                                    <textarea name="learning_standard" rows="6" style="min-height:140px;" class="form-control @error('learning_standard') is-invalid @enderror">{{ old('learning_standard', $lesson->learning_standard) }}</textarea>
                                     @error('learning_standard')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Objective</label>
-                                    <textarea name="objective" rows="2" class="form-control @error('objective') is-invalid @enderror">{{ old('objective', $lesson->objective) }}</textarea>
+                                    <textarea name="objective" rows="6" style="min-height:140px;" class="form-control @error('objective') is-invalid @enderror">{{ old('objective', $lesson->objective) }}</textarea>
                                     @error('objective')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Material Needed</label>
-                                    <textarea name="material_needed" rows="2" class="form-control @error('material_needed') is-invalid @enderror">{{ old('material_needed', $lesson->material_needed) }}</textarea>
+                                    <textarea name="material_needed" rows="6" style="min-height:140px;" class="form-control @error('material_needed') is-invalid @enderror">{{ old('material_needed', $lesson->material_needed) }}</textarea>
                                     @error('material_needed')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Training Component</label>
-                                    <textarea name="training_component" rows="2" class="form-control @error('training_component') is-invalid @enderror">{{ old('training_component', $lesson->training_component) }}</textarea>
+                                    <textarea name="training_component" rows="6" style="min-height:140px;" class="form-control @error('training_component') is-invalid @enderror">{{ old('training_component', $lesson->training_component) }}</textarea>
                                     @error('training_component')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Student to Whom Responses Expected</label>
-                                    <textarea name="student_responses" rows="2" class="form-control @error('student_responses') is-invalid @enderror">{{ old('student_responses', $lesson->student_responses) }}</textarea>
+                                    <textarea name="student_responses" rows="6" style="min-height:140px;" class="form-control @error('student_responses') is-invalid @enderror">{{ old('student_responses', $lesson->student_responses) }}</textarea>
                                     @error('student_responses')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold">Hook</label>
-                                        <textarea name="hook" rows="3" class="form-control @error('hook') is-invalid @enderror">{{ old('hook', $lesson->hook) }}</textarea>
+                                        <textarea name="hook" rows="6" style="min-height:150px;" class="form-control @error('hook') is-invalid @enderror">{{ old('hook', $lesson->hook) }}</textarea>
                                         @error('hook')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold">Teach</label>
-                                        <textarea name="teach" rows="3" class="form-control @error('teach') is-invalid @enderror">{{ old('teach', $lesson->teach) }}</textarea>
+                                        <textarea name="teach" rows="6" style="min-height:150px;" class="form-control @error('teach') is-invalid @enderror">{{ old('teach', $lesson->teach) }}</textarea>
                                         @error('teach')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                     </div>
                                 </div>
@@ -142,37 +142,37 @@
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold">Guided Practice (CW)</label>
-                                        <textarea name="guided_practice" rows="3" class="form-control @error('guided_practice') is-invalid @enderror">{{ old('guided_practice', $lesson->guided_practice) }}</textarea>
+                                        <textarea name="guided_practice" rows="6" style="min-height:150px;" class="form-control @error('guided_practice') is-invalid @enderror">{{ old('guided_practice', $lesson->guided_practice) }}</textarea>
                                         @error('guided_practice')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold">Independent Practice (CW)</label>
-                                        <textarea name="independent_practice" rows="3" class="form-control @error('independent_practice') is-invalid @enderror">{{ old('independent_practice', $lesson->independent_practice) }}</textarea>
+                                        <textarea name="independent_practice" rows="6" style="min-height:150px;" class="form-control @error('independent_practice') is-invalid @enderror">{{ old('independent_practice', $lesson->independent_practice) }}</textarea>
                                         @error('independent_practice')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Closure</label>
-                                    <textarea name="closure" rows="2" class="form-control @error('closure') is-invalid @enderror">{{ old('closure', $lesson->closure) }}</textarea>
+                                    <textarea name="closure" rows="6" style="min-height:140px;" class="form-control @error('closure') is-invalid @enderror">{{ old('closure', $lesson->closure) }}</textarea>
                                     @error('closure')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Homework</label>
-                                    <textarea name="homework" rows="2" class="form-control @error('homework') is-invalid @enderror">{{ old('homework', $lesson->homework) }}</textarea>
+                                    <textarea name="homework" rows="6" style="min-height:140px;" class="form-control @error('homework') is-invalid @enderror">{{ old('homework', $lesson->homework) }}</textarea>
                                     @error('homework')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Any Other Note</label>
-                                    <textarea name="other_notes" rows="2" class="form-control @error('other_notes') is-invalid @enderror">{{ old('other_notes', $lesson->other_notes) }}</textarea>
+                                    <textarea name="other_notes" rows="6" style="min-height:140px;" class="form-control @error('other_notes') is-invalid @enderror">{{ old('other_notes', $lesson->other_notes) }}</textarea>
                                     @error('other_notes')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Remark</label>
-                                    <textarea name="remark" rows="2" class="form-control @error('remark') is-invalid @enderror">{{ old('remark', $lesson->remark) }}</textarea>
+                                    <textarea name="remark" rows="6" style="min-height:140px;" class="form-control @error('remark') is-invalid @enderror">{{ old('remark', $lesson->remark) }}</textarea>
                                     @error('remark')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
