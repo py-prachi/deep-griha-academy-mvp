@@ -10,7 +10,7 @@
 
                     <nav aria-label="breadcrumb" class="mb-2">
                         <ol class="breadcrumb small">
-                            <li class="breadcrumb-item"><a href="{{ route('preschool-plans.index') }}">Pre-School Plans</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('preschool-plans.index', ['class_id' => $plan->class_id, 'section_id' => $plan->section_id]) }}">Pre-School Plans</a></li>
                             <li class="breadcrumb-item active">Edit Daily Plan</li>
                         </ol>
                     </nav>
@@ -75,19 +75,19 @@
                                             <div class="row g-2">
                                                 <div class="col-md-6">
                                                     <label class="form-label small fw-semibold mb-1">Material</label>
-                                                    <textarea name="slots[{{ $i }}][material]" rows="2" class="form-control form-control-sm">{{ $slot['material'] ?? '' }}</textarea>
+                                                    <textarea name="slots[{{ $i }}][material]" rows="5" style="min-height:110px;" class="form-control form-control-sm">{{ $slot['material'] ?? '' }}</textarea>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label small fw-semibold mb-1">Objective</label>
-                                                    <textarea name="slots[{{ $i }}][objective]" rows="2" class="form-control form-control-sm">{{ $slot['objective'] ?? '' }}</textarea>
+                                                    <textarea name="slots[{{ $i }}][objective]" rows="5" style="min-height:110px;" class="form-control form-control-sm">{{ $slot['objective'] ?? '' }}</textarea>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label small fw-semibold mb-1">Actual Teach</label>
-                                                    <textarea name="slots[{{ $i }}][actual_teach]" rows="2" class="form-control form-control-sm">{{ $slot['actual_teach'] ?? '' }}</textarea>
+                                                    <textarea name="slots[{{ $i }}][actual_teach]" rows="5" style="min-height:110px;" class="form-control form-control-sm">{{ $slot['actual_teach'] ?? '' }}</textarea>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label small fw-semibold mb-1">Assessment</label>
-                                                    <textarea name="slots[{{ $i }}][assessment]" rows="2" class="form-control form-control-sm">{{ $slot['assessment'] ?? '' }}</textarea>
+                                                    <textarea name="slots[{{ $i }}][assessment]" rows="5" style="min-height:110px;" class="form-control form-control-sm">{{ $slot['assessment'] ?? '' }}</textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -103,7 +103,7 @@
                                     <button type="submit" class="btn btn-primary">
                                         <i class="bi bi-check-circle me-1"></i> Update Plan
                                     </button>
-                                    <a href="{{ route('preschool-plans.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                                    <a href="{{ route('preschool-plans.index', ['class_id' => $plan->class_id, 'section_id' => $plan->section_id]) }}" class="btn btn-outline-secondary">Cancel</a>
                                 </div>
                             </form>
                         </div>
@@ -132,10 +132,10 @@
                 '<div class="mb-2"><label class="form-label small fw-semibold mb-1">Activity Name <span class="text-danger">*</span></label>' +
                 '<input type="text" name="slots[' + index + '][activity_name]" class="form-control form-control-sm" required></div>' +
                 '<div class="row g-2">' +
-                    '<div class="col-md-6"><label class="form-label small fw-semibold mb-1">Material</label><textarea name="slots[' + index + '][material]" rows="2" class="form-control form-control-sm"></textarea></div>' +
-                    '<div class="col-md-6"><label class="form-label small fw-semibold mb-1">Objective</label><textarea name="slots[' + index + '][objective]" rows="2" class="form-control form-control-sm"></textarea></div>' +
-                    '<div class="col-md-6"><label class="form-label small fw-semibold mb-1">Actual Teach</label><textarea name="slots[' + index + '][actual_teach]" rows="2" class="form-control form-control-sm"></textarea></div>' +
-                    '<div class="col-md-6"><label class="form-label small fw-semibold mb-1">Assessment</label><textarea name="slots[' + index + '][assessment]" rows="2" class="form-control form-control-sm"></textarea></div>' +
+                    '<div class="col-md-6"><label class="form-label small fw-semibold mb-1">Material</label><textarea name="slots[' + index + '][material]" rows="5" style="min-height:110px;" class="form-control form-control-sm"></textarea></div>' +
+                    '<div class="col-md-6"><label class="form-label small fw-semibold mb-1">Objective</label><textarea name="slots[' + index + '][objective]" rows="5" style="min-height:110px;" class="form-control form-control-sm"></textarea></div>' +
+                    '<div class="col-md-6"><label class="form-label small fw-semibold mb-1">Actual Teach</label><textarea name="slots[' + index + '][actual_teach]" rows="5" style="min-height:110px;" class="form-control form-control-sm"></textarea></div>' +
+                    '<div class="col-md-6"><label class="form-label small fw-semibold mb-1">Assessment</label><textarea name="slots[' + index + '][assessment]" rows="5" style="min-height:110px;" class="form-control form-control-sm"></textarea></div>' +
                 '</div>' +
             '</div>' +
         '</div>';

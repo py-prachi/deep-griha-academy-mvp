@@ -38,45 +38,45 @@
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Topic/Topics, Chapter/Chapters <span class="text-danger">*</span></label>
-                                    <textarea name="topic" rows="3" class="form-control @error('topic') is-invalid @enderror"
+                                    <textarea name="topic" rows="6" style="min-height:150px;" class="form-control @error('topic') is-invalid @enderror"
                                               required>{{ old('topic', $module->topic) }}</textarea>
                                     @error('topic')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Learning Outcome</label>
-                                    <textarea name="learning_outcome" rows="3" class="form-control @error('learning_outcome') is-invalid @enderror">{{ old('learning_outcome', $module->learning_outcome) }}</textarea>
+                                    <textarea name="learning_outcome" rows="6" style="min-height:150px;" class="form-control @error('learning_outcome') is-invalid @enderror">{{ old('learning_outcome', $module->learning_outcome) }}</textarea>
                                     @error('learning_outcome')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Assessment</label>
-                                    <textarea name="assessment" rows="2" class="form-control @error('assessment') is-invalid @enderror">{{ old('assessment', $module->assessment) }}</textarea>
+                                    <textarea name="assessment" rows="6" style="min-height:140px;" class="form-control @error('assessment') is-invalid @enderror">{{ old('assessment', $module->assessment) }}</textarea>
                                     @error('assessment')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Rubric</label>
-                                    <textarea name="rubric" rows="2" class="form-control @error('rubric') is-invalid @enderror">{{ old('rubric', $module->rubric) }}</textarea>
+                                    <textarea name="rubric" rows="6" style="min-height:140px;" class="form-control @error('rubric') is-invalid @enderror">{{ old('rubric', $module->rubric) }}</textarea>
                                     @error('rubric')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Objectives</label>
-                                    <textarea name="objectives" rows="2" class="form-control @error('objectives') is-invalid @enderror">{{ old('objectives', $module->objectives) }}</textarea>
+                                    <textarea name="objectives" rows="6" style="min-height:140px;" class="form-control @error('objectives') is-invalid @enderror">{{ old('objectives', $module->objectives) }}</textarea>
                                     @error('objectives')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Duration and Flow of Days</label>
-                                    <textarea name="duration_and_flow" rows="4" class="form-control @error('duration_and_flow') is-invalid @enderror"
+                                    <textarea name="duration_and_flow" rows="7" style="min-height:170px;" class="form-control @error('duration_and_flow') is-invalid @enderror"
                                               placeholder="e.g. Day 1 – Intro video&#10;Day 2 – Discussion&#10;Day 3 – Q&A">{{ old('duration_and_flow', $module->duration_and_flow) }}</textarea>
                                     @error('duration_and_flow')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Materials</label>
-                                    <textarea name="materials" rows="2" class="form-control @error('materials') is-invalid @enderror">{{ old('materials', $module->materials) }}</textarea>
+                                    <textarea name="materials" rows="6" style="min-height:140px;" class="form-control @error('materials') is-invalid @enderror">{{ old('materials', $module->materials) }}</textarea>
                                     @error('materials')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 

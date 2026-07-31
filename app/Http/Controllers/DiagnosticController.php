@@ -45,13 +45,14 @@ class DiagnosticController extends Controller
             ->get()
             ->sortBy(fn($st) => [$st->class_id, $st->subject->sort_order ?? 0]);
 
-        // CT: all subjects for their class
-        $ctAssignment = ClassTeacher::with(['schoolClass', 'section'])
+        // CT: all subjects for their class(es) — a teacher may be CT for more
+        // than one class (e.g. one teacher covering both Nursery and Lower KG).
+        $ctAssignments = ClassTeacher::with(['schoolClass', 'section'])
             ->where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
-            ->first();
+            ->get();
 
-        return view('diagnostics.index', compact('subjectAssignments', 'ctAssignment', 'sessionId'));
+        return view('diagnostics.index', compact('subjectAssignments', 'ctAssignments', 'sessionId'));
     }
 
     public function entry(Request $request)

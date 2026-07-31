@@ -38,11 +38,30 @@
                                 </form>
                             </div>
                         </div>
+                    @elseif(!empty($mine))
+                        {{-- Teacher is CT for more than one class — pick one --}}
+                        <p class="text-muted small mb-3">You are the Class Teacher for more than one class — pick one below.</p>
+                        <div class="row">
+                            @foreach ($myAssignments as $assignment)
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title mb-2">
+                                            <i class="bi bi-diagram-2 me-1"></i>
+                                            {{ $assignment->schoolClass->class_name }} {{ $assignment->section->section_name }}
+                                        </h6>
+                                        <a href="{{ route('marks.review', ['class_id' => $assignment->class_id, 'section_id' => $assignment->section_id]) }}"
+                                           class="btn btn-sm btn-outline-primary">View Status</a>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
                     @else
                         <p class="text-muted small mb-2">
                             <strong>{{ $schoolClass->class_name ?? '' }}</strong> — {{ $section->section_name ?? '' }}
                             &nbsp;|&nbsp; {{ $studentCount }} students
-                            @if(Auth::user()->role === 'admin')
+                            @if(Auth::user()->role === 'admin' || (Auth::user()->role === 'teacher' && ($isMultiCt ?? false)))
                                 &nbsp;|&nbsp; <a href="{{ route('marks.review') }}">Change class</a>
                             @endif
                         </p>

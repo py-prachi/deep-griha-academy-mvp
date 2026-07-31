@@ -57,7 +57,9 @@
                     @endif
 
                     {{-- ── CLASS TEACHER VIEW SECTION ── --}}
-                    @if($ctAssignment)
+                    {{-- A teacher may be CT for more than one class (e.g. one teacher
+                         covering both Nursery and Lower KG) — show a block per class. --}}
+                    @foreach($ctAssignments as $ctAssignment)
                     <h6 class="text-uppercase text-muted small fw-bold mb-2 border-bottom pb-1 mt-4">
                         <i class="bi bi-eye me-1"></i>
                         My Class — {{ $ctAssignment->schoolClass->class_name }} {{ $ctAssignment->section->section_name }}
@@ -99,9 +101,9 @@
                     @else
                         <div class="alert alert-light text-muted">No subjects assigned to this class yet.</div>
                     @endif
-                    @endif
+                    @endforeach
 
-                    @if($subjectAssignments->isEmpty() && !$ctAssignment)
+                    @if($subjectAssignments->isEmpty() && $ctAssignments->isEmpty())
                     <div class="alert alert-warning">
                         You have no subject assignments for the current session.
                         Ask the admin to assign you via <a href="{{ route('academics.teacher-assignments') }}">Teacher Assignments</a>.

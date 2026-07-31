@@ -554,12 +554,34 @@ class MarksController extends Controller
 
         // Determine class/section to review
         if ($user->role === 'teacher') {
-            $ct = ClassTeacher::where('teacher_id', $user->id)
+            // A teacher may be CT for more than one class (e.g. one teacher
+            // covering both Nursery and Lower KG) — don't assume just one.
+            $ctAssignments = ClassTeacher::with(['schoolClass', 'section'])
+                ->where('teacher_id', $user->id)
                 ->where('session_id', $session_id)
-                ->first();
-            if (!$ct) {
+                ->get();
+
+            if ($ctAssignments->isEmpty()) {
                 return view('marks.review', ['error' => 'You are not assigned as a Class Teacher.']);
             }
+
+            $reqClassId   = $request->query('class_id');
+            $reqSectionId = $request->query('section_id');
+
+            if ($reqClassId && $reqSectionId) {
+                $ct = $ctAssignments->first(fn($a) => (int)$a->class_id === (int)$reqClassId && (int)$a->section_id === (int)$reqSectionId);
+                if (!$ct) {
+                    abort(403, 'You can only review your own class.');
+                }
+            } elseif ($ctAssignments->count() === 1) {
+                $ct = $ctAssignments->first();
+            } else {
+                return view('marks.review', [
+                    'mine'          => true,
+                    'myAssignments' => $ctAssignments,
+                ]);
+            }
+
             $class_id   = $ct->class_id;
             $section_id = $ct->section_id;
         } else {
@@ -728,6 +750,7 @@ class MarksController extends Controller
             'classes'        => $user->role === 'admin'
                 ? $this->schoolClassRepository->getAllBySession($session_id)
                 : collect(),
+            'isMultiCt'      => $user->role === 'teacher' && isset($ctAssignments) && $ctAssignments->count() > 1,
         ]);
     }
 
@@ -853,12 +876,31 @@ class MarksController extends Controller
             abort(403, 'Only the Class Teacher can enter remarks.');
         }
 
-        $ct = ClassTeacher::where('teacher_id', $user->id)
+        // A teacher may be CT for more than one class (e.g. one teacher
+        // covering both Nursery and Lower KG) — honor an explicit class_id/
+        // section_id (e.g. from the Marks Review page) instead of always
+        // assuming "the" class.
+        $ctAssignments = ClassTeacher::where('teacher_id', $user->id)
             ->where('session_id', $session_id)
-            ->first();
-        if (!$ct) {
+            ->get();
+        if ($ctAssignments->isEmpty()) {
             abort(403, 'You are not assigned as a Class Teacher.');
         }
+
+        $reqClassId   = $request->query('class_id');
+        $reqSectionId = $request->query('section_id');
+
+        if ($reqClassId && $reqSectionId) {
+            $ct = $ctAssignments->first(fn($a) => (int)$a->class_id === (int)$reqClassId && (int)$a->section_id === (int)$reqSectionId);
+            if (!$ct) {
+                abort(403, 'You can only enter remarks for your own class.');
+            }
+        } elseif ($ctAssignments->count() === 1) {
+            $ct = $ctAssignments->first();
+        } else {
+            abort(400, 'Please choose a class from the Marks Review page first.');
+        }
+
         $class_id   = $ct->class_id;
         $section_id = $ct->section_id;
 
@@ -903,6 +945,15 @@ class MarksController extends Controller
         $section_id = $request->input('section_id');
         $term       = $request->input('term');
         $remarks    = $request->input('remarks', []);
+
+        $isCT = ClassTeacher::where('teacher_id', $user->id)
+            ->where('session_id', $session_id)
+            ->where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->exists();
+        if (!$isCT) {
+            abort(403, 'You can only save remarks for your own class.');
+        }
 
         foreach ($remarks as $student_id => $remark) {
             if (trim($remark) === '') {

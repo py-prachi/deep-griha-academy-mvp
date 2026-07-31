@@ -57,16 +57,31 @@ class AttendanceController extends Controller
         $current_school_session_id = $this->getSchoolCurrentSession();
         $user = auth()->user();
 
-        // Class teacher: redirect straight to their section
+        // Class teacher: redirect straight to their section — unless they're CT
+        // for more than one class/section (e.g. one teacher covering both
+        // Nursery and Lower KG), in which case show a chooser.
         if ($user->role === 'teacher') {
-            $ct = ClassTeacher::where('teacher_id', $user->id)
+            $ctAssignments = ClassTeacher::with(['schoolClass', 'section'])
+                ->where('teacher_id', $user->id)
                 ->where('session_id', $current_school_session_id)
-                ->first();
+                ->get();
 
-            if ($ct) {
+            if ($ctAssignments->count() === 1) {
+                $ct = $ctAssignments->first();
                 return redirect()->route('attendance.create.show', [
                     'class_id'   => $ct->class_id,
                     'section_id' => $ct->section_id,
+                ]);
+            }
+
+            if ($ctAssignments->count() > 1) {
+                return view('attendances.index', [
+                    'classes_and_sections' => ['school_classes' => collect(), 'school_sections' => collect()],
+                    'academic_setting'     => $this->academicSettingRepository->getAcademicSetting(),
+                    'courses'              => collect(),
+                    'is_ct'                => false,
+                    'not_assigned'         => false,
+                    'ct_assignments'       => $ctAssignments,
                 ]);
             }
 
@@ -409,16 +424,27 @@ public function showStudentAttendance(Request $request, $id)
         $section_id = $request->query('section_id');
 
         if ($user->role === 'teacher') {
-            $ct = ClassTeacher::where('teacher_id', $user->id)
+            $ctAssignments = ClassTeacher::where('teacher_id', $user->id)
                 ->where('session_id', $current_school_session_id)
-                ->first();
+                ->get();
 
-            if (!$ct) {
+            if ($ctAssignments->isEmpty()) {
                 abort(403, 'Only a Class Teacher can view class attendance history.');
             }
 
-            $class_id   = $ct->class_id;
-            $section_id = $ct->section_id;
+            if ($class_id && $section_id) {
+                // Requested a specific class — must be one of this teacher's own assignments.
+                $ct = $ctAssignments->first(fn($a) => (int)$a->class_id === (int)$class_id && (int)$a->section_id === (int)$section_id);
+                if (!$ct) {
+                    abort(403, 'You can only view attendance history for your own class.');
+                }
+            } elseif ($ctAssignments->count() === 1) {
+                $class_id   = $ctAssignments->first()->class_id;
+                $section_id = $ctAssignments->first()->section_id;
+            } else {
+                // Multiple classes and none specified — send them to pick one.
+                return redirect()->route('attendance.index');
+            }
         } elseif (!$class_id) {
             abort(404);
         }

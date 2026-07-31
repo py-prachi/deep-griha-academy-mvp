@@ -199,6 +199,20 @@ class PrePrimaryController extends Controller
     }
 
     /**
+     * A teacher's own pre-primary Class Teacher assignments (e.g. one teacher
+     * covering both Nursery and Lower KG shows up as two rows here).
+     */
+    private function myPrePrimaryAssignments($user, $session_id)
+    {
+        return ClassTeacher::with(['schoolClass', 'section'])
+            ->where('teacher_id', $user->id)
+            ->where('session_id', $session_id)
+            ->get()
+            ->filter(fn($a) => self::getPrePrimaryType(optional($a->schoolClass)->class_name ?? '') !== null)
+            ->values();
+    }
+
+    /**
      * Detect pre-primary type from class name.
      * Returns 'nursery', 'lkg', 'ukg', or null.
      */
@@ -226,14 +240,20 @@ class PrePrimaryController extends Controller
         $section_id = $request->query('section_id');
         $term       = (int) $request->query('term', 1);
 
-        // CT auto-detects their class
+        // CT auto-detects their class — unless they're CT of more than one
+        // pre-primary class (e.g. one teacher covering both Nursery and
+        // Lower KG), in which case let them pick.
         if ($user->role === 'teacher' && (!$class_id || !$section_id)) {
-            $ct = ClassTeacher::where('teacher_id', $user->id)
-                ->where('session_id', $session_id)
-                ->first();
-            if ($ct) {
-                $class_id   = $ct->class_id;
-                $section_id = $ct->section_id;
+            $myAssignments = $this->myPrePrimaryAssignments($user, $session_id);
+            if ($myAssignments->count() === 1) {
+                $class_id   = $myAssignments->first()->class_id;
+                $section_id = $myAssignments->first()->section_id;
+            } elseif ($myAssignments->count() > 1) {
+                return view('preprimary.pick-mine', [
+                    'myAssignments' => $myAssignments,
+                    'term'          => $term,
+                    'targetRoute'   => 'preprimary.entry',
+                ]);
             }
         }
 
@@ -421,14 +441,18 @@ class PrePrimaryController extends Controller
         $section_id = $request->query('section_id');
         $term       = (int) $request->query('term', 1);
 
-        // CT auto-detects their class
+        // CT auto-detects their class — unless CT of more than one pre-primary class.
         if ($user->role === 'teacher' && (!$class_id || !$section_id)) {
-            $ct = ClassTeacher::where('teacher_id', $user->id)
-                ->where('session_id', $session_id)
-                ->first();
-            if ($ct) {
-                $class_id   = $ct->class_id;
-                $section_id = $ct->section_id;
+            $myAssignments = $this->myPrePrimaryAssignments($user, $session_id);
+            if ($myAssignments->count() === 1) {
+                $class_id   = $myAssignments->first()->class_id;
+                $section_id = $myAssignments->first()->section_id;
+            } elseif ($myAssignments->count() > 1) {
+                return view('preprimary.pick-mine', [
+                    'myAssignments' => $myAssignments,
+                    'term'          => $term,
+                    'targetRoute'   => 'preprimary.narratives',
+                ]);
             }
         }
 
@@ -647,14 +671,18 @@ class PrePrimaryController extends Controller
         $class_id   = $request->query('class_id');
         $section_id = $request->query('section_id');
 
-        // CT auto-detects their class
+        // CT auto-detects their class — unless CT of more than one pre-primary class.
         if ($user->role === 'teacher' && (!$class_id || !$section_id)) {
-            $ct = ClassTeacher::where('teacher_id', $user->id)
-                ->where('session_id', $session_id)
-                ->first();
-            if ($ct) {
-                $class_id   = $ct->class_id;
-                $section_id = $ct->section_id;
+            $myAssignments = $this->myPrePrimaryAssignments($user, $session_id);
+            if ($myAssignments->count() === 1) {
+                $class_id   = $myAssignments->first()->class_id;
+                $section_id = $myAssignments->first()->section_id;
+            } elseif ($myAssignments->count() > 1) {
+                return view('preprimary.pick-mine', [
+                    'myAssignments' => $myAssignments,
+                    'term'          => null,
+                    'targetRoute'   => 'preprimary.printClass',
+                ]);
             }
         }
 

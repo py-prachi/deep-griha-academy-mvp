@@ -49,20 +49,34 @@ class TimetableController extends Controller
         $class_id   = $request->query('class_id');
         $section_id = $request->query('section_id');
 
-        // Teachers can only edit the timetable for their assigned CT class
+        // Teachers can only edit the timetable for their assigned CT class(es) —
+        // a teacher may be CT for more than one class (e.g. one teacher
+        // covering both Nursery and Lower KG).
         if ($user->role === 'teacher') {
-            $ct = ClassTeacher::with(['schoolClass', 'section'])
+            $ctAssignments = ClassTeacher::with(['schoolClass', 'section'])
                 ->where('teacher_id', $user->id)
                 ->where('session_id', $session_id)
-                ->first();
-            if (!$ct) {
+                ->get();
+            if ($ctAssignments->isEmpty()) {
                 abort(403, 'Only a Class Teacher can edit the timetable.');
             }
-            // Restrict class list to only their class
-            $school_classes = $school_classes->filter(fn($c) => $c->id == $ct->class_id)->values();
-            // Auto-select their class/section if not specified
-            $class_id   = $class_id   ?: $ct->class_id;
-            $section_id = $section_id ?: $ct->section_id;
+            // Restrict class list to only their own class(es)
+            $myClassIds = $ctAssignments->pluck('class_id')->all();
+            $school_classes = $school_classes->filter(fn($c) => in_array($c->id, $myClassIds))->values();
+
+            if ($class_id && $section_id) {
+                // Requested a specific class — must be one of this teacher's own.
+                $match = $ctAssignments->first(fn($a) => (int)$a->class_id === (int)$class_id && (int)$a->section_id === (int)$section_id);
+                if (!$match) {
+                    abort(403, 'You can only edit the timetable for your own class.');
+                }
+            } elseif ($ctAssignments->count() === 1) {
+                // Auto-select their one class/section
+                $class_id   = $ctAssignments->first()->class_id;
+                $section_id = $ctAssignments->first()->section_id;
+            }
+            // else: multiple classes and none specified — leave blank so the
+            // class dropdown (already restricted to just her classes) is shown.
         }
 
         $classSubjects = collect();
@@ -134,12 +148,15 @@ class TimetableController extends Controller
         $session_id = $request->input('session_id') ?: $this->getSchoolCurrentSession();
         $weekday    = $request->input('weekday');
 
-        // Teachers can only save timetable for their assigned CT class
+        // Teachers can only save timetable for one of their assigned CT classes
+        // (a teacher may be CT for more than one class).
         if (auth()->user()->role === 'teacher') {
-            $ct = ClassTeacher::where('teacher_id', auth()->id())
+            $isCt = ClassTeacher::where('teacher_id', auth()->id())
                 ->where('session_id', $session_id)
-                ->first();
-            if (!$ct || $ct->class_id != $class_id || $ct->section_id != $section_id) {
+                ->where('class_id', $class_id)
+                ->where('section_id', $section_id)
+                ->exists();
+            if (!$isCt) {
                 abort(403, 'You can only edit the timetable for your assigned class.');
             }
         }
@@ -186,14 +203,15 @@ class TimetableController extends Controller
         $class_id   = $request->query('class_id');
         $section_id = $request->query('section_id');
 
-        // For teachers, auto-select their CT class if no params provided
+        // For teachers, auto-select their CT class if no params provided —
+        // only when unambiguous (a teacher may be CT for more than one class).
         if ($user->role === 'teacher' && (!$class_id || !$section_id)) {
-            $ct = ClassTeacher::where('teacher_id', $user->id)
+            $ctAssignments = ClassTeacher::where('teacher_id', $user->id)
                 ->where('session_id', $session_id)
-                ->first();
-            if ($ct) {
-                $class_id   = $class_id   ?: $ct->class_id;
-                $section_id = $section_id ?: $ct->section_id;
+                ->get();
+            if ($ctAssignments->count() === 1) {
+                $class_id   = $class_id   ?: $ctAssignments->first()->class_id;
+                $section_id = $section_id ?: $ctAssignments->first()->section_id;
             }
         }
 
@@ -364,37 +382,41 @@ class TimetableController extends Controller
                 return $p->class_id . '_' . $p->section_id . '_' . $p->subject_id;
             });
 
-        // PreSchool CT plan status for the next school day
-        $preschoolClasses = ['Nursery', 'LKG', 'UKG'];
-        $preschoolCtAssignment = ClassTeacher::with(['schoolClass', 'section'])
+        // PreSchool CT plan status for the next school day — a teacher may be
+        // CT for more than one pre-school class (e.g. one teacher covering
+        // both Nursery and Lower KG), so show status for each of them.
+        // Actual class names are "Nursery", "Lower KG", "Upper KG" — match by
+        // LIKE, not exact "LKG"/"UKG" strings.
+        $preschoolCtAssignments = ClassTeacher::with(['schoolClass', 'section'])
             ->where('teacher_id', $teacherId)
             ->where('session_id', $session_id)
-            ->whereHas('schoolClass', function ($q) use ($preschoolClasses) {
-                $q->whereIn('class_name', $preschoolClasses);
+            ->whereHas('schoolClass', function ($q) {
+                $q->whereRaw('LOWER(class_name) LIKE ?', ['%nursery%'])
+                  ->orWhereRaw('LOWER(class_name) LIKE ?', ['%kg%']);
             })
-            ->first();
+            ->get();
 
-        $preschoolNextDayPlan = null;
-        if ($preschoolCtAssignment) {
-            $preschoolNextDayPlan = PreschoolPlan::where('teacher_id', $teacherId)
-                ->where('class_id', $preschoolCtAssignment->class_id)
-                ->where('section_id', $preschoolCtAssignment->section_id)
+        $preschoolNextDayPlans = [];
+        foreach ($preschoolCtAssignments as $assignment) {
+            $preschoolNextDayPlans[$assignment->id] = PreschoolPlan::where('teacher_id', $teacherId)
+                ->where('class_id', $assignment->class_id)
+                ->where('section_id', $assignment->section_id)
                 ->where('plan_date', $nextSchoolDay->toDateString())
                 ->first();
         }
 
         return view('timetable.teacher', [
-            'days'                  => $days,
-            'grid'                  => $grid,
-            'periodsByDay'          => $periodsByDay,
-            'routines'              => $routines,
-            'viewingTeacher'        => $viewingTeacher,
-            'nextSchoolDay'         => $nextSchoolDay,
-            'nextSchoolDayWeekday'  => $nextSchoolDayWeekday,
-            'nextDayPlans'          => $nextDayPlans,
-            'anyPlansExist'         => $anyPlansExist,
-            'preschoolCtAssignment' => $preschoolCtAssignment,
-            'preschoolNextDayPlan'  => $preschoolNextDayPlan,
+            'days'                   => $days,
+            'grid'                   => $grid,
+            'periodsByDay'           => $periodsByDay,
+            'routines'               => $routines,
+            'viewingTeacher'         => $viewingTeacher,
+            'nextSchoolDay'          => $nextSchoolDay,
+            'nextSchoolDayWeekday'   => $nextSchoolDayWeekday,
+            'nextDayPlans'           => $nextDayPlans,
+            'anyPlansExist'          => $anyPlansExist,
+            'preschoolCtAssignments' => $preschoolCtAssignments,
+            'preschoolNextDayPlans'  => $preschoolNextDayPlans,
         ]);
     }
 

@@ -30,8 +30,10 @@
 
                     @include('session-messages')
 
-                    {{-- PreSchool CT: daily plan status for next teaching day --}}
-                    @if(isset($preschoolCtAssignment) && $preschoolCtAssignment && (!isset($viewingTeacher) || !$viewingTeacher))
+                    {{-- PreSchool CT: daily plan status for next teaching day (one card per class) --}}
+                    @if(isset($preschoolCtAssignments) && $preschoolCtAssignments->isNotEmpty() && (!isset($viewingTeacher) || !$viewingTeacher))
+                    @foreach($preschoolCtAssignments as $preschoolCtAssignment)
+                    @php $preschoolNextDayPlan = $preschoolNextDayPlans[$preschoolCtAssignment->id] ?? null; @endphp
                     <div class="card mb-3 border-{{ $preschoolNextDayPlan ? 'success' : 'danger' }} shadow-sm">
                         <div class="card-header py-2 d-flex align-items-center justify-content-between bg-{{ $preschoolNextDayPlan ? 'success' : 'danger' }} bg-opacity-10">
                             <span class="fw-semibold small">
@@ -45,7 +47,7 @@
                                     <i class="bi bi-check-lg me-1"></i>Plan set
                                 </a>
                             @else
-                                <a href="{{ route('preschool-plans.create') }}"
+                                <a href="{{ route('preschool-plans.create', ['class_id' => $preschoolCtAssignment->class_id, 'section_id' => $preschoolCtAssignment->section_id]) }}"
                                    class="badge bg-danger text-decoration-none">
                                     <i class="bi bi-exclamation-triangle me-1"></i>Missing — Create plan
                                 </a>
@@ -58,6 +60,7 @@
                         </div>
                         @endif
                     </div>
+                    @endforeach
                     @endif
 
                     @if($routines->isEmpty())

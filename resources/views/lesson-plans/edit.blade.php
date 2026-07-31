@@ -63,7 +63,7 @@
                                 <div class="mb-3">
                                     <label class="form-label">Learning Standards / Outcome</label>
                                     <textarea name="learning_standards" class="form-control @error('learning_standards') is-invalid @enderror"
-                                              rows="3">{{ old('learning_standards', $plan->learning_standards) }}</textarea>
+                                              rows="8" style="min-height:180px;">{{ old('learning_standards', $plan->learning_standards) }}</textarea>
                                     @error('learning_standards')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
