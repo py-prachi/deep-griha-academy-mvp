@@ -104,18 +104,19 @@ class LessonPlanningController extends Controller
             });
 
         // CT view (read-only) — Class 1-8 only, matching the rest of this module.
-        $ctAssignment = ClassTeacher::with(['schoolClass', 'section'])
+        // A teacher may be CT for more than one Class 1-8 class, so don't assume just one.
+        $ctAssignments = ClassTeacher::with(['schoolClass', 'section'])
             ->where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
             ->whereHas('schoolClass', function ($q) {
                 $q->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
                   ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
             })
-            ->first();
+            ->get();
 
-        $ctLessons = null;
-        if ($ctAssignment) {
-            $ctLessons = PlanLesson::with(['subject', 'teacher', 'module'])
+        $ctLessonsByAssignment = [];
+        foreach ($ctAssignments as $ctAssignment) {
+            $ctLessonsByAssignment[$ctAssignment->id] = PlanLesson::with(['subject', 'teacher', 'module'])
                 ->where('session_id', $sessionId)
                 ->where('class_id', $ctAssignment->class_id)
                 ->where('section_id', $ctAssignment->section_id)
@@ -126,7 +127,7 @@ class LessonPlanningController extends Controller
 
         return view('lesson-planning.index', compact(
             'subjectAssignments', 'myModules', 'myLessons',
-            'ctAssignment', 'ctLessons', 'sessionId'
+            'ctAssignments', 'ctLessonsByAssignment', 'sessionId'
         ));
     }
 
