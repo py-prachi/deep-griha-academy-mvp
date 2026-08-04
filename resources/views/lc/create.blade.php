@@ -207,9 +207,11 @@
                                     <div class="card-body">
                                         <div class="row g-3">
                                             <div class="col-md-4">
-                                                <label class="form-label">LC Number</label>
-                                                <input type="text" class="form-control bg-light" value="{{ $nextLcNumber }}" readonly disabled>
-                                                <div class="form-text">Auto-assigned</div>
+                                                <label class="form-label">LC Number <span class="text-danger">*</span></label>
+                                                <input type="text" name="lc_number" id="lcNumberInput"
+                                                       class="form-control @error('lc_number') is-invalid @enderror"
+                                                       value="{{ old('lc_number') }}" required>
+                                                @error('lc_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="form-label">Issue Date <span class="text-danger">*</span></label>
@@ -235,7 +237,7 @@
                                     <div class="card-header bg-primary text-white fw-semibold">Summary</div>
                                     <div class="card-body">
                                         <table class="table table-sm table-borderless mb-0 small">
-                                            <tr><td class="text-muted">LC No.</td><td><strong>{{ $nextLcNumber }}</strong></td></tr>
+                                            <tr><td class="text-muted">LC No.</td><td><strong id="previewLcNumber">{{ old('lc_number') ?: '—' }}</strong></td></tr>
                                             <tr><td class="text-muted">Student</td><td id="previewName">{{ $admission ? $admission->student_name : '—' }}</td></tr>
                                             <tr><td class="text-muted">Admission No.</td><td id="previewAdmNo">{{ $admission ? ($admission->dga_admission_no ?? $admission->general_id ?? '—') : '—' }}</td></tr>
                                             <tr><td class="text-muted">Class</td><td id="previewClass">{{ $admission ? ($admission->schoolClass->class_name ?? '—') : '—' }}</td></tr>
@@ -273,6 +275,13 @@ document.addEventListener('DOMContentLoaded', function () {
     var previewName  = document.getElementById('previewName');
     var previewAdmNo = document.getElementById('previewAdmNo');
     var previewClass = document.getElementById('previewClass');
+    var lcNumberInput   = document.getElementById('lcNumberInput');
+    var previewLcNumber = document.getElementById('previewLcNumber');
+    if (lcNumberInput && previewLcNumber) {
+        lcNumberInput.addEventListener('input', function () {
+            previewLcNumber.textContent = lcNumberInput.value || '—';
+        });
+    }
 
     if (!selectEl) return;
 

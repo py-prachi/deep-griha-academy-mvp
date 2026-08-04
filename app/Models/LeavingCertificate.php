@@ -55,18 +55,4 @@ class LeavingCertificate extends Model
     {
         return $this->belongsTo(User::class, 'issued_by');
     }
-
-    public static function generateLcNumber(): string
-    {
-        $last = static::withTrashed()->orderBy('id', 'desc')->first();
-
-        if (!$last) {
-            return 'LC001';
-        }
-
-        $numeric = (int) ltrim(substr($last->lc_number, 2), '0');
-        $next    = $numeric + 1;
-
-        return 'LC' . str_pad($next, 3, '0', STR_PAD_LEFT);
-    }
 }

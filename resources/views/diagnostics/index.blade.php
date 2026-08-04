@@ -58,48 +58,83 @@
 
                     {{-- ── CLASS TEACHER VIEW SECTION ── --}}
                     {{-- A teacher may be CT for more than one class (e.g. one teacher
-                         covering both Nursery and Lower KG) — show a block per class. --}}
+                         covering both Nursery and Lower KG) — show a block per class.
+                         Pre-Primary CTs teach every subject themselves, so their block
+                         is editable across all subjects; Class 1-8 stays view-only. --}}
                     @foreach($ctAssignments as $ctAssignment)
+                    @php
+                        $isPP            = $ctIsPrePrimary[$ctAssignment->id] ?? false;
+                        $ctExtraSubjects = $ctSubjectsByAssignment[$ctAssignment->id] ?? collect();
+                    @endphp
+                    {{-- Pre-Primary: skip once every subject is already covered above --}}
+                    @if($isPP && $ctExtraSubjects->isEmpty())
+                        @continue
+                    @endif
                     <h6 class="text-uppercase text-muted small fw-bold mb-2 border-bottom pb-1 mt-4">
-                        <i class="bi bi-eye me-1"></i>
+                        <i class="bi {{ $isPP ? 'bi-pencil-square' : 'bi-eye' }} me-1"></i>
                         My Class — {{ $ctAssignment->schoolClass->class_name }} {{ $ctAssignment->section->section_name }}
+                        @unless($isPP)
                         <span class="text-secondary fw-normal ms-1">(view only)</span>
+                        @endunless
                     </h6>
 
-                    @php
-                        $sessionId = session('browse_session_id') ?: optional(\App\Models\SchoolSession::orderBy('id','desc')->first())->id;
-                        $ctSubjects = \App\Models\Subject::whereHas('subjectTeachers', fn($q) =>
-                            $q->where('session_id', $sessionId)
-                              ->where('class_id', $ctAssignment->class_id)
-                              ->where('section_id', $ctAssignment->section_id)
-                        )->orderBy('sort_order')->get();
-                    @endphp
-
-                    @if($ctSubjects->isNotEmpty())
-                    <div class="card mb-3">
-                        <div class="card-body p-0">
-                            @foreach($ctSubjects as $subject)
-                            <div class="border-bottom px-3 py-2">
-                                <div class="fw-semibold mb-2 text-secondary">{{ $subject->name }}</div>
-                                <div class="d-flex flex-wrap gap-2">
-                                    @foreach($assessmentTypes as $typeKey => $typeLabel)
-                                    <a href="{{ route('diagnostics.view', [
-                                            'class_id'        => $ctAssignment->class_id,
-                                            'section_id'      => $ctAssignment->section_id,
-                                            'subject_id'      => $subject->id,
-                                            'assessment_type' => $typeKey,
-                                        ]) }}"
-                                       class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-eye me-1"></i>{{ $typeLabel }}
-                                    </a>
-                                    @endforeach
+                    @if($isPP)
+                        <div class="card mb-3">
+                            <div class="card-body p-0">
+                                @foreach($ctExtraSubjects as $subject)
+                                <div class="border-bottom px-3 py-2">
+                                    <div class="fw-semibold mb-2">{{ $subject->name }}</div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach($assessmentTypes as $typeKey => $typeLabel)
+                                        <a href="{{ route('diagnostics.entry', [
+                                                'class_id'        => $ctAssignment->class_id,
+                                                'section_id'      => $ctAssignment->section_id,
+                                                'subject_id'      => $subject->id,
+                                                'assessment_type' => $typeKey,
+                                            ]) }}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil me-1"></i>{{ $typeLabel }}
+                                        </a>
+                                        @endforeach
+                                    </div>
                                 </div>
+                                @endforeach
                             </div>
-                            @endforeach
                         </div>
-                    </div>
                     @else
-                        <div class="alert alert-light text-muted">No subjects assigned to this class yet.</div>
+                        @php
+                            $ctViewSubjects = \App\Models\Subject::whereHas('subjectTeachers', fn($q) =>
+                                $q->where('session_id', $sessionId)
+                                  ->where('class_id', $ctAssignment->class_id)
+                                  ->where('section_id', $ctAssignment->section_id)
+                            )->orderBy('sort_order')->get();
+                        @endphp
+                        @if($ctViewSubjects->isNotEmpty())
+                        <div class="card mb-3">
+                            <div class="card-body p-0">
+                                @foreach($ctViewSubjects as $subject)
+                                <div class="border-bottom px-3 py-2">
+                                    <div class="fw-semibold mb-2 text-secondary">{{ $subject->name }}</div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach($assessmentTypes as $typeKey => $typeLabel)
+                                        <a href="{{ route('diagnostics.view', [
+                                                'class_id'        => $ctAssignment->class_id,
+                                                'section_id'      => $ctAssignment->section_id,
+                                                'subject_id'      => $subject->id,
+                                                'assessment_type' => $typeKey,
+                                            ]) }}"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-eye me-1"></i>{{ $typeLabel }}
+                                        </a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @else
+                            <div class="alert alert-light text-muted">No subjects assigned to this class yet.</div>
+                        @endif
                     @endif
                     @endforeach
 

@@ -268,7 +268,7 @@ class UserRepository implements UserInterface {
                     'nationality'   => $request['nationality'],
                     'phone'         => $request['phone'],
                     'address'       => $request['address'],
-                    'address2'      => $request['address2'],
+                    'address2'      => $request['address2'] ?? '',
                     'city'          => $request['city'],
                     'zip'           => $request['zip'],
                     'birthday'      => $request['birthday'],
@@ -300,7 +300,7 @@ class UserRepository implements UserInterface {
                     'nationality'   => $request['nationality'],
                     'phone'         => $request['phone'],
                     'address'       => $request['address'],
-                    'address2'      => $request['address2'],
+                    'address2'      => $request['address2'] ?? '',
                     'city'          => $request['city'],
                     'zip'           => $request['zip'],
                 ]);

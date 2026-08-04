@@ -330,6 +330,7 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
     $(document).ready(function () {
         $.ajaxSetup({
@@ -350,10 +351,10 @@
             $('#re_participant_count').val(d.participant_count || '');
             $('#re_description').val(d.description || '');
             $('#re_purpose').val(d.purpose || '');
-            $('#re_skills_values').val(d.skillsValues || '');
+            $('#re_skills_values').val(d.skills_values || '');
             $('#re_outcome').val(d.outcome || '');
-            $('#re_photo_url').val(d.photoUrl || '');
-            $('#re_publish').prop('checked', !!d.publishToCalendar);
+            $('#re_photo_url').val(d.photo_url || '');
+            $('#re_publish').prop('checked', d.publish_to_calendar === '1' || d.publish_to_calendar === 1 || d.publish_to_calendar === true);
             new bootstrap.Modal(document.getElementById('reportEditModal')).show();
         });
 
@@ -375,8 +376,13 @@
                 success: function () {
                     window.location.reload();
                 },
-                error: function () {
-                    alert('Failed to update. You may not have permission to edit this activity.');
+                error: function (xhr) {
+                    var msg = (xhr.responseJSON && xhr.responseJSON.error)
+                        ? xhr.responseJSON.error
+                        : (xhr.responseJSON && xhr.responseJSON.message)
+                        ? xhr.responseJSON.message
+                        : ('HTTP ' + xhr.status);
+                    alert('Failed to update: ' + msg);
                 }
             });
         });
