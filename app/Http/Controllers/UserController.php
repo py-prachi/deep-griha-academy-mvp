@@ -263,6 +263,10 @@ class UserController extends Controller
     }
 
     public function updateStudent(Request $request) {
+        $request->validate([
+            'email' => 'required|email|unique:users,email,' . $request->input('student_id'),
+        ]);
+
         try {
             $this->userRepository->updateStudent($request->toArray());
 
@@ -282,6 +286,10 @@ class UserController extends Controller
         return view('teachers.edit', $data);
     }
     public function updateTeacher(Request $request) {
+        $request->validate([
+            'email' => 'required|email|unique:users,email,' . $request->input('teacher_id'),
+        ]);
+
         try {
             $this->userRepository->updateTeacher($request->toArray());
 

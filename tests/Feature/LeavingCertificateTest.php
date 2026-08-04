@@ -111,7 +111,7 @@ class LeavingCertificateTest extends TestCase
     {
         return LeavingCertificate::create(array_merge([
             'admission_id'    => $this->admission->id,
-            'lc_number'       => LeavingCertificate::generateLcNumber(),
+            'lc_number'       => 'LC' . random_int(10000, 99999),
             'issue_date'      => now()->toDateString(),
             'date_of_leaving' => now()->toDateString(),
             'conduct'         => 'Good',
@@ -165,11 +165,11 @@ class LeavingCertificateTest extends TestCase
     }
 
     /** @test */
-    public function lc_create_form_shows_next_lc_number()
+    public function lc_create_form_has_a_manual_lc_number_field()
     {
         $this->actingAs($this->admin)
             ->get(route('lc.create'))
-            ->assertSee('LC001');
+            ->assertSee('name="lc_number"', false);
     }
 
     // ── Store ──────────────────────────────────────────────────────────────────
@@ -180,6 +180,7 @@ class LeavingCertificateTest extends TestCase
         $this->actingAs($this->admin)
             ->post(route('lc.store'), [
                 'admission_id'       => $this->admission->id,
+                'lc_number'          => 'LC001',
                 'issue_date'         => now()->toDateString(),
                 'date_of_leaving'    => now()->toDateString(),
                 'pupil_name'         => 'Rahul Patil',
@@ -197,26 +198,6 @@ class LeavingCertificateTest extends TestCase
     }
 
     /** @test */
-    public function lc_number_auto_increments()
-    {
-        $this->makeLc(['lc_number' => 'LC001']);
-        $this->assertEquals('LC002', LeavingCertificate::generateLcNumber());
-    }
-
-    /** @test */
-    public function lc_number_pads_to_three_digits()
-    {
-        $this->makeLc(['lc_number' => 'LC009']);
-        $this->assertEquals('LC010', LeavingCertificate::generateLcNumber());
-    }
-
-    /** @test */
-    public function first_lc_number_is_lc001()
-    {
-        $this->assertEquals('LC001', LeavingCertificate::generateLcNumber());
-    }
-
-    /** @test */
     public function cannot_issue_lc_to_admission_that_already_has_one()
     {
         $this->makeLc(['lc_number' => 'LC001']);
@@ -224,11 +205,46 @@ class LeavingCertificateTest extends TestCase
         $this->actingAs($this->admin)
             ->post(route('lc.store'), [
                 'admission_id'    => $this->admission->id,
+                'lc_number'       => 'LC999',
                 'issue_date'      => now()->toDateString(),
                 'date_of_leaving' => now()->toDateString(),
                 'conduct'         => 'Good',
             ])
             ->assertSessionHasErrors('admission_id');
+    }
+
+    /** @test */
+    public function store_requires_lc_number()
+    {
+        $this->actingAs($this->admin)
+            ->post(route('lc.store'), [
+                'admission_id'    => $this->admission->id,
+                'issue_date'      => now()->toDateString(),
+                'date_of_leaving' => now()->toDateString(),
+                'conduct'         => 'Good',
+            ])
+            ->assertSessionHasErrors('lc_number');
+    }
+
+    /** @test */
+    public function store_rejects_duplicate_lc_number()
+    {
+        $this->makeLc(['lc_number' => 'LC500']);
+
+        $otherAdmission = $this->makeAdmission([
+            'student_name' => 'Second Student',
+            'confirmed_date' => now()->toDateString(),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('lc.store'), [
+                'admission_id'    => $otherAdmission->id,
+                'lc_number'       => 'LC500',
+                'issue_date'      => now()->toDateString(),
+                'date_of_leaving' => now()->toDateString(),
+                'conduct'         => 'Good',
+            ])
+            ->assertSessionHasErrors('lc_number');
     }
 
     /** @test */
@@ -313,6 +329,7 @@ class LeavingCertificateTest extends TestCase
         $this->actingAs($this->admin)
             ->post(route('lc.store'), [
                 'admission_id'    => $this->admission->id,
+                'lc_number'       => 'LC777',
                 'issue_date'      => now()->toDateString(),
                 'date_of_leaving' => now()->toDateString(),
                 'conduct'         => 'Good',

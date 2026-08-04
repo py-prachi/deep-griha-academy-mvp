@@ -59,9 +59,7 @@ class LeavingCertificateController extends Controller
             ->orderBy('student_name')
             ->get();
 
-        $nextLcNumber = LeavingCertificate::generateLcNumber();
-
-        return view('lc.create', compact('admission', 'admissions', 'feeCheck', 'nextLcNumber', 'exit'));
+        return view('lc.create', compact('admission', 'admissions', 'feeCheck', 'exit'));
     }
 
     // ── Store ──────────────────────────────────────────────────────────────────
@@ -70,6 +68,7 @@ class LeavingCertificateController extends Controller
     {
         $validated = $request->validate([
             'admission_id'         => 'required|exists:admissions,id',
+            'lc_number'            => 'required|string|max:50|unique:leaving_certificates,lc_number',
             'issue_date'           => 'required|date',
             'issue_place'          => 'nullable|string|max:100',
             'pupil_name'           => 'nullable|string|max:200',
@@ -100,7 +99,6 @@ class LeavingCertificateController extends Controller
         // Fee snapshot
         $feeCheck = $this->lcRepo->checkFeesDue($validated['admission_id']);
 
-        $validated['lc_number']    = LeavingCertificate::generateLcNumber();
         $validated['fees_cleared'] = !$feeCheck['has_due'];
         $validated['fees_due']     = $feeCheck['amount'];
         $validated['issued_by']    = auth()->id();

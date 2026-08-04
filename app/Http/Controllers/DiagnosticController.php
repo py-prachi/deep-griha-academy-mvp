@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DiagnosticResult;
 use App\Models\SubjectTeacher;
 use App\Models\ClassTeacher;
+use App\Models\ClassSubject;
 use App\Models\SchoolClass;
 use App\Models\Section;
 use App\Models\Subject;
@@ -22,6 +23,26 @@ class DiagnosticController extends Controller
     public function __construct(SchoolSessionInterface $schoolSessionRepository)
     {
         $this->schoolSessionRepository = $schoolSessionRepository;
+    }
+
+    // Pre-Primary CTs typically teach every subject in their own class
+    // themselves, unlike Class 1-8 where each subject has its own teacher —
+    // so a Pre-Primary CT gets edit rights across all subjects in her class,
+    // not just ones she has an explicit SubjectTeacher assignment for.
+    private function isPrePrimaryClassTeacherOf($user, $sessionId, $classId, $sectionId): bool
+    {
+        $ct = ClassTeacher::with('schoolClass')
+            ->where('teacher_id', $user->id)
+            ->where('session_id', $sessionId)
+            ->where('class_id', $classId)
+            ->where('section_id', $sectionId)
+            ->first();
+
+        if (!$ct) {
+            return false;
+        }
+
+        return (bool) PrePrimaryController::getPrePrimaryType(optional($ct->schoolClass)->class_name ?? '');
     }
 
     public function index()
@@ -52,7 +73,36 @@ class DiagnosticController extends Controller
             ->where('session_id', $sessionId)
             ->get();
 
-        return view('diagnostics.index', compact('subjectAssignments', 'ctAssignments', 'sessionId'));
+        $ctIsPrePrimary         = [];
+        $ctSubjectsByAssignment = [];
+        foreach ($ctAssignments as $ctAssignment) {
+            $isPP = (bool) PrePrimaryController::getPrePrimaryType(optional($ctAssignment->schoolClass)->class_name ?? '');
+            $ctIsPrePrimary[$ctAssignment->id] = $isPP;
+
+            if ($isPP) {
+                // Pre-Primary CT: she can enter every subject in her class, so
+                // list them all. Skip subjects she already has an explicit
+                // SubjectTeacher row for — those already show, editable, in
+                // "My Subjects" above, so listing them again would duplicate.
+                $alreadyAssignedSubjectIds = $subjectAssignments
+                    ->where('class_id', $ctAssignment->class_id)
+                    ->pluck('subject_id');
+
+                $ctSubjectsByAssignment[$ctAssignment->id] = ClassSubject::with('subject')
+                    ->where('class_id', $ctAssignment->class_id)
+                    ->where('session_id', $sessionId)
+                    ->get()
+                    ->pluck('subject')
+                    ->filter()
+                    ->reject(fn($subject) => $alreadyAssignedSubjectIds->contains($subject->id))
+                    ->sortBy('sort_order')
+                    ->values();
+            }
+        }
+
+        return view('diagnostics.index', compact(
+            'subjectAssignments', 'ctAssignments', 'ctIsPrePrimary', 'ctSubjectsByAssignment', 'sessionId'
+        ));
     }
 
     public function entry(Request $request)
@@ -73,7 +123,8 @@ class DiagnosticController extends Controller
             abort(400, 'Invalid assessment type.');
         }
 
-        // Verify teacher is assigned to this subject (skip for admin)
+        // Verify teacher is assigned to this subject — or is the Pre-Primary
+        // CT of this class, who teaches every subject herself (skip for admin)
         if ($user->role !== 'admin') {
             $assigned = SubjectTeacher::where('teacher_id', $user->id)
                 ->where('session_id', $sessionId)
@@ -82,7 +133,7 @@ class DiagnosticController extends Controller
                 ->where('subject_id', $subjectId)
                 ->exists();
 
-            if (!$assigned) {
+            if (!$assigned && !$this->isPrePrimaryClassTeacherOf($user, $sessionId, $classId, $sectionId)) {
                 abort(403, 'You are not assigned to teach this subject for this class.');
             }
         }
@@ -137,7 +188,9 @@ class DiagnosticController extends Controller
                 ->where('subject_id', $subjectId)
                 ->exists();
 
-            if (!$assigned) abort(403);
+            if (!$assigned && !$this->isPrePrimaryClassTeacherOf($user, $sessionId, $classId, $sectionId)) {
+                abort(403);
+            }
         }
 
         $results = $request->input('results', []);
@@ -178,7 +231,12 @@ class DiagnosticController extends Controller
             );
         }
 
-        return redirect()->route('diagnostics.index')
+        return redirect()->route('diagnostics.entry', [
+                'class_id'        => $classId,
+                'section_id'      => $sectionId,
+                'subject_id'      => $subjectId,
+                'assessment_type' => $assessmentType,
+            ])
             ->with('status', 'Results saved for ' . DiagnosticResult::ASSESSMENT_TYPES[$assessmentType] . '.');
     }
 
