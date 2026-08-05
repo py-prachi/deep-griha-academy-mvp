@@ -299,7 +299,17 @@ class AdmissionRepository implements AdmissionInterface
     // If taken, append 2, 3, … before @
     private function generateStudentEmail($name, $id)
     {
-        $slug = strtolower(str_replace(' ', '.', trim($name)));
+        // Names with 3+ words (common with Indian naming conventions that
+        // include a middle/father's name — already captured separately in
+        // Father's Name) would otherwise produce very long emails — keep
+        // just the first and last word, e.g.
+        // "Rashmika Mahendra Paithanpagere" -> rashmika.paithanpagere
+        $words = array_values(array_filter(preg_split('/\s+/', trim($name))));
+        if (count($words) > 2) {
+            $slug = strtolower($words[0] . '.' . end($words));
+        } else {
+            $slug = strtolower(implode('.', $words));
+        }
         $slug = preg_replace('/[^a-z0-9.]/', '', $slug);
         $base = $slug . '@deepgriha.com';
         if (!\App\Models\User::where('email', $base)->exists()) {

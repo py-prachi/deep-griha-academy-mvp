@@ -57,7 +57,7 @@
                                             </tr>
                                             <tr>
                                                 <th scope="row">Email:</th>
-                                                <td>{{$teacher->email}}</td>
+                                                <td style="word-break:break-all;white-space:normal;">{{$teacher->email}}</td>
                                                 <th scope="row">Nationality:</th>
                                                 <td>{{$teacher->nationality}}</td>
                                             </tr>

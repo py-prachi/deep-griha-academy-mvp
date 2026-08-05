@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ExamController;
+use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MarkController;
 use App\Http\Controllers\UserController;
@@ -121,6 +122,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/students/view/list', [UserController::class, 'getStudentList'])->name('student.list.show');
     Route::get('/students/view/profile/{id}', [UserController::class, 'showStudentProfile'])->name('student.profile.show');
     Route::get('/students/view/attendance/{id}', [AttendanceController::class, 'showStudentAttendance'])->name('student.attendance.show');
+    Route::get('/students/view/attendance-report/{id}', [AttendanceController::class, 'report'])->name('student.attendance.report');
     Route::post('/admin/reset-password/{user_id}', [UserController::class, 'resetPassword'])->name('admin.resetPassword');
 
     // Marks
@@ -186,6 +188,13 @@ Route::middleware(['auth'])->group(function () {
 
     // Academic settings
     Route::get('/academics/settings', [AcademicSettingController::class, 'index']);
+    Route::post('/academics/settings/session-dates', [AcademicSettingController::class, 'updateSessionDates'])->name('academics.updateSessionDates');
+
+    // Holidays
+    Route::get('/holidays',              [HolidayController::class, 'index'])->name('holidays.index');
+    Route::post('/holidays',             [HolidayController::class, 'store'])->name('holidays.store');
+    Route::delete('/holidays/{holiday}', [HolidayController::class, 'destroy'])->name('holidays.destroy');
+    Route::delete('/holidays-range',     [HolidayController::class, 'destroyRange'])->name('holidays.destroyRange');
 
     // Subjects
     Route::get('/academics/subjects', [SubjectController::class, 'index'])->name('subjects.index');

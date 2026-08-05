@@ -207,13 +207,30 @@
 
             eventClick: function (event) {
                 currentEvent = event;
+
+                var start = moment(event.start).format('D MMM YYYY');
+                var end   = event.end ? moment(event.end).format('D MMM YYYY') : start;
+
+                if (event.type === 'holiday') {
+                    // Holidays are read-only entries, not teacher-logged activities —
+                    // show just the name/date, no activity fields, no edit actions.
+                    $('#det_title').text('Holiday — ' + event.title);
+                    $('#det_date').text(start === end ? start : start + ' – ' + end);
+                    ['det_type_row','det_grade_row','det_location_row','det_duration_row',
+                     'det_participants_row','det_count_row','det_description_row',
+                     'det_purpose_row','det_skills_row','det_outcome_row','det_photo_row']
+                        .forEach(function (id) { $('#' + id).hide(); });
+                    @if($selectable == 'true')
+                    $('#det_actions').hide();
+                    @endif
+                    new bootstrap.Modal(document.getElementById('eventDetailModal')).show();
+                    return;
+                }
+
                 var canEdit = isAdmin || (event.created_by == currentUserId);
 
                 // Populate detail modal
                 $('#det_title').text(event.title);
-
-                var start = moment(event.start).format('D MMM YYYY');
-                var end   = event.end ? moment(event.end).format('D MMM YYYY') : start;
                 $('#det_date').text(start === end ? start : start + ' – ' + end);
 
                 setDetRow('det_type_row',         'det_type',         event.activity_type);
