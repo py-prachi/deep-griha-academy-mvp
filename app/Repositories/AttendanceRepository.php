@@ -110,6 +110,20 @@ class AttendanceRepository implements AttendanceInterface {
         }
     }
 
+    // Every attendance record for a class/section this session — used for
+    // the session-wide attendance % summary (not bounded to a date range).
+    public function getSectionAttendanceAll($class_id, $section_id, $session_id)
+    {
+        try {
+            return Attendance::where('class_id', $class_id)
+                ->where('section_id', $section_id)
+                ->where('session_id', $session_id)
+                ->get();
+        } catch (\Exception $e) {
+            throw new \Exception('Failed to get attendance. ' . $e->getMessage());
+        }
+    }
+
     public function getStudentAttendance($session_id, $student_id) {
         try {
             return Attendance::with(['section','course'])

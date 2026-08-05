@@ -192,6 +192,39 @@
                     </h6>
                     <div class="row g-3 mb-4">
 
+                        {{-- School Year Dates --}}
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6><i class="bi bi-calendar-range me-1 text-primary"></i> School Year Dates</h6>
+                                    <p class="text-muted small">
+                                        Used to calculate working days and attendance percentages for
+                                        <strong>{{ $school_sessions->where('id', $current_school_session_id)->first()->session_name ?? 'this session' }}</strong>.
+                                    </p>
+                                    @php $currentSessionRow = $school_sessions->where('id', $current_school_session_id)->first(); @endphp
+                                    <form method="POST" action="{{ route('academics.updateSessionDates') }}" class="row g-2">
+                                        @csrf
+                                        <input type="hidden" name="session_id" value="{{ $current_school_session_id }}">
+                                        <div class="col-6">
+                                            <label class="form-label small mb-1">Start Date</label>
+                                            <input type="date" name="start_date" class="form-control form-control-sm"
+                                                   value="{{ optional($currentSessionRow)->start_date ? $currentSessionRow->start_date->toDateString() : '' }}" required>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small mb-1">End Date</label>
+                                            <input type="date" name="end_date" class="form-control form-control-sm"
+                                                   value="{{ optional($currentSessionRow)->end_date ? $currentSessionRow->end_date->toDateString() : '' }}" required>
+                                        </div>
+                                        <div class="col-12">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary w-100 mt-1">
+                                                <i class="bi bi-check2 me-1"></i> Save Dates
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Roll Number Assignment --}}
                         <div class="col-md-4">
                             <div class="card h-100">

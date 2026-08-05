@@ -15,12 +15,16 @@ use App\Interfaces\SectionInterface;
 use App\Repositories\AttendanceRepository;
 use App\Repositories\CourseRepository;
 use App\Traits\SchoolSession;
+use App\Traits\WorkingDays;
 use App\Models\Promotion;
+use App\Models\SchoolSession as SchoolSessionModel;
+use App\Models\Semester;
 use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
     use SchoolSession;
+    use WorkingDays;
     protected $academicSettingRepository;
     protected $schoolSessionRepository;
     protected $schoolClassRepository;
@@ -36,7 +40,7 @@ class AttendanceController extends Controller
     ) {
         // $this->middleware(['can:view attendances']);
         $this->middleware('can:view attendances')
-        ->except(['showStudentAttendance']);
+        ->except(['showStudentAttendance', 'report']);
 
 
         $this->userRepository = $userRepository;
@@ -410,6 +414,137 @@ public function showStudentAttendance(Request $request, $id)
 }
 
 
+
+    /**
+     * Per-student attendance report: month-wise + overall totals, based on
+     * actual school working days (Mon-Fri, minus recorded holidays) rather
+     * than just days attendance happened to be marked.
+     */
+    public function report(Request $request, $id)
+    {
+        $user = auth()->user();
+
+        if ($user->role === 'student') {
+            if ($user->id != $id) abort(404);
+        } else {
+            abort_unless($user->can('view attendances'), 403);
+        }
+
+        $sessionId = $this->getSchoolCurrentSession();
+
+        $student   = $this->userRepository->findStudent($id);
+        $promotion = Promotion::where('student_id', $id)
+            ->where('session_id', $sessionId)
+            ->first();
+
+        if (!$promotion) {
+            abort(404, 'Student has no active enrolment in the current session.');
+        }
+
+        $class_id   = (int) $promotion->class_id;
+        $section_id = (int) $promotion->section_id;
+
+        $school_class   = $this->schoolClassRepository->findById($class_id);
+        $school_section = $this->sectionRepository->findById($section_id);
+
+        // Anchor the range to the school year's start — every student uses the
+        // same start date, regardless of when they individually joined.
+        $from = $this->resolveSessionStart($sessionId, $class_id, $section_id);
+
+        // "Till now" — capped at the session's end date if that's already
+        // passed (so a report pulled after the year ends doesn't run past it).
+        $sessionRow = SchoolSessionModel::find($sessionId);
+        $to = Carbon::today();
+        if ($sessionRow && $sessionRow->end_date && Carbon::parse($sessionRow->end_date)->lt($to)) {
+            $to = Carbon::parse($sessionRow->end_date)->startOfDay();
+        }
+
+        $workingDays = $this->getWorkingDays($from, $to, $sessionId);
+
+        $presentDates = Attendance::where('student_id', $id)
+            ->where('session_id', $sessionId)
+            ->where('status', 'on')
+            ->whereDate('created_at', '>=', $from->toDateString())
+            ->whereDate('created_at', '<=', $to->toDateString())
+            ->pluck('created_at')
+            ->map(fn($d) => Carbon::parse($d)->toDateString())
+            ->flip();
+
+        // Month-wise breakdown
+        $months = [];
+        foreach ($workingDays as $day) {
+            $key = $day->format('Y-m');
+            if (!isset($months[$key])) {
+                $months[$key] = [
+                    'label'   => $day->format('F Y'),
+                    'total'   => 0,
+                    'present' => 0,
+                ];
+            }
+            $months[$key]['total']++;
+            if ($presentDates->has($day->toDateString())) {
+                $months[$key]['present']++;
+            }
+        }
+        foreach ($months as &$m) {
+            $m['percentage'] = $m['total'] > 0 ? round($m['present'] / $m['total'] * 100) : null;
+        }
+        unset($m);
+
+        // Sum from the month buckets (not a raw count of "on" records) so the
+        // overall total always agrees with the month-wise breakdown — a
+        // present mark on a day that isn't an actual working day (e.g.
+        // logged on a Saturday) doesn't count toward either.
+        $totalWorkingDays = $workingDays->count();
+        $totalPresent     = array_sum(array_column($months, 'present'));
+        $overallPercentage = $totalWorkingDays > 0 ? round($totalPresent / $totalWorkingDays * 100) : null;
+
+        return view('attendances.report', [
+            'student'            => $student,
+            'school_class'       => $school_class,
+            'school_section'     => $school_section,
+            'from'               => $from,
+            'to'                 => $to,
+            'months'             => $months,
+            'totalWorkingDays'   => $totalWorkingDays,
+            'totalPresent'       => $totalPresent,
+            'overallPercentage'  => $overallPercentage,
+        ]);
+    }
+
+    // Best available anchor for "when this session's attendance began":
+    // the admin-entered School Year start date (Academic Settings) if set,
+    // else Semester 1's start date, else the class's earliest attendance
+    // record, else the session record's own creation date.
+    private function resolveSessionStart($sessionId, $class_id, $section_id): Carbon
+    {
+        $session = SchoolSessionModel::find($sessionId);
+        if ($session && $session->start_date) {
+            return Carbon::parse($session->start_date)->startOfDay();
+        }
+
+        $semester = Semester::where('session_id', $sessionId)
+            ->orderBy('start_date')
+            ->first();
+        if ($semester && $semester->start_date) {
+            return Carbon::parse($semester->start_date)->startOfDay();
+        }
+
+        $earliestAttendance = Attendance::where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('session_id', $sessionId)
+            ->orderBy('created_at')
+            ->first();
+        if ($earliestAttendance) {
+            return Carbon::parse($earliestAttendance->created_at)->startOfDay();
+        }
+
+        if ($session) {
+            return Carbon::parse($session->created_at)->startOfDay();
+        }
+
+        return Carbon::today();
+    }
 
     /**
      * Class-wide attendance history over a date range.

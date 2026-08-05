@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\Holiday;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Traits\SchoolSession;
@@ -29,8 +30,32 @@ class EventController extends Controller
                 ->where('publish_to_calendar', true)
                 ->get(['id', 'title', 'start', 'end', 'activity_type', 'grade', 'description',
                        'purpose', 'location', 'duration', 'participants', 'participant_count',
-                       'skills_values', 'photo_url', 'outcome', 'created_by']);
-            return response()->json($data);
+                       'skills_values', 'photo_url', 'outcome', 'created_by'])
+                ->map(function ($event) {
+                    $arr = $event->toArray();
+                    $arr['type'] = 'activity';
+                    return $arr;
+                });
+
+            // Holidays are published to everyone's calendar automatically —
+            // no publish_to_calendar toggle for them, they're always visible.
+            $holidays = Holiday::whereDate('date', '>=', $request->start)
+                ->whereDate('date', '<=', $request->end)
+                ->where('session_id', $current_school_session_id)
+                ->get()
+                ->map(function ($holiday) {
+                    return [
+                        'id'        => 'holiday-' . $holiday->id,
+                        'title'     => $holiday->name,
+                        'start'     => $holiday->date->toDateString(),
+                        'end'       => $holiday->date->toDateString(),
+                        'type'      => 'holiday',
+                        'color'     => '#6c757d',
+                        'textColor' => '#ffffff',
+                    ];
+                });
+
+            return response()->json($data->concat($holidays)->values());
         }
         return view('events.index');
     }

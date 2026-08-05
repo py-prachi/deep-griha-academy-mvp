@@ -9,9 +9,14 @@
         <div class="col-xs-11 col-sm-11 col-md-11 col-lg-10 col-xl-10 col-xxl-10">
             <div class="row pt-2">
                 <div class="col ps-4">
-                    <h1 class="display-6 mb-3">
-                        <i class="bi bi-calendar2-week"></i> View Attendance
-                    </h1>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h1 class="display-6 mb-3">
+                            <i class="bi bi-calendar2-week"></i> View Attendance
+                        </h1>
+                        <a href="{{ route('student.attendance.report', $student->id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pie-chart me-1"></i> Attendance Report
+                        </a>
+                    </div>
 
                     <h5><i class="bi bi-person"></i> {{ $student->first_name }} {{ $student->last_name }}
                         @if($school_class)

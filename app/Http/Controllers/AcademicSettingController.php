@@ -123,4 +123,22 @@ class AcademicSettingController extends Controller
             return back()->withError($e->getMessage());
         }
     }
+
+    // School year start/end dates — used as the anchor for working-day and
+    // attendance-percentage calculations (see AttendanceController::report).
+    public function updateSessionDates(Request $request)
+    {
+        $request->validate([
+            'session_id' => 'required|exists:school_sessions,id',
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date|after_or_equal:start_date',
+        ]);
+
+        \App\Models\SchoolSession::where('id', $request->session_id)->update([
+            'start_date' => $request->start_date,
+            'end_date'   => $request->end_date,
+        ]);
+
+        return back()->with('status', 'School year dates updated.');
+    }
 }

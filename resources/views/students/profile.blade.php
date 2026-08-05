@@ -69,7 +69,7 @@
                                             </tr>
                                             <tr>
                                                 <th scope="row">Email:</th>
-                                                <td>{{$student->email ?? '—'}}</td>
+                                                <td style="word-break:break-all;white-space:normal;">{{$student->email ?? '—'}}</td>
                                                 <th>Birthday:</th>
                                                 <td>{{ $student->birthday ? \Carbon\Carbon::parse($student->birthday)->format('d M Y') : '—' }}</td>
                                             </tr>
