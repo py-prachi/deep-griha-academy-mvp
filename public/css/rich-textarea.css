@@ -1,0 +1,16 @@
+.rich-textarea .ql-toolbar.ql-snow {
+    background: #f8f9fa;
+    border-radius: .25rem .25rem 0 0;
+}
+.rich-textarea .ql-container.ql-snow {
+    border-radius: .25rem;
+    font-size: .95rem;
+    font-family: inherit;
+}
+.rich-textarea .ql-toolbar.ql-snow + .ql-container.ql-snow {
+    border-top: none;
+    border-radius: 0 0 .25rem .25rem;
+}
+.rich-textarea .ql-container.ql-snow.is-invalid {
+    border-color: #dc3545;
+}

@@ -62,7 +62,7 @@
                                                 <td class="text-center">{{ $plan->days_allocated }}</td>
                                                 <td>{{ $plan->chapter_number ?? '—' }}</td>
                                                 <td>{{ $plan->chapter_name }}</td>
-                                                <td class="text-muted small">{{ $plan->learning_standards ?? '—' }}</td>
+                                                <td class="text-muted small">{!! \App\Support\RichText::render($plan->learning_standards) !!}</td>
                                                 <td>
                                                     <span class="badge {{ $plan->status === 'completed' ? 'bg-success' : 'bg-warning text-dark' }}">
                                                         {{ \App\Models\LessonPlan::STATUS_LABELS[$plan->status] }}

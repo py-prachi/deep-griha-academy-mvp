@@ -12,6 +12,7 @@ use App\Models\StudentTermMark;
 use App\Models\MarkExamDate;
 use App\Models\ReportCardPublished;
 use App\Models\StudentObservation;
+use App\Support\RichText;
 use App\Repositories\PromotionRepository;
 use App\Http\Controllers\PrePrimaryController;
 use App\Interfaces\SchoolSessionInterface;
@@ -956,7 +957,8 @@ class MarksController extends Controller
         }
 
         foreach ($remarks as $student_id => $remark) {
-            if (trim($remark) === '') {
+            $remark = RichText::sanitize($remark);
+            if ($remark === '') {
                 continue;
             }
             StudentObservation::updateOrCreate(
@@ -968,7 +970,7 @@ class MarksController extends Controller
                 [
                     'class_id'   => $class_id,
                     'section_id' => $section_id,
-                    'remarks'    => trim($remark),
+                    'remarks'    => $remark,
                     'created_by' => $user->id,
                 ]
             );

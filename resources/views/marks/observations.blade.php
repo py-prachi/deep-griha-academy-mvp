@@ -1,4 +1,8 @@
 @extends('layouts.app')
+@push('styles')
+<link href="{{ asset('css/vendor/quill/quill.snow.css') }}" rel="stylesheet">
+<link href="{{ asset('css/rich-textarea.css') }}" rel="stylesheet">
+@endpush
 @section('content')
 <div class="container">
     <div class="row justify-content-start">
@@ -35,10 +39,8 @@
                                     @if($p->roll_number) {{ $p->roll_number }}. @endif
                                     {{ $studentName }}
                                 </label>
-                                <textarea name="remarks[{{ $p->student_id }}]"
-                                    class="form-control form-control-sm"
-                                    rows="2"
-                                    placeholder="Write descriptive remarks for this student...">{{ $obs ? $obs->remarks : '' }}</textarea>
+                                <x-rich-textarea name="remarks[{{ $p->student_id }}]" :value="$obs ? $obs->remarks : ''"
+                                    :toolbar="false" :min-height="60" placeholder="Write descriptive remarks for this student... (type **word** to bold it)" />
                             </div>
                             @empty
                                 <p class="text-muted">No students found.</p>
@@ -55,4 +57,8 @@
         </div>
     </div>
 </div>
+@push('scripts')
+<script src="{{ asset('js/vendor/quill/quill.min.js') }}"></script>
+<script src="{{ asset('js/rich-textarea.js') }}"></script>
+@endpush
 @endsection

@@ -90,8 +90,8 @@
                                 @foreach($modules as $module)
                                 <tr>
                                     <td class="small">{{ $module->date_written ? $module->date_written->format('d M Y') : '—' }}</td>
-                                    <td>{{ Str::limit($module->topic, 100) }}</td>
-                                    <td class="small">{{ Str::limit($module->duration_and_flow, 40) ?? '—' }}</td>
+                                    <td>{{ Str::limit(strip_tags($module->topic ?? ''), 100) }}</td>
+                                    <td class="small">{{ Str::limit(strip_tags($module->duration_and_flow ?? ''), 40) ?: '—' }}</td>
                                     <td class="small">{{ optional($module->teacher)->first_name }} {{ optional($module->teacher)->last_name }}</td>
                                     <td class="text-center">
                                         <a href="{{ route('lesson-planning.print', ['module_id' => $module->id]) }}"
@@ -129,7 +129,7 @@
                                 <tr>
                                     <td class="small">{{ $lesson->date_written ? $lesson->date_written->format('d M Y') : '—' }}</td>
                                     <td class="small">{{ $lesson->date_execution ?: '—' }}</td>
-                                    <td>{{ Str::limit($lesson->chapter_topic, 80) ?? '—' }}</td>
+                                    <td>{{ Str::limit(strip_tags($lesson->chapter_topic ?? ''), 80) ?: '—' }}</td>
                                     <td class="small">{{ optional($lesson->teacher)->first_name }} {{ optional($lesson->teacher)->last_name }}</td>
                                     <td class="text-center">
                                         <a href="{{ route('lesson-planning.print', ['lesson_id' => $lesson->id]) }}"

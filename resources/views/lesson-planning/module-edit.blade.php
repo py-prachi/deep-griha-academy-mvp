@@ -1,5 +1,9 @@
 @extends('layouts.app')
 @section('title', 'Edit Module')
+@push('styles')
+<link href="{{ asset('css/vendor/quill/quill.snow.css') }}" rel="stylesheet">
+<link href="{{ asset('css/rich-textarea.css') }}" rel="stylesheet">
+@endpush
 @section('content')
 <div class="container-fluid">
     <div class="row justify-content-start">
@@ -38,46 +42,38 @@
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Topic/Topics, Chapter/Chapters <span class="text-danger">*</span></label>
-                                    <textarea name="topic" rows="6" style="min-height:150px;" class="form-control @error('topic') is-invalid @enderror"
-                                              required>{{ old('topic', $module->topic) }}</textarea>
-                                    @error('topic')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="topic" :value="old('topic', $module->topic)" :min-height="150" :required="true" />
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Learning Outcome</label>
-                                    <textarea name="learning_outcome" rows="6" style="min-height:150px;" class="form-control @error('learning_outcome') is-invalid @enderror">{{ old('learning_outcome', $module->learning_outcome) }}</textarea>
-                                    @error('learning_outcome')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="learning_outcome" :value="old('learning_outcome', $module->learning_outcome)" :min-height="150" />
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Assessment</label>
-                                    <textarea name="assessment" rows="6" style="min-height:140px;" class="form-control @error('assessment') is-invalid @enderror">{{ old('assessment', $module->assessment) }}</textarea>
-                                    @error('assessment')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="assessment" :value="old('assessment', $module->assessment)" :min-height="140" />
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Rubric</label>
-                                    <textarea name="rubric" rows="6" style="min-height:140px;" class="form-control @error('rubric') is-invalid @enderror">{{ old('rubric', $module->rubric) }}</textarea>
-                                    @error('rubric')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="rubric" :value="old('rubric', $module->rubric)" :min-height="140" />
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Objectives</label>
-                                    <textarea name="objectives" rows="6" style="min-height:140px;" class="form-control @error('objectives') is-invalid @enderror">{{ old('objectives', $module->objectives) }}</textarea>
-                                    @error('objectives')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="objectives" :value="old('objectives', $module->objectives)" :min-height="140" />
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Duration and Flow of Days</label>
-                                    <textarea name="duration_and_flow" rows="7" style="min-height:170px;" class="form-control @error('duration_and_flow') is-invalid @enderror"
-                                              placeholder="e.g. Day 1 – Intro video&#10;Day 2 – Discussion&#10;Day 3 – Q&A">{{ old('duration_and_flow', $module->duration_and_flow) }}</textarea>
-                                    @error('duration_and_flow')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="duration_and_flow" :value="old('duration_and_flow', $module->duration_and_flow)" :min-height="170"
+                                        placeholder="e.g. Day 1 – Intro video, Day 2 – Discussion, Day 3 – Q&A" />
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Materials</label>
-                                    <textarea name="materials" rows="6" style="min-height:140px;" class="form-control @error('materials') is-invalid @enderror">{{ old('materials', $module->materials) }}</textarea>
-                                    @error('materials')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="materials" :value="old('materials', $module->materials)" :min-height="140" />
                                 </div>
 
                                 <div class="d-flex gap-2 mt-4">
@@ -100,4 +96,8 @@
     'formId' => 'module-form',
     'draftKey' => 'dga_draft_module_edit_' . $module->id,
 ])
+@push('scripts')
+<script src="{{ asset('js/vendor/quill/quill.min.js') }}"></script>
+<script src="{{ asset('js/rich-textarea.js') }}"></script>
+@endpush
 @endsection

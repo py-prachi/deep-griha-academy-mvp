@@ -10,6 +10,7 @@ use App\Models\SchoolClass;
 use App\Models\Subject;
 use App\Traits\SchoolSession;
 use App\Interfaces\SchoolSessionInterface;
+use App\Support\RichText;
 use Illuminate\Http\Request;
 
 class LessonPlanningController extends Controller
@@ -21,6 +22,19 @@ class LessonPlanningController extends Controller
     public function __construct(SchoolSessionInterface $schoolSessionRepository)
     {
         $this->schoolSessionRepository = $schoolSessionRepository;
+    }
+
+    // The rich-text fields submit sanitized-on-the-client HTML, but the
+    // client can be bypassed — sanitize again here before it ever reaches
+    // the database.
+    private function sanitizeRichFields(array $data, array $fields): array
+    {
+        foreach ($fields as $field) {
+            if (array_key_exists($field, $data)) {
+                $data[$field] = RichText::sanitize($data[$field]);
+            }
+        }
+        return $data;
     }
 
     public function index()
@@ -170,6 +184,10 @@ class LessonPlanningController extends Controller
             'materials'         => 'nullable|string',
         ]);
 
+        $data = $this->sanitizeRichFields($data, [
+            'topic', 'learning_outcome', 'assessment', 'rubric', 'objectives', 'duration_and_flow', 'materials',
+        ]);
+
         $assigned = SubjectTeacher::where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
             ->where('class_id', $data['class_id'])
@@ -225,6 +243,10 @@ class LessonPlanningController extends Controller
             'objectives'        => 'nullable|string',
             'duration_and_flow' => 'nullable|string',
             'materials'         => 'nullable|string',
+        ]);
+
+        $data = $this->sanitizeRichFields($data, [
+            'topic', 'learning_outcome', 'assessment', 'rubric', 'objectives', 'duration_and_flow', 'materials',
         ]);
 
         $module->update($data);
@@ -311,6 +333,12 @@ class LessonPlanningController extends Controller
             'remark'              => 'nullable|string',
         ]);
 
+        $data = $this->sanitizeRichFields($data, [
+            'chapter_topic', 'learning_standard', 'objective', 'material_needed', 'training_component',
+            'student_responses', 'hook', 'teach', 'guided_practice', 'independent_practice',
+            'closure', 'homework', 'other_notes', 'remark',
+        ]);
+
         $assigned = SubjectTeacher::where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
             ->where('class_id', $data['class_id'])
@@ -393,6 +421,12 @@ class LessonPlanningController extends Controller
             'homework'            => 'nullable|string',
             'other_notes'         => 'nullable|string',
             'remark'              => 'nullable|string',
+        ]);
+
+        $data = $this->sanitizeRichFields($data, [
+            'chapter_topic', 'learning_standard', 'objective', 'material_needed', 'training_component',
+            'student_responses', 'hook', 'teach', 'guided_practice', 'independent_practice',
+            'closure', 'homework', 'other_notes', 'remark',
         ]);
 
         $lesson->update($data);

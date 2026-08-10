@@ -1,5 +1,9 @@
 @extends('layouts.app')
 @section('title', 'Add Lesson Plan')
+@push('styles')
+<link href="{{ asset('css/vendor/quill/quill.snow.css') }}" rel="stylesheet">
+<link href="{{ asset('css/rich-textarea.css') }}" rel="stylesheet">
+@endpush
 @section('content')
 <div class="container-fluid">
     <div class="row justify-content-start">
@@ -76,7 +80,7 @@
                                             <option value="">— Select Module —</option>
                                             @foreach($modules as $mod)
                                             <option value="{{ $mod->id }}" {{ old('module_id') == $mod->id ? 'selected' : '' }}>
-                                                {{ $mod->date_written ? $mod->date_written->format('d M Y') . ' — ' : '' }}{{ Str::limit($mod->topic, 60) }}
+                                                {{ $mod->date_written ? $mod->date_written->format('d M Y') . ' — ' : '' }}{{ Str::limit(strip_tags($mod->topic ?? ''), 60) }}
                                             </option>
                                             @endforeach
                                         </select>
@@ -86,8 +90,7 @@
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Chapter / Topic</label>
-                                    <textarea name="chapter_topic" rows="6" style="min-height:140px;" class="form-control @error('chapter_topic') is-invalid @enderror">{{ old('chapter_topic') }}</textarea>
-                                    @error('chapter_topic')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="chapter_topic" :value="old('chapter_topic')" :min-height="140" />
                                 </div>
 
                                 <div class="mb-3">
@@ -99,82 +102,69 @@
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Learning Standard</label>
-                                    <textarea name="learning_standard" rows="6" style="min-height:140px;" class="form-control @error('learning_standard') is-invalid @enderror">{{ old('learning_standard') }}</textarea>
-                                    @error('learning_standard')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="learning_standard" :value="old('learning_standard')" :min-height="140" />
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Objective</label>
-                                    <textarea name="objective" rows="6" style="min-height:140px;" class="form-control @error('objective') is-invalid @enderror">{{ old('objective') }}</textarea>
-                                    @error('objective')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="objective" :value="old('objective')" :min-height="140" />
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Material Needed</label>
-                                    <textarea name="material_needed" rows="6" style="min-height:140px;" class="form-control @error('material_needed') is-invalid @enderror">{{ old('material_needed') }}</textarea>
-                                    @error('material_needed')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="material_needed" :value="old('material_needed')" :min-height="140" />
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Training Component</label>
-                                    <textarea name="training_component" rows="6" style="min-height:140px;" class="form-control @error('training_component') is-invalid @enderror">{{ old('training_component') }}</textarea>
-                                    @error('training_component')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="training_component" :value="old('training_component')" :min-height="140" />
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Student to Whom Responses Expected</label>
-                                    <textarea name="student_responses" rows="6" style="min-height:140px;" class="form-control @error('student_responses') is-invalid @enderror">{{ old('student_responses') }}</textarea>
-                                    @error('student_responses')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="student_responses" :value="old('student_responses')" :min-height="140" />
                                 </div>
 
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold">Hook</label>
-                                        <textarea name="hook" rows="6" style="min-height:150px;" class="form-control @error('hook') is-invalid @enderror">{{ old('hook') }}</textarea>
-                                        @error('hook')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                        <x-rich-textarea name="hook" :value="old('hook')" :min-height="150" />
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold">Teach</label>
-                                        <textarea name="teach" rows="6" style="min-height:150px;" class="form-control @error('teach') is-invalid @enderror">{{ old('teach') }}</textarea>
-                                        @error('teach')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                        <x-rich-textarea name="teach" :value="old('teach')" :min-height="150" />
                                     </div>
                                 </div>
 
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold">Guided Practice (CW)</label>
-                                        <textarea name="guided_practice" rows="6" style="min-height:150px;" class="form-control @error('guided_practice') is-invalid @enderror">{{ old('guided_practice') }}</textarea>
-                                        @error('guided_practice')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                        <x-rich-textarea name="guided_practice" :value="old('guided_practice')" :min-height="150" />
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold">Independent Practice (CW)</label>
-                                        <textarea name="independent_practice" rows="6" style="min-height:150px;" class="form-control @error('independent_practice') is-invalid @enderror">{{ old('independent_practice') }}</textarea>
-                                        @error('independent_practice')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                        <x-rich-textarea name="independent_practice" :value="old('independent_practice')" :min-height="150" />
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Closure</label>
-                                    <textarea name="closure" rows="6" style="min-height:140px;" class="form-control @error('closure') is-invalid @enderror">{{ old('closure') }}</textarea>
-                                    @error('closure')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="closure" :value="old('closure')" :min-height="140" />
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Homework</label>
-                                    <textarea name="homework" rows="6" style="min-height:140px;" class="form-control @error('homework') is-invalid @enderror">{{ old('homework') }}</textarea>
-                                    @error('homework')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="homework" :value="old('homework')" :min-height="140" />
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Any Other Note</label>
-                                    <textarea name="other_notes" rows="6" style="min-height:140px;" class="form-control @error('other_notes') is-invalid @enderror">{{ old('other_notes') }}</textarea>
-                                    @error('other_notes')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="other_notes" :value="old('other_notes')" :min-height="140" />
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Remark</label>
-                                    <textarea name="remark" rows="6" style="min-height:140px;" class="form-control @error('remark') is-invalid @enderror">{{ old('remark') }}</textarea>
-                                    @error('remark')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="remark" :value="old('remark')" :min-height="140" />
                                 </div>
 
                                 <div class="d-flex gap-2 mt-4">
@@ -209,4 +199,8 @@
     'formId' => 'lesson-form',
     'draftKey' => 'dga_draft_lesson_create_' . $assignment->class_id . '_' . $assignment->section_id . '_' . $assignment->subject_id,
 ])
+@push('scripts')
+<script src="{{ asset('js/vendor/quill/quill.min.js') }}"></script>
+<script src="{{ asset('js/rich-textarea.js') }}"></script>
+@endpush
 @endsection

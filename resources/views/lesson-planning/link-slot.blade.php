@@ -50,7 +50,7 @@
                             <div class="d-flex justify-content-between align-items-start gap-3">
                                 <div class="flex-grow-1">
                                     <div class="fw-semibold">
-                                        {{ $plan->chapter_topic ?? '(No topic)' }}
+                                        {{ $plan->chapter_topic ? strip_tags($plan->chapter_topic) : '(No topic)' }}
                                         @if($alreadyLinked)
                                             <span class="badge bg-success ms-1"><i class="bi bi-check-lg me-1"></i>Linked</span>
                                         @elseif($isMatch)

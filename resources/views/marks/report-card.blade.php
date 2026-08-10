@@ -117,7 +117,7 @@
                         @if($obs && $obs->remarks)
                         <div class="card-footer bg-light py-2 px-3">
                             <p class="small fw-semibold mb-1">Teacher's Remarks</p>
-                            <p class="small mb-0" style="white-space:pre-wrap;">{{ $obs->remarks }}</p>
+                            <p class="small mb-0" style="white-space:pre-wrap;">{!! \App\Support\RichText::render($obs->remarks) !!}</p>
                         </div>
                         @endif
                     </div>

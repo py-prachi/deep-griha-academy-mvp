@@ -163,7 +163,7 @@
                 <td style="text-align:center;">{{ $plan->days_allocated }}</td>
                 <td>{{ $plan->chapter_number ?? '—' }}</td>
                 <td>{{ $plan->chapter_name }}</td>
-                <td>{{ $plan->learning_standards ?? '—' }}</td>
+                <td>{!! \App\Support\RichText::render($plan->learning_standards) !!}</td>
                 <td class="badge-{{ $plan->status }}">
                     {{ \App\Models\LessonPlan::STATUS_LABELS[$plan->status] }}
                 </td>
