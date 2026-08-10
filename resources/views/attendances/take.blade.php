@@ -8,7 +8,7 @@
             <div class="row pt-2">
                 <div class="col ps-4">
                     <div class="d-flex align-items-center mb-2">
-                        <a href="{{ route('attendance.index') }}" class="btn btn-sm btn-outline-secondary me-2">
+                        <a href="{{ url()->previous(route('attendance.index')) }}" class="btn btn-sm btn-outline-secondary me-2">
                             <i class="bi bi-arrow-left"></i>
                         </a>
                         <h5 class="mb-0">
