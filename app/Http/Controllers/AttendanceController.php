@@ -187,6 +187,7 @@ public function create(Request $request)
             'school_class'              => $school_class,
             'school_section'            => $school_section,
             'attendance_count'          => $attendance_count,
+            'date'                      => $date,
         ]);
     } catch (\Exception $e) {
         return back()->withError($e->getMessage());
@@ -218,7 +219,18 @@ public function create(Request $request)
             $attendanceRepository = new AttendanceRepository();
             $attendanceRepository->saveAttendance($request->validated());
 
-            return back()->with('status', 'Attendance save was successful!');
+            $savedDate = $request->input('attendance_date')
+                ? Carbon::parse($request->input('attendance_date'))
+                : Carbon::today();
+
+            // Redirect with the saved date carried forward so the date
+            // picker reflects what was actually just submitted, instead of
+            // silently resetting to today (confusing after a back-dated entry).
+            return redirect()->route('attendance.create.show', [
+                'class_id'   => $request->input('class_id'),
+                'section_id' => $request->input('section_id'),
+                'date'       => $savedDate->toDateString(),
+            ])->with('status', 'Attendance saved for ' . $savedDate->format('d M Y') . '.');
         } catch (\Exception $e) {
             return back()->withError($e->getMessage());
         }

@@ -44,7 +44,7 @@
                                 <div class="mb-3">
                                     <label class="form-label small">Attendance Date</label>
                                     <input type="date" name="attendance_date" class="form-control form-control-sm"
-                                        value="{{ now()->toDateString() }}" style="max-width:180px;">
+                                        value="{{ $date }}" style="max-width:180px;">
                                 </div>
                                 @endif
 
