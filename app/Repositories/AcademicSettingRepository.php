@@ -7,7 +7,15 @@ use App\Interfaces\AcademicSettingInterface;
 
 class AcademicSettingRepository implements AcademicSettingInterface {
     public function getAcademicSetting(){
-        return AcademicSetting::find(1);
+        $setting = AcademicSetting::find(1);
+        if (!$setting) {
+            $setting = new AcademicSetting();
+            $setting->id = 1;
+            $setting->attendance_type = 'section';
+            $setting->marks_submission_status = 'off';
+            $setting->save();
+        }
+        return $setting;
     }
 
     public function updateAttendanceType($request) {

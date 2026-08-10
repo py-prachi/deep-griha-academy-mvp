@@ -9,7 +9,7 @@
                 <div class="col ps-4 pe-4">
 
                     <div class="d-flex align-items-center mb-2">
-                        <a href="{{ $is_ct ? route('attendance.create.show', ['class_id' => $class_id, 'section_id' => $section_id]) : route('attendance.index') }}"
+                        <a href="{{ $is_ct ? route('attendance.create.show', ['class_id' => $class_id, 'section_id' => $section_id]) : url()->previous(route('attendance.index')) }}"
                            class="btn btn-sm btn-outline-secondary me-2">
                             <i class="bi bi-arrow-left"></i>
                         </a>

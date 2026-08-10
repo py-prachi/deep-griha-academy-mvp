@@ -84,8 +84,8 @@
                                             @foreach($modules as $module)
                                             <tr>
                                                 <td class="small">{{ $module->date_written ? $module->date_written->format('d M Y') : '—' }}</td>
-                                                <td>{{ Str::limit($module->topic, 80) }}</td>
-                                                <td class="small">{{ Str::limit($module->duration_and_flow, 40) ?? '—' }}</td>
+                                                <td>{{ Str::limit(strip_tags($module->topic ?? ''), 80) }}</td>
+                                                <td class="small">{{ Str::limit(strip_tags($module->duration_and_flow ?? ''), 40) ?: '—' }}</td>
                                                 <td class="text-center">
                                                     <a href="{{ route('lesson-planning.print', ['module_id' => $module->id]) }}"
                                                        class="btn btn-xs btn-outline-secondary py-0 px-1" title="Print">
@@ -131,7 +131,7 @@
                                             <tr>
                                                 <td class="small">{{ $lesson->date_written ? $lesson->date_written->format('d M Y') : '—' }}</td>
                                                 <td class="small">{{ $lesson->date_execution ?: '—' }}</td>
-                                                <td>{{ Str::limit($lesson->chapter_topic, 70) ?? '—' }}</td>
+                                                <td>{{ Str::limit(strip_tags($lesson->chapter_topic ?? ''), 70) ?: '—' }}</td>
                                                 <td class="text-center">
                                                     @if($lesson->status === 'completed')
                                                         <span class="badge bg-success">Done</span>
@@ -217,8 +217,8 @@
                                             <tr>
                                                 <td class="small">{{ $lesson->date_written ? $lesson->date_written->format('d M Y') : '—' }}</td>
                                                 <td class="small">{{ $lesson->date_execution ?: '—' }}</td>
-                                                <td>{{ Str::limit($lesson->chapter_topic, 70) ?? '—' }}</td>
-                                                <td class="small text-muted">{{ optional($lesson->module)->topic ? Str::limit($lesson->module->topic, 40) : '—' }}</td>
+                                                <td>{{ Str::limit(strip_tags($lesson->chapter_topic ?? ''), 70) ?: '—' }}</td>
+                                                <td class="small text-muted">{{ optional($lesson->module)->topic ? Str::limit(strip_tags($lesson->module->topic), 40) : '—' }}</td>
                                             </tr>
                                             @endforeach
                                         </tbody>

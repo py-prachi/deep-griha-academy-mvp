@@ -62,10 +62,10 @@
     <tr><th>Date of Execution</th><td>{{ $lesson->date_execution ?: '—' }}</td></tr>
     <tr><th>Grade</th><td>{{ optional($lesson->schoolClass)->class_name }}</td></tr>
     <tr><th>Time</th><td>{{ $lesson->period_timing ?? '—' }}</td></tr>
-    <tr><th>Name of the Game</th><td>{{ $lesson->chapter_topic ?? '—' }}</td></tr>
+    <tr><th>Name of the Game</th><td>{!! \App\Support\RichText::render($lesson->chapter_topic) !!}</td></tr>
     <tr><th>Outdoor / Indoor</th><td>{{ $lesson->lesson_type ?? '—' }}</td></tr>
-    <tr><th>Objective</th><td>{{ $lesson->objective ?? '—' }}</td></tr>
-    <tr><th>Introduction</th><td>{{ $lesson->hook ?? '—' }}</td></tr>
+    <tr><th>Objective</th><td>{!! \App\Support\RichText::render($lesson->objective) !!}</td></tr>
+    <tr><th>Introduction</th><td>{!! \App\Support\RichText::render($lesson->hook) !!}</td></tr>
     <tr><th>Practical</th><td>{{ $lesson->practical_notes ?? '—' }}</td></tr>
 </table>
 
@@ -82,13 +82,13 @@
     <tr><th>Scheduled Teaching Date</th><td>{{ $lesson->scheduled_date ? $lesson->scheduled_date->format('d M Y') : '—' }}</td></tr>
     <tr><th>Date of Execution</th><td>{{ $lesson->date_execution ?: '—' }}</td></tr>
     <tr><th>Grade</th><td>{{ optional($lesson->schoolClass)->class_name }}</td></tr>
-    <tr><th>Topic</th><td>{{ $lesson->chapter_topic ?? '—' }}</td></tr>
+    <tr><th>Topic</th><td>{!! \App\Support\RichText::render($lesson->chapter_topic) !!}</td></tr>
     <tr><th>Practical / Theory</th><td>{{ $lesson->lesson_type ?? '—' }}</td></tr>
-    <tr><th>Objective</th><td>{{ $lesson->objective ?? '—' }}</td></tr>
-    <tr><th>Teach</th><td>{{ $lesson->teach ?? '—' }}</td></tr>
+    <tr><th>Objective</th><td>{!! \App\Support\RichText::render($lesson->objective) !!}</td></tr>
+    <tr><th>Teach</th><td>{!! \App\Support\RichText::render($lesson->teach) !!}</td></tr>
     <tr><th>Practical Activity</th><td>{{ $lesson->practical_notes ?? '—' }}</td></tr>
-    <tr><th>Closure</th><td>{{ $lesson->closure ?? '—' }}</td></tr>
-    <tr><th>Project / HW</th><td>{{ $lesson->homework ?? '—' }}</td></tr>
+    <tr><th>Closure</th><td>{!! \App\Support\RichText::render($lesson->closure) !!}</td></tr>
+    <tr><th>Project / HW</th><td>{!! \App\Support\RichText::render($lesson->homework) !!}</td></tr>
 </table>
 
 @else
@@ -104,36 +104,36 @@
     <tr><th>Date Written</th><td>{{ $lesson->date_written ? $lesson->date_written->format('d M Y') : '—' }}</td></tr>
     <tr><th>Scheduled Teaching Date</th><td>{{ $lesson->scheduled_date ? $lesson->scheduled_date->format('d M Y') : '—' }}</td></tr>
     <tr><th>Date of Execution</th><td>{{ $lesson->date_execution ?: '—' }}</td></tr>
-    <tr><th>Chapter / Topic</th><td>{{ $lesson->chapter_topic ?? '—' }}</td></tr>
+    <tr><th>Chapter / Topic</th><td>{!! \App\Support\RichText::render($lesson->chapter_topic) !!}</td></tr>
     <tr><th>Period Timing</th><td>{{ $lesson->period_timing ?? '—' }}</td></tr>
     @if($lesson->module)
-    <tr><th>Linked Module</th><td>{{ $lesson->module->topic }}</td></tr>
+    <tr><th>Linked Module</th><td>{!! \App\Support\RichText::render($lesson->module->topic) !!}</td></tr>
     @endif
 </table>
 
 <table>
     <tr><td colspan="2" class="section-title">Curriculum Details</td></tr>
-    <tr><th>Learning Standard</th><td>{{ $lesson->learning_standard ?? '—' }}</td></tr>
-    <tr><th>Objective</th><td>{{ $lesson->objective ?? '—' }}</td></tr>
-    <tr><th>Material Needed</th><td>{{ $lesson->material_needed ?? '—' }}</td></tr>
-    <tr><th>Training Component</th><td>{{ $lesson->training_component ?? '—' }}</td></tr>
-    <tr><th>Student to Whom Responses Expected</th><td>{{ $lesson->student_responses ?? '—' }}</td></tr>
+    <tr><th>Learning Standard</th><td>{!! \App\Support\RichText::render($lesson->learning_standard) !!}</td></tr>
+    <tr><th>Objective</th><td>{!! \App\Support\RichText::render($lesson->objective) !!}</td></tr>
+    <tr><th>Material Needed</th><td>{!! \App\Support\RichText::render($lesson->material_needed) !!}</td></tr>
+    <tr><th>Training Component</th><td>{!! \App\Support\RichText::render($lesson->training_component) !!}</td></tr>
+    <tr><th>Student to Whom Responses Expected</th><td>{!! \App\Support\RichText::render($lesson->student_responses) !!}</td></tr>
 </table>
 
 <table>
     <tr><td colspan="2" class="section-title">Lesson Flow</td></tr>
-    <tr><th>Hook</th><td>{{ $lesson->hook ?? '—' }}</td></tr>
-    <tr><th>Teach</th><td>{{ $lesson->teach ?? '—' }}</td></tr>
-    <tr><th>Guided Practice (CW)</th><td>{{ $lesson->guided_practice ?? '—' }}</td></tr>
-    <tr><th>Independent Practice (CW)</th><td>{{ $lesson->independent_practice ?? '—' }}</td></tr>
-    <tr><th>Closure</th><td>{{ $lesson->closure ?? '—' }}</td></tr>
+    <tr><th>Hook</th><td>{!! \App\Support\RichText::render($lesson->hook) !!}</td></tr>
+    <tr><th>Teach</th><td>{!! \App\Support\RichText::render($lesson->teach) !!}</td></tr>
+    <tr><th>Guided Practice (CW)</th><td>{!! \App\Support\RichText::render($lesson->guided_practice) !!}</td></tr>
+    <tr><th>Independent Practice (CW)</th><td>{!! \App\Support\RichText::render($lesson->independent_practice) !!}</td></tr>
+    <tr><th>Closure</th><td>{!! \App\Support\RichText::render($lesson->closure) !!}</td></tr>
 </table>
 
 <table>
     <tr><td colspan="2" class="section-title">Additional</td></tr>
-    <tr><th>Homework</th><td>{{ $lesson->homework ?? '—' }}</td></tr>
-    <tr><th>Any Other Note</th><td>{{ $lesson->other_notes ?? '—' }}</td></tr>
-    <tr><th>Remark</th><td>{{ $lesson->remark ?? '—' }}</td></tr>
+    <tr><th>Homework</th><td>{!! \App\Support\RichText::render($lesson->homework) !!}</td></tr>
+    <tr><th>Any Other Note</th><td>{!! \App\Support\RichText::render($lesson->other_notes) !!}</td></tr>
+    <tr><th>Remark</th><td>{!! \App\Support\RichText::render($lesson->remark) !!}</td></tr>
 </table>
 
 @endif {{-- end isAgri --}}
@@ -149,17 +149,17 @@
 
 <table>
     <tr><th>Date Written</th><td>{{ $module->date_written ? $module->date_written->format('d M Y') : '—' }}</td></tr>
-    <tr><th>Topic/Topics, Chapter/Chapters</th><td>{{ $module->topic ?? '—' }}</td></tr>
+    <tr><th>Topic/Topics, Chapter/Chapters</th><td>{!! \App\Support\RichText::render($module->topic) !!}</td></tr>
 </table>
 
 <table>
     <tr><td colspan="2" class="section-title">Module Details</td></tr>
-    <tr><th>Learning Outcome</th><td>{{ $module->learning_outcome ?? '—' }}</td></tr>
-    <tr><th>Assessment</th><td>{{ $module->assessment ?? '—' }}</td></tr>
-    <tr><th>Rubric</th><td>{{ $module->rubric ?? '—' }}</td></tr>
-    <tr><th>Objectives</th><td>{{ $module->objectives ?? '—' }}</td></tr>
-    <tr><th>Duration and Flow of Days</th><td style="white-space:pre-wrap;">{{ $module->duration_and_flow ?? '—' }}</td></tr>
-    <tr><th>Materials</th><td>{{ $module->materials ?? '—' }}</td></tr>
+    <tr><th>Learning Outcome</th><td>{!! \App\Support\RichText::render($module->learning_outcome) !!}</td></tr>
+    <tr><th>Assessment</th><td>{!! \App\Support\RichText::render($module->assessment) !!}</td></tr>
+    <tr><th>Rubric</th><td>{!! \App\Support\RichText::render($module->rubric) !!}</td></tr>
+    <tr><th>Objectives</th><td>{!! \App\Support\RichText::render($module->objectives) !!}</td></tr>
+    <tr><th>Duration and Flow of Days</th><td style="white-space:pre-wrap;">{!! \App\Support\RichText::render($module->duration_and_flow) !!}</td></tr>
+    <tr><th>Materials</th><td>{!! \App\Support\RichText::render($module->materials) !!}</td></tr>
 </table>
 @endif
 

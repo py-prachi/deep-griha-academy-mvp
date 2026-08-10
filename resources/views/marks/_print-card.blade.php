@@ -163,7 +163,7 @@
     <div class="remarks-box">
         <div class="rm-title">Descriptive Remarks — Term I</div>
         @if($obs1 && $obs1->remarks)
-            <div class="remarks-text">{{ $obs1->remarks }}</div>
+            <div class="remarks-text">{!! \App\Support\RichText::render($obs1->remarks) !!}</div>
         @else
             <div style="color:#999;font-style:italic;font-size:10px;">No remarks entered.</div>
         @endif
@@ -174,7 +174,7 @@
     <div class="remarks-box">
         <div class="rm-title">Descriptive Remarks — Term II</div>
         @if($obs2 && $obs2->remarks)
-            <div class="remarks-text">{{ $obs2->remarks }}</div>
+            <div class="remarks-text">{!! \App\Support\RichText::render($obs2->remarks) !!}</div>
         @else
             <div style="color:#999;font-style:italic;font-size:10px;">No remarks entered.</div>
         @endif

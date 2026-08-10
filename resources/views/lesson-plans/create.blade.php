@@ -1,5 +1,9 @@
 @extends('layouts.app')
 @section('title', 'Add Learning Standard Entry')
+@push('styles')
+<link href="{{ asset('css/vendor/quill/quill.snow.css') }}" rel="stylesheet">
+<link href="{{ asset('css/rich-textarea.css') }}" rel="stylesheet">
+@endpush
 @section('content')
 <div class="container">
     <div class="row justify-content-start">
@@ -67,9 +71,8 @@
 
                                 <div class="mb-3">
                                     <label class="form-label">Learning Standards / Outcome</label>
-                                    <textarea name="learning_standards" class="form-control @error('learning_standards') is-invalid @enderror"
-                                              rows="8" style="min-height:180px;" placeholder="Can be in English, Hindi or Marathi">{{ old('learning_standards') }}</textarea>
-                                    @error('learning_standards')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <x-rich-textarea name="learning_standards" :value="old('learning_standards')" :min-height="180"
+                                        placeholder="Can be in English, Hindi or Marathi" />
                                 </div>
 
                                 <div class="mb-3">
@@ -96,4 +99,8 @@
         </div>
     </div>
 </div>
+@push('scripts')
+<script src="{{ asset('js/vendor/quill/quill.min.js') }}"></script>
+<script src="{{ asset('js/rich-textarea.js') }}"></script>
+@endpush
 @endsection

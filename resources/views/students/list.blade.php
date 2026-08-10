@@ -54,7 +54,7 @@
                             {{ $classLabel }}{{ $sectionLabel ? ' — ' . $sectionLabel : '' }}
                         </p>
                         <div class="d-flex gap-2">
-                            @if(auth()->user()->role === 'teacher' && ($isCTClass ?? false))
+                            @if((auth()->user()->role === 'teacher' && ($isCTClass ?? false)) || auth()->user()->role === 'admin')
                             <a href="{{ route('attendance.create.show', ['class_id' => request()->query('class_id'), 'section_id' => request()->query('section_id')]) }}"
                                class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-calendar2-check me-1"></i> Take Attendance

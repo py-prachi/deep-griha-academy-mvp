@@ -61,7 +61,7 @@
                                                         Course: {{$course->course_name}}
                                                     </h6>
                                                     <div class="list-group mb-2">
-                                                        <a href="{{ url('attendances/view', [
+                                                        <a href="{{ route('attendance.list.show', [
     'class_id'   => $school_class->id,
     'section_id' => $course->section_id,
     'course_id'  => $course->id,
@@ -69,20 +69,20 @@
     View Attendance
 </a>
 
-<a href="{{ url('attendances/history', [
+<a href="{{ route('attendance.history', [
     'class_id'   => $school_class->id,
     'section_id' => $course->section_id,
 ]) }}">
     Attendance History
 </a>
 
-                                                    </div>   
+                                                    </div>
                                                     @endif
                                                 @endforeach
                                             @else
                                             <div class="tab-content">
                                                 <div class="accordion" id="accordionClass{{$school_class->id}}">
-                                                    @foreach ($classes_and_sections['school_sections'] as $school_section)
+                                                    @foreach ($classes_and_sections['school_sections']->where('class_id', $school_class->id) as $school_section)
                                                         <div class="accordion-item">
                                                             <h2 class="accordion-header" id="headingClass{{$school_class->id}}Section{{$school_section->id}}">
                                                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseClass{{$school_class->id}}Section{{$school_section->id}}" aria-expanded="false" aria-controls="collapseClass{{$school_class->id}}Section{{$school_section->id}}">
@@ -92,14 +92,14 @@
                                                             <div id="collapseClass{{$school_class->id}}Section{{$school_section->id}}" class="accordion-collapse collapse" aria-labelledby="headingClass{{$school_class->id}}Section{{$school_section->id}}" data-bs-parent="#accordionClass{{$school_class->id}}">
                                                                 <div class="accordion-body">
                                                                     <div class="list-group mb-2">
-                                                                        <a href="{{ url('attendances/view', [
+                                                                        <a href="{{ route('attendance.list.show', [
     'class_id'   => $school_class->id,
     'section_id' => $school_section->id,
 ]) }}">
     View Attendance
 </a>
 
-<a href="{{ url('attendances/history', [
+<a href="{{ route('attendance.history', [
     'class_id'   => $school_class->id,
     'section_id' => $school_section->id,
 ]) }}">

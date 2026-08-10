@@ -8,7 +8,7 @@
             <div class="row pt-2">
                 <div class="col ps-4">
                     <div class="d-flex align-items-center mb-2">
-                        <a href="{{ route('attendance.index') }}" class="btn btn-sm btn-outline-secondary me-2">
+                        <a href="{{ $backUrl }}" class="btn btn-sm btn-outline-secondary me-2">
                             <i class="bi bi-arrow-left"></i>
                         </a>
                         <h5 class="mb-0">
@@ -44,7 +44,7 @@
                                 <div class="mb-3">
                                     <label class="form-label small">Attendance Date</label>
                                     <input type="date" name="attendance_date" class="form-control form-control-sm"
-                                        value="{{ now()->toDateString() }}" style="max-width:180px;">
+                                        value="{{ $date }}" style="max-width:180px;">
                                 </div>
                                 @endif
 
@@ -52,6 +52,7 @@
                                 <input type="hidden" name="class_id"    value="{{ request()->query('class_id') }}">
                                 <input type="hidden" name="section_id"  value="{{ request()->query('section_id', 0) }}">
                                 <input type="hidden" name="course_id"   value="0">
+                                <input type="hidden" name="back_url"    value="{{ $backUrl }}">
 
                                 <table class="table table-sm">
                                     <thead class="table-light">

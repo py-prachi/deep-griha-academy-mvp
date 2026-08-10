@@ -29,6 +29,11 @@
                     el.dispatchEvent(new Event('change'));
                 } else {
                     el.value = map[name];
+                    // Rich-text fields render through Quill, not the raw
+                    // textarea — push the restored value into the editor too.
+                    if (el.classList.contains('rich-textarea-source')) {
+                        el.dispatchEvent(new Event('rich-textarea:restore'));
+                    }
                 }
             });
         });

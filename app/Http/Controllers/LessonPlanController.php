@@ -10,6 +10,7 @@ use App\Models\SchoolClass;
 use App\Models\Subject;
 use App\Traits\SchoolSession;
 use App\Interfaces\SchoolSessionInterface;
+use App\Support\RichText;
 use Illuminate\Http\Request;
 
 class LessonPlanController extends Controller
@@ -192,6 +193,8 @@ class LessonPlanController extends Controller
             'status'            => 'required|in:planned,completed',
         ]);
 
+        $data['learning_standards'] = RichText::sanitize($data['learning_standards'] ?? null);
+
         // Verify the teacher is assigned to this class+subject — or is the
         // Pre-Primary CT of this class, who teaches every subject herself.
         $assigned = SubjectTeacher::where('teacher_id', $user->id)
@@ -253,6 +256,8 @@ class LessonPlanController extends Controller
             'learning_standards'=> 'nullable|string',
             'status'            => 'required|in:planned,completed',
         ]);
+
+        $data['learning_standards'] = RichText::sanitize($data['learning_standards'] ?? null);
 
         $plan->update($data);
 
