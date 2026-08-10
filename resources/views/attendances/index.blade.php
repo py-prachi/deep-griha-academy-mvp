@@ -82,7 +82,7 @@
                                             @else
                                             <div class="tab-content">
                                                 <div class="accordion" id="accordionClass{{$school_class->id}}">
-                                                    @foreach ($classes_and_sections['school_sections'] as $school_section)
+                                                    @foreach ($classes_and_sections['school_sections']->where('class_id', $school_class->id) as $school_section)
                                                         <div class="accordion-item">
                                                             <h2 class="accordion-header" id="headingClass{{$school_class->id}}Section{{$school_section->id}}">
                                                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseClass{{$school_class->id}}Section{{$school_section->id}}" aria-expanded="false" aria-controls="collapseClass{{$school_class->id}}Section{{$school_section->id}}">
