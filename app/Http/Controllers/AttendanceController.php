@@ -137,6 +137,12 @@ public function create(Request $request)
     try {
         // ✅ FETCH FIRST
         $date = $request->query('date', Carbon::today()->toDateString());
+
+        // Carried through the save-and-redisplay redirect (see store()) so the
+        // "back" link keeps pointing to wherever the user really came from,
+        // instead of Laravel's single-slot previous-URL being overwritten by
+        // our own redirect back to this same page after saving.
+        $backUrl = $request->query('back_url') ?: url()->previous(route('attendance.index'));
         $academic_setting = $this->academicSettingRepository->getAcademicSetting();
         $attendance_type = $academic_setting->attendance_type ?? 'section';
 
@@ -188,6 +194,7 @@ public function create(Request $request)
             'school_section'            => $school_section,
             'attendance_count'          => $attendance_count,
             'date'                      => $date,
+            'backUrl'                   => $backUrl,
         ]);
     } catch (\Exception $e) {
         return back()->withError($e->getMessage());
@@ -226,11 +233,12 @@ public function create(Request $request)
             // Redirect with the saved date carried forward so the date
             // picker reflects what was actually just submitted, instead of
             // silently resetting to today (confusing after a back-dated entry).
-            return redirect()->route('attendance.create.show', [
+            return redirect()->route('attendance.create.show', array_filter([
                 'class_id'   => $request->input('class_id'),
                 'section_id' => $request->input('section_id'),
                 'date'       => $savedDate->toDateString(),
-            ])->with('status', 'Attendance saved for ' . $savedDate->format('d M Y') . '.');
+                'back_url'   => $request->input('back_url'),
+            ]))->with('status', 'Attendance saved for ' . $savedDate->format('d M Y') . '.');
         } catch (\Exception $e) {
             return back()->withError($e->getMessage());
         }
