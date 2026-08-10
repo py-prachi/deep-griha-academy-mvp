@@ -121,9 +121,10 @@
     .print-only { display: none; }
 
     @media print {
-        /* Hide nav bar, sidebar, buttons, breadcrumb, footer */
+        /* Hide nav bar, sidebar, watermark, buttons, breadcrumb, footer */
         .navbar,
-        .border-rt-e6,
+        .dga-sidebar,
+        #watermark,
         .no-print { display: none !important; }
 
         .print-only { display: block !important; }
