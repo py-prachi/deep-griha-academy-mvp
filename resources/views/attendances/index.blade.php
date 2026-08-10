@@ -61,7 +61,7 @@
                                                         Course: {{$course->course_name}}
                                                     </h6>
                                                     <div class="list-group mb-2">
-                                                        <a href="{{ url('attendances/view', [
+                                                        <a href="{{ route('attendance.list.show', [
     'class_id'   => $school_class->id,
     'section_id' => $course->section_id,
     'course_id'  => $course->id,
@@ -69,14 +69,14 @@
     View Attendance
 </a>
 
-<a href="{{ url('attendances/history', [
+<a href="{{ route('attendance.history', [
     'class_id'   => $school_class->id,
     'section_id' => $course->section_id,
 ]) }}">
     Attendance History
 </a>
 
-                                                    </div>   
+                                                    </div>
                                                     @endif
                                                 @endforeach
                                             @else
@@ -92,14 +92,14 @@
                                                             <div id="collapseClass{{$school_class->id}}Section{{$school_section->id}}" class="accordion-collapse collapse" aria-labelledby="headingClass{{$school_class->id}}Section{{$school_section->id}}" data-bs-parent="#accordionClass{{$school_class->id}}">
                                                                 <div class="accordion-body">
                                                                     <div class="list-group mb-2">
-                                                                        <a href="{{ url('attendances/view', [
+                                                                        <a href="{{ route('attendance.list.show', [
     'class_id'   => $school_class->id,
     'section_id' => $school_section->id,
 ]) }}">
     View Attendance
 </a>
 
-<a href="{{ url('attendances/history', [
+<a href="{{ route('attendance.history', [
     'class_id'   => $school_class->id,
     'section_id' => $school_section->id,
 ]) }}">
