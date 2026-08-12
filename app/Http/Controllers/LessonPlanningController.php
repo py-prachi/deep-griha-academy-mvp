@@ -282,7 +282,15 @@ class LessonPlanningController extends Controller
             ->where('subject_id', $request->subject_id)
             ->firstOrFail();
 
-        if (PrePrimaryController::getPrePrimaryType(optional($assignment->schoolClass)->class_name ?? '')) {
+        $subjectName = strtolower(optional($assignment->subject)->name ?? '');
+        $isAgri      = $subjectName === 'agriculture';
+        $isSports    = $subjectName === 'physical education';
+
+        // Pre-primary is otherwise planned via Pre-School Daily Plans, not
+        // here — except PE, which (unlike other pre-primary subjects) is
+        // taught by a dedicated subject teacher rather than the class
+        // teacher, so she needs her own Sports lesson form same as Class 1-8.
+        if (!$isSports && PrePrimaryController::getPrePrimaryType(optional($assignment->schoolClass)->class_name ?? '')) {
             abort(404, 'Preschool classes are planned via Pre-School Daily Plans, not Lesson Planning.');
         }
 
@@ -293,10 +301,7 @@ class LessonPlanningController extends Controller
             ->orderByDesc('date_written')
             ->get();
 
-        $subjectName = strtolower(optional($assignment->subject)->name ?? '');
-        $isAgri      = $subjectName === 'agriculture';
-        $isSports    = $subjectName === 'physical education';
-        $view        = $isAgri ? 'lesson-planning.agri-create' : ($isSports ? 'lesson-planning.sports-create' : 'lesson-planning.lesson-create');
+        $view = $isAgri ? 'lesson-planning.agri-create' : ($isSports ? 'lesson-planning.sports-create' : 'lesson-planning.lesson-create');
         return view($view, compact('assignment', 'modules', 'sessionId'));
     }
 
@@ -350,8 +355,11 @@ class LessonPlanningController extends Controller
             abort(403, 'You are not assigned to teach this subject for this class.');
         }
 
-        $lessonClass = SchoolClass::find($data['class_id']);
-        if (PrePrimaryController::getPrePrimaryType(optional($lessonClass)->class_name ?? '')) {
+        $lessonClass  = SchoolClass::find($data['class_id']);
+        $lessonSubject = Subject::find($data['subject_id']);
+        $isSports      = strtolower(optional($lessonSubject)->name ?? '') === 'physical education';
+
+        if (!$isSports && PrePrimaryController::getPrePrimaryType(optional($lessonClass)->class_name ?? '')) {
             abort(404, 'Preschool classes are planned via Pre-School Daily Plans, not Lesson Planning.');
         }
 
