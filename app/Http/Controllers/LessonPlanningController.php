@@ -43,13 +43,13 @@ class LessonPlanningController extends Controller
         $sessionId = $this->getSchoolCurrentSession();
 
         if ($user->role === 'admin') {
-            // Lesson Planning is Class 1-8 only. Preschool (Nursery/LKG/UKG) planning,
-            // including Sports/PE activities, lives entirely in Pre-School Daily Plans.
+            // Lesson Planning is Class 1-8 for every subject; pre-primary
+            // (Nursery/LKG/UKG) classes are included too but only ever have
+            // entries under Physical Education — every other pre-primary
+            // subject is planned via Pre-School Daily Plans instead.
             $classes = SchoolClass::whereHas('sections', function ($q) use ($sessionId) {
                 $q->where('session_id', $sessionId);
-            })->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
-              ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%'])
-              ->orderBy('id')
+            })->orderBy('id')
               ->get();
 
             $subjects = Subject::orderBy('sort_order')->get();
@@ -85,14 +85,19 @@ class LessonPlanningController extends Controller
             ));
         }
 
-        // Teacher view — Class 1-8 only, every subject. Preschool planning (including
-        // Sports/PE) lives entirely in Pre-School Daily Plans instead.
+        // Teacher view — Class 1-8, every subject, plus Physical Education for
+        // pre-primary (PE has its own subject-teacher, unlike every other
+        // pre-primary subject which the CT plans herself via Daily Plans).
         $subjectAssignments = SubjectTeacher::with(['subject', 'schoolClass', 'section'])
             ->where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
-            ->whereHas('schoolClass', function ($q) {
-                $q->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
-                  ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
+            ->where(function ($q) {
+                $q->whereHas('schoolClass', function ($sub) {
+                    $sub->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
+                        ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
+                })->orWhereHas('subject', function ($sub) {
+                    $sub->whereRaw('LOWER(name) = ?', ['physical education']);
+                });
             })
             ->get()
             ->sortBy(function ($st) {
