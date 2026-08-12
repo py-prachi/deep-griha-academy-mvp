@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ExamController;
 use App\Http\Controllers\HolidayController;
+use App\Http\Controllers\SpecialSchoolDayController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MarkController;
 use App\Http\Controllers\UserController;
@@ -195,6 +196,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/holidays',             [HolidayController::class, 'store'])->name('holidays.store');
     Route::delete('/holidays/{holiday}', [HolidayController::class, 'destroy'])->name('holidays.destroy');
     Route::delete('/holidays-range',     [HolidayController::class, 'destroyRange'])->name('holidays.destroyRange');
+
+    Route::get('/special-school-days',                       [SpecialSchoolDayController::class, 'index'])->name('special-school-days.index');
+    Route::post('/special-school-days',                      [SpecialSchoolDayController::class, 'store'])->name('special-school-days.store');
+    Route::delete('/special-school-days/{specialSchoolDay}',  [SpecialSchoolDayController::class, 'destroy'])->name('special-school-days.destroy');
 
     // Subjects
     Route::get('/academics/subjects', [SubjectController::class, 'index'])->name('subjects.index');

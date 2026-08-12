@@ -148,6 +148,10 @@ public function create(Request $request)
 
         $current_school_session_id = $this->getSchoolCurrentSession();
 
+        if (!$this->isWorkingDay($date, $current_school_session_id)) {
+            abort(403, Carbon::parse($date)->format('d M Y') . ' is a weekend. Mark it as a Special School Day under Settings first if the school was actually open that day.');
+        }
+
         $class_id   = $request->query('class_id');
         $section_id = $request->query('section_id', 0);
         $course_id  = $request->query('course_id');
@@ -222,13 +226,17 @@ public function create(Request $request)
             }
         }
 
+        $savedDate = $request->input('attendance_date')
+            ? Carbon::parse($request->input('attendance_date'))
+            : Carbon::today();
+
+        if (!$this->isWorkingDay($savedDate, $request->input('session_id'))) {
+            abort(403, $savedDate->format('d M Y') . ' is a weekend. Mark it as a Special School Day under Settings first if the school was actually open that day.');
+        }
+
         try {
             $attendanceRepository = new AttendanceRepository();
             $attendanceRepository->saveAttendance($request->validated());
-
-            $savedDate = $request->input('attendance_date')
-                ? Carbon::parse($request->input('attendance_date'))
-                : Carbon::today();
 
             // Redirect with the saved date carried forward so the date
             // picker reflects what was actually just submitted, instead of

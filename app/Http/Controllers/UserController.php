@@ -141,6 +141,8 @@ class UserController extends Controller
                     'teacher_scoped' => true,
                     'isCTClass'      => $isCTClass,
                     'ctAssignments'  => $ctAssignments,
+                    'class_id'       => $class_id,
+                    'section_id'     => $section_id,
                 ]);
             }
 
@@ -158,6 +160,8 @@ class UserController extends Controller
                 'school_classes' => $school_classes,
                 'teacher_scoped' => false,
                 'isCTClass'      => true,
+                'class_id'       => $class_id,
+                'section_id'     => $section_id,
             ]);
 
         } catch (\Exception $e) {
