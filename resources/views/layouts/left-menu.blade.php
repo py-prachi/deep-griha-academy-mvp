@@ -52,9 +52,17 @@
                             auth()->user()->role === 'teacher' &&
                             \App\Models\SubjectTeacher::where('teacher_id', auth()->id())
                                 ->where('session_id', $menuSessionId2)
-                                ->whereHas('schoolClass', function($q){
-                                    $q->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
-                                      ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
+                                ->where(function($q) {
+                                    // Any non-pre-primary class assignment, OR a Physical
+                                    // Education assignment (any class incl. pre-primary) —
+                                    // PE has its own dedicated form here even for pre-primary,
+                                    // since it's taught by a subject specialist, not the CT.
+                                    $q->whereHas('schoolClass', function($sub){
+                                        $sub->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
+                                            ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
+                                    })->orWhereHas('subject', function($sub){
+                                        $sub->whereRaw('LOWER(name) = ?', ['physical education']);
+                                    });
                                 })
                                 ->exists()
                         );
