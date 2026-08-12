@@ -491,7 +491,7 @@
                     {{-- Settings (year-end & one-time) --}}
                     <li class="nav-item">
                         <a type="button" href="#settings-submenu" data-bs-toggle="collapse"
-                            class="d-flex nav-link {{ request()->is('academics/settings*') || request()->is('promotions*') || request()->is('holidays*') ? 'active' : '' }}">
+                            class="d-flex nav-link {{ request()->is('academics/settings*') || request()->is('promotions*') || request()->is('holidays*') || request()->is('special-school-days*') ? 'active' : '' }}">
                             <i class="bi bi-gear"></i>
                             <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Settings</span>
                             @if($promotionPending)
@@ -499,7 +499,7 @@
                             @endif
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                         </a>
-                        <ul class="nav collapse {{ request()->is('academics/settings*') || request()->is('promotions*') || request()->is('holidays*') ? 'show' : 'hide' }} bg-white" id="settings-submenu">
+                        <ul class="nav collapse {{ request()->is('academics/settings*') || request()->is('promotions*') || request()->is('holidays*') || request()->is('special-school-days*') ? 'show' : 'hide' }} bg-white" id="settings-submenu">
                             @if(session()->has('browse_session_id'))
                             <li class="nav-item w-100">
                                 <a class="nav-link text-primary fw-semibold" href="{{ url('academics/settings?clear_browse=1') }}">
@@ -521,6 +521,11 @@
                             <li class="nav-item w-100">
                                 <a class="nav-link {{ request()->is('holidays*') ? 'active' : '' }}" href="{{ route('holidays.index') }}">
                                     <i class="bi bi-calendar-x me-2"></i> Holidays
+                                </a>
+                            </li>
+                            <li class="nav-item w-100">
+                                <a class="nav-link {{ request()->is('special-school-days*') ? 'active' : '' }}" href="{{ route('special-school-days.index') }}">
+                                    <i class="bi bi-calendar-plus me-2"></i> Special School Days
                                 </a>
                             </li>
                         </ul>
