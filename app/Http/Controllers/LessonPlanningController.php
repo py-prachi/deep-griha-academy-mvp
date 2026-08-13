@@ -45,8 +45,8 @@ class LessonPlanningController extends Controller
         if ($user->role === 'admin') {
             // Lesson Planning is Class 1-8 for every subject; pre-primary
             // (Nursery/LKG/UKG) classes are included too but only ever have
-            // entries under Physical Education — every other pre-primary
-            // subject is planned via Pre-School Daily Plans instead.
+            // entries under Physical Education and Agriculture — every other
+            // pre-primary subject is planned via Pre-School Daily Plans instead.
             $classes = SchoolClass::whereHas('sections', function ($q) use ($sessionId) {
                 $q->where('session_id', $sessionId);
             })->orderBy('id')
@@ -85,9 +85,10 @@ class LessonPlanningController extends Controller
             ));
         }
 
-        // Teacher view — Class 1-8, every subject, plus Physical Education for
-        // pre-primary (PE has its own subject-teacher, unlike every other
-        // pre-primary subject which the CT plans herself via Daily Plans).
+        // Teacher view — Class 1-8, every subject, plus Physical Education and
+        // Agriculture for pre-primary (both have their own dedicated subject
+        // teacher, unlike every other pre-primary subject which the CT plans
+        // herself via Daily Plans).
         $subjectAssignments = SubjectTeacher::with(['subject', 'schoolClass', 'section'])
             ->where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
@@ -96,7 +97,7 @@ class LessonPlanningController extends Controller
                     $sub->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
                         ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
                 })->orWhereHas('subject', function ($sub) {
-                    $sub->whereRaw('LOWER(name) = ?', ['physical education']);
+                    $sub->whereRaw('LOWER(name) IN (?, ?)', ['physical education', 'agriculture']);
                 });
             })
             ->get()
@@ -122,15 +123,14 @@ class LessonPlanningController extends Controller
                 return $l->class_id . '_' . $l->section_id . '_' . $l->subject_id;
             });
 
-        // CT view (read-only) — Class 1-8 only, matching the rest of this module.
-        // A teacher may be CT for more than one Class 1-8 class, so don't assume just one.
+        // CT view (read-only) — Class 1-8 and pre-primary alike. Pre-primary CTs
+        // don't plan most subjects here (that's Pre-School Daily Plans), but they
+        // still need to see what the PE and Agriculture subject-teachers have
+        // planned for their class. A teacher may be CT for more than one class,
+        // so don't assume just one.
         $ctAssignments = ClassTeacher::with(['schoolClass', 'section'])
             ->where('teacher_id', $user->id)
             ->where('session_id', $sessionId)
-            ->whereHas('schoolClass', function ($q) {
-                $q->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
-                  ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
-            })
             ->get();
 
         $ctLessonsByAssignment = [];
@@ -310,10 +310,11 @@ class LessonPlanningController extends Controller
         $isSports    = $subjectName === 'physical education';
 
         // Pre-primary is otherwise planned via Pre-School Daily Plans, not
-        // here — except PE, which (unlike other pre-primary subjects) is
-        // taught by a dedicated subject teacher rather than the class
-        // teacher, so she needs her own Sports lesson form same as Class 1-8.
-        if (!$isSports && PrePrimaryController::getPrePrimaryType(optional($assignment->schoolClass)->class_name ?? '')) {
+        // here — except PE and Agriculture, which (unlike every other
+        // pre-primary subject) are taught by a dedicated subject teacher
+        // rather than the class teacher, so they need their own lesson
+        // forms same as Class 1-8.
+        if (!$isSports && !$isAgri && PrePrimaryController::getPrePrimaryType(optional($assignment->schoolClass)->class_name ?? '')) {
             abort(404, 'Preschool classes are planned via Pre-School Daily Plans, not Lesson Planning.');
         }
 
@@ -378,11 +379,13 @@ class LessonPlanningController extends Controller
             abort(403, 'You are not assigned to teach this subject for this class.');
         }
 
-        $lessonClass  = SchoolClass::find($data['class_id']);
-        $lessonSubject = Subject::find($data['subject_id']);
-        $isSports      = strtolower(optional($lessonSubject)->name ?? '') === 'physical education';
+        $lessonClass    = SchoolClass::find($data['class_id']);
+        $lessonSubject  = Subject::find($data['subject_id']);
+        $lessonSubjectName = strtolower(optional($lessonSubject)->name ?? '');
+        $isSports       = $lessonSubjectName === 'physical education';
+        $isAgri         = $lessonSubjectName === 'agriculture';
 
-        if (!$isSports && PrePrimaryController::getPrePrimaryType(optional($lessonClass)->class_name ?? '')) {
+        if (!$isSports && !$isAgri && PrePrimaryController::getPrePrimaryType(optional($lessonClass)->class_name ?? '')) {
             abort(404, 'Preschool classes are planned via Pre-School Daily Plans, not Lesson Planning.');
         }
 
