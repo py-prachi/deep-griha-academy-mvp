@@ -109,14 +109,16 @@ class LessonPlanController extends Controller
             $ctIsPrePrimary[$ctAssignment->id] = $isPP;
 
             if ($isPP) {
-                // Pre-Primary CT: she can edit every subject in her class, so
-                // list them all (not just ones with existing entries) so she
-                // can add entries for subjects that don't have any yet. Skip
-                // subjects she already has an explicit SubjectTeacher row for
-                // — those are already fully editable in "My Learning Standard"
-                // above, so listing them again here would just be a duplicate.
-                $alreadyAssignedSubjectIds = $subjectAssignments
-                    ->where('class_id', $ctAssignment->class_id)
+                // Pre-Primary CT: she can edit every subject in her class that
+                // nobody else already owns, so she can add entries for
+                // whatever's still uncovered. Skip subjects that already have
+                // ANY SubjectTeacher assignment (hers or a specialist's, e.g.
+                // PE or Agriculture) — those are already fully editable in
+                // that specialist's own "My Learning Standard" section, so
+                // listing them here too would just duplicate that flow.
+                $assignedSubjectIds = SubjectTeacher::where('class_id', $ctAssignment->class_id)
+                    ->where('section_id', $ctAssignment->section_id)
+                    ->where('session_id', $sessionId)
                     ->pluck('subject_id');
 
                 $ctSubjectsByAssignment[$ctAssignment->id] = ClassSubject::with('subject')
@@ -125,7 +127,7 @@ class LessonPlanController extends Controller
                     ->get()
                     ->pluck('subject')
                     ->filter()
-                    ->reject(fn($subject) => $alreadyAssignedSubjectIds->contains($subject->id))
+                    ->reject(fn($subject) => $assignedSubjectIds->contains($subject->id))
                     ->sortBy('sort_order')
                     ->values();
             }
