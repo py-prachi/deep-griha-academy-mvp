@@ -9,7 +9,7 @@ class PlanModule extends Model
     protected $fillable = [
         'session_id', 'teacher_id', 'class_id', 'section_id', 'subject_id',
         'date_written', 'topic', 'learning_outcome', 'assessment', 'rubric',
-        'objectives', 'duration_and_flow', 'materials',
+        'objectives', 'duration_and_flow', 'materials', 'admin_remark',
     ];
 
     protected $casts = [

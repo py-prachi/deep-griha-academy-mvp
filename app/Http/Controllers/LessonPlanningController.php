@@ -274,6 +274,24 @@ class LessonPlanningController extends Controller
         return back()->with('status', 'Module deleted.');
     }
 
+    public function remarkModule(Request $request, $id)
+    {
+        $user = auth()->user();
+        if ($user->role !== 'admin') {
+            abort(403);
+        }
+
+        $module = PlanModule::findOrFail($id);
+
+        $data = $request->validate([
+            'admin_remark' => 'nullable|string|max:2000',
+        ]);
+
+        $module->update($data);
+
+        return back()->with('status', 'Remark saved.');
+    }
+
     public function createLesson(Request $request)
     {
         $user      = auth()->user();
@@ -460,6 +478,24 @@ class LessonPlanningController extends Controller
         $lesson->delete();
 
         return back()->with('status', 'Lesson plan deleted.');
+    }
+
+    public function remarkLesson(Request $request, $id)
+    {
+        $user = auth()->user();
+        if ($user->role !== 'admin') {
+            abort(403);
+        }
+
+        $lesson = PlanLesson::findOrFail($id);
+
+        $data = $request->validate([
+            'admin_remark' => 'nullable|string|max:2000',
+        ]);
+
+        $lesson->update($data);
+
+        return back()->with('status', 'Remark saved.');
     }
 
     public function markComplete($id)

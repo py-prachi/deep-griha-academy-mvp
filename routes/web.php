@@ -239,6 +239,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/learning-standard/{id}/edit',           [LessonPlanController::class, 'edit'])->name('lesson-plans.edit');
     Route::put('/learning-standard/{id}',                [LessonPlanController::class, 'update'])->name('lesson-plans.update');
     Route::delete('/learning-standard/{id}',             [LessonPlanController::class, 'destroy'])->name('lesson-plans.destroy');
+    Route::post('/learning-standard/{id}/remark',        [LessonPlanController::class, 'remark'])->name('lesson-plans.remark');
     Route::get('/learning-standard/print',               [LessonPlanController::class, 'printView'])->name('lesson-plans.print');
 
     // Lesson Planning (Class 1-8)
@@ -248,6 +249,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/lesson-planning/modules/{id}/edit',         [LessonPlanningController::class, 'editModule'])->name('lesson-planning.modules.edit');
     Route::put('/lesson-planning/modules/{id}',              [LessonPlanningController::class, 'updateModule'])->name('lesson-planning.modules.update');
     Route::delete('/lesson-planning/modules/{id}',           [LessonPlanningController::class, 'destroyModule'])->name('lesson-planning.modules.destroy');
+    Route::post('/lesson-planning/modules/{id}/remark',      [LessonPlanningController::class, 'remarkModule'])->name('lesson-planning.modules.remark');
     Route::get('/lesson-planning/lessons/create',            [LessonPlanningController::class, 'createLesson'])->name('lesson-planning.lessons.create');
     Route::get('/lesson-planning/lessons/link-slot',         [LessonPlanningController::class, 'linkSlot'])->name('lesson-planning.lessons.link-slot');
     Route::post('/lesson-planning/lessons',                  [LessonPlanningController::class, 'storeLesson'])->name('lesson-planning.lessons.store');
@@ -255,6 +257,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/lesson-planning/lessons/{id}',              [LessonPlanningController::class, 'updateLesson'])->name('lesson-planning.lessons.update');
     Route::delete('/lesson-planning/lessons/{id}',           [LessonPlanningController::class, 'destroyLesson'])->name('lesson-planning.lessons.destroy');
     Route::post('/lesson-planning/lessons/{id}/complete',   [LessonPlanningController::class, 'markComplete'])->name('lesson-planning.lessons.complete');
+    Route::post('/lesson-planning/lessons/{id}/remark',     [LessonPlanningController::class, 'remarkLesson'])->name('lesson-planning.lessons.remark');
     Route::post('/lesson-planning/lessons/{id}/set-date',   [LessonPlanningController::class, 'setScheduledDate'])->name('lesson-planning.lessons.set-date');
     Route::get('/lesson-planning/print',                     [LessonPlanningController::class, 'printView'])->name('lesson-planning.print');
 

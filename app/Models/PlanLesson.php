@@ -14,7 +14,7 @@ class PlanLesson extends Model
         'chapter_topic', 'period_timing',
         'learning_standard', 'objective', 'material_needed', 'training_component',
         'student_responses', 'hook', 'teach', 'guided_practice', 'independent_practice',
-        'closure', 'homework', 'other_notes', 'remark', 'status',
+        'closure', 'homework', 'other_notes', 'remark', 'admin_remark', 'status',
     ];
 
     protected $casts = [
