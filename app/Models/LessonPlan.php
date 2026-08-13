@@ -9,7 +9,7 @@ class LessonPlan extends Model
     protected $fillable = [
         'session_id', 'teacher_id', 'class_id', 'section_id', 'subject_id',
         'month', 'days_allocated', 'chapter_number', 'chapter_name',
-        'learning_standards', 'status',
+        'learning_standards', 'status', 'admin_remark',
     ];
 
     const MONTHS = [

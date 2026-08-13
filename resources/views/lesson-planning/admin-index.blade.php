@@ -83,7 +83,8 @@
                                     <th>Topic / Chapters</th>
                                     <th style="width:100px;">Duration</th>
                                     <th>Teacher</th>
-                                    <th style="width:60px;" class="text-center">Print</th>
+                                    <th>Admin Remark</th>
+                                    <th style="width:80px;" class="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -93,13 +94,40 @@
                                     <td>{{ Str::limit(strip_tags($module->topic ?? ''), 100) }}</td>
                                     <td class="small">{{ Str::limit(strip_tags($module->duration_and_flow ?? ''), 40) ?: '—' }}</td>
                                     <td class="small">{{ optional($module->teacher)->first_name }} {{ optional($module->teacher)->last_name }}</td>
-                                    <td class="text-center">
+                                    <td class="small">{{ $module->admin_remark ?: '—' }}</td>
+                                    <td class="text-center text-nowrap">
                                         <a href="{{ route('lesson-planning.print', ['module_id' => $module->id]) }}"
-                                           class="btn btn-xs btn-outline-secondary py-0 px-1">
+                                           class="btn btn-xs btn-outline-secondary py-0 px-1" title="Print">
                                             <i class="bi bi-printer"></i>
                                         </a>
+                                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-1" title="Add/Edit Remark"
+                                                data-bs-toggle="modal" data-bs-target="#moduleRemarkModal{{ $module->id }}">
+                                            <i class="bi bi-chat-left-text"></i>
+                                        </button>
                                     </td>
                                 </tr>
+
+                                <div class="modal fade" id="moduleRemarkModal{{ $module->id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <form method="POST" action="{{ route('lesson-planning.modules.remark', $module->id) }}">
+                                                @csrf
+                                                <div class="modal-header">
+                                                    <h6 class="modal-title">Admin Remark — {{ Str::limit(strip_tags($module->topic ?? ''), 60) }}</h6>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <textarea name="admin_remark" class="form-control" rows="4"
+                                                              placeholder="Add a remark for the teacher…">{{ $module->admin_remark }}</textarea>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">Save Remark</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                                 @endforeach
                             </tbody>
                         </table>
@@ -121,7 +149,8 @@
                                     <th style="width:100px;">Date Execution</th>
                                     <th>Chapter / Topic</th>
                                     <th>Teacher</th>
-                                    <th style="width:60px;" class="text-center">Print</th>
+                                    <th>Admin Remark</th>
+                                    <th style="width:80px;" class="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -131,13 +160,40 @@
                                     <td class="small">{{ $lesson->date_execution ?: '—' }}</td>
                                     <td>{{ Str::limit(strip_tags($lesson->chapter_topic ?? ''), 80) ?: '—' }}</td>
                                     <td class="small">{{ optional($lesson->teacher)->first_name }} {{ optional($lesson->teacher)->last_name }}</td>
-                                    <td class="text-center">
+                                    <td class="small">{{ $lesson->admin_remark ?: '—' }}</td>
+                                    <td class="text-center text-nowrap">
                                         <a href="{{ route('lesson-planning.print', ['lesson_id' => $lesson->id]) }}"
-                                           class="btn btn-xs btn-outline-secondary py-0 px-1">
+                                           class="btn btn-xs btn-outline-secondary py-0 px-1" title="Print">
                                             <i class="bi bi-printer"></i>
                                         </a>
+                                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-1" title="Add/Edit Remark"
+                                                data-bs-toggle="modal" data-bs-target="#lessonRemarkModal{{ $lesson->id }}">
+                                            <i class="bi bi-chat-left-text"></i>
+                                        </button>
                                     </td>
                                 </tr>
+
+                                <div class="modal fade" id="lessonRemarkModal{{ $lesson->id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <form method="POST" action="{{ route('lesson-planning.lessons.remark', $lesson->id) }}">
+                                                @csrf
+                                                <div class="modal-header">
+                                                    <h6 class="modal-title">Admin Remark — {{ Str::limit(strip_tags($lesson->chapter_topic ?? ''), 60) ?: 'Lesson Plan' }}</h6>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <textarea name="admin_remark" class="form-control" rows="4"
+                                                              placeholder="Add a remark for the teacher…">{{ $lesson->admin_remark }}</textarea>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">Save Remark</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                                 @endforeach
                             </tbody>
                         </table>

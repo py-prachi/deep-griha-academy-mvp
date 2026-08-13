@@ -53,6 +53,8 @@
                                                 <th>Chapter Name</th>
                                                 <th>Learning Standards / Outcome</th>
                                                 <th style="width:90px;">Status</th>
+                                                <th>Admin Remark</th>
+                                                <th style="width:50px;" class="text-center">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -68,7 +70,36 @@
                                                         {{ \App\Models\LessonPlan::STATUS_LABELS[$plan->status] }}
                                                     </span>
                                                 </td>
+                                                <td class="small">{{ $plan->admin_remark ?: '—' }}</td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-xs btn-outline-primary py-0 px-1" title="Add/Edit Remark"
+                                                            data-bs-toggle="modal" data-bs-target="#planRemarkModal{{ $plan->id }}">
+                                                        <i class="bi bi-chat-left-text"></i>
+                                                    </button>
+                                                </td>
                                             </tr>
+
+                                            <div class="modal fade" id="planRemarkModal{{ $plan->id }}" tabindex="-1">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <form method="POST" action="{{ route('lesson-plans.remark', $plan->id) }}">
+                                                            @csrf
+                                                            <div class="modal-header">
+                                                                <h6 class="modal-title">Admin Remark — {{ $plan->chapter_name }}</h6>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <textarea name="admin_remark" class="form-control" rows="4"
+                                                                          placeholder="Add a remark for the teacher…">{{ $plan->admin_remark }}</textarea>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-primary">Save Remark</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             @endforeach
                                         </tbody>
                                     </table>

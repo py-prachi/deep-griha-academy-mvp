@@ -76,6 +76,7 @@
                                                 <th>Chapter Name</th>
                                                 <th>Learning Standards / Outcome</th>
                                                 <th style="width:90px;">Status</th>
+                                                <th>Admin Remark</th>
                                                 <th style="width:70px;" class="text-center">Actions</th>
                                             </tr>
                                         </thead>
@@ -91,6 +92,13 @@
                                                     <span class="badge {{ $plan->status === 'completed' ? 'bg-success' : 'bg-warning text-dark' }}">
                                                         {{ \App\Models\LessonPlan::STATUS_LABELS[$plan->status] }}
                                                     </span>
+                                                </td>
+                                                <td class="small">
+                                                    @if($plan->admin_remark)
+                                                        <span class="text-danger">{{ $plan->admin_remark }}</span>
+                                                    @else
+                                                        —
+                                                    @endif
                                                 </td>
                                                 <td class="text-center">
                                                     <a href="{{ route('lesson-plans.edit', $plan->id) }}" class="btn btn-xs btn-outline-secondary py-0 px-1" title="Edit">
@@ -185,6 +193,7 @@
                                                 <th>Learning Standards / Outcome</th>
                                                 <th style="width:90px;">Status</th>
                                                 <th style="width:120px;">Logged by</th>
+                                                <th>Admin Remark</th>
                                                 <th style="width:70px;" class="text-center">Actions</th>
                                             </tr>
                                         </thead>
@@ -202,6 +211,13 @@
                                                     </span>
                                                 </td>
                                                 <td class="text-muted small">{{ optional($plan->teacher)->first_name }} {{ optional($plan->teacher)->last_name }}</td>
+                                                <td class="small">
+                                                    @if($plan->admin_remark)
+                                                        <span class="text-danger">{{ $plan->admin_remark }}</span>
+                                                    @else
+                                                        —
+                                                    @endif
+                                                </td>
                                                 <td class="text-center">
                                                     <a href="{{ route('lesson-plans.edit', $plan->id) }}" class="btn btn-xs btn-outline-secondary py-0 px-1" title="Edit">
                                                         <i class="bi bi-pencil"></i>

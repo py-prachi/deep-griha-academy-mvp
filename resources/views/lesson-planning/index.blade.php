@@ -77,6 +77,7 @@
                                                 <th style="width:100px;">Date Written</th>
                                                 <th>Topic / Chapters</th>
                                                 <th style="width:100px;">Duration & Flow</th>
+                                                <th>Admin Remark</th>
                                                 <th style="width:90px;" class="text-center">Actions</th>
                                             </tr>
                                         </thead>
@@ -86,6 +87,13 @@
                                                 <td class="small">{{ $module->date_written ? $module->date_written->format('d M Y') : '—' }}</td>
                                                 <td>{{ Str::limit(strip_tags($module->topic ?? ''), 80) }}</td>
                                                 <td class="small">{{ Str::limit(strip_tags($module->duration_and_flow ?? ''), 40) ?: '—' }}</td>
+                                                <td class="small">
+                                                    @if($module->admin_remark)
+                                                        <span class="text-danger">{{ $module->admin_remark }}</span>
+                                                    @else
+                                                        —
+                                                    @endif
+                                                </td>
                                                 <td class="text-center">
                                                     <a href="{{ route('lesson-planning.print', ['module_id' => $module->id]) }}"
                                                        class="btn btn-xs btn-outline-secondary py-0 px-1" title="Print">
@@ -123,6 +131,7 @@
                                                 <th style="width:120px;">Date of Execution</th>
                                                 <th>Chapter / Topic</th>
                                                 <th style="width:80px;" class="text-center">Status</th>
+                                                <th>Admin Remark</th>
                                                 <th style="width:110px;" class="text-center">Actions</th>
                                             </tr>
                                         </thead>
@@ -137,6 +146,13 @@
                                                         <span class="badge bg-success">Done</span>
                                                     @else
                                                         <span class="badge bg-warning text-dark">Planned</span>
+                                                    @endif
+                                                </td>
+                                                <td class="small">
+                                                    @if($lesson->admin_remark)
+                                                        <span class="text-danger">{{ $lesson->admin_remark }}</span>
+                                                    @else
+                                                        —
                                                     @endif
                                                 </td>
                                                 <td class="text-center">

@@ -315,4 +315,22 @@ class LessonPlanController extends Controller
 
         return back()->with('status', 'Entry deleted.');
     }
+
+    public function remark(Request $request, $id)
+    {
+        $user = auth()->user();
+        if ($user->role !== 'admin') {
+            abort(403);
+        }
+
+        $plan = LessonPlan::findOrFail($id);
+
+        $data = $request->validate([
+            'admin_remark' => 'nullable|string|max:2000',
+        ]);
+
+        $plan->update($data);
+
+        return back()->with('status', 'Remark saved.');
+    }
 }
