@@ -76,7 +76,7 @@
                                     </td>
                                     <td class="text-center">
                                         <a href="{{ route('preschool-plans.print', $plan->id) }}"
-                                           target="_blank" class="btn btn-xs btn-outline-secondary py-0 px-1" title="Print">
+                                           class="btn btn-xs btn-outline-secondary py-0 px-1" title="Print">
                                             <i class="bi bi-printer"></i>
                                         </a>
                                         <a href="{{ route('preschool-plans.edit', $plan->id) }}"
