@@ -197,14 +197,23 @@
                     @endif
 
                     {{-- ── CLASS TEACHER VIEW (read-only) ── --}}
-                    {{-- A teacher may be CT for more than one Class 1-8 class — show a block per class. --}}
+                    {{-- A teacher may be CT for more than one class — show a block per class. --}}
                     @foreach($ctAssignments as $ctAssignment)
-                    @php $ctLessons = $ctLessonsByAssignment[$ctAssignment->id] ?? null; @endphp
+                    @php
+                        $ctLessons = $ctLessonsByAssignment[$ctAssignment->id] ?? null;
+                        $ctIsPP    = (bool) \App\Http\Controllers\PrePrimaryController::getPrePrimaryType($ctAssignment->schoolClass->class_name ?? '');
+                    @endphp
                     <h6 class="text-uppercase text-muted small fw-bold mb-2 border-bottom pb-1 mt-4">
                         <i class="bi bi-eye me-1"></i>
                         My Class — {{ $ctAssignment->schoolClass->class_name }} {{ $ctAssignment->section->section_name }}
                         <span class="text-secondary fw-normal ms-1">(view only)</span>
                     </h6>
+                    @if($ctIsPP)
+                    <p class="text-muted small fst-italic mb-2">
+                        Showing plans from this class's specialist subject teachers only (e.g. PE, Agriculture).
+                        Your own subjects for this class are planned via Pre-School Daily Plans and Learning Standard, not here.
+                    </p>
+                    @endif
 
                     @if($ctLessons && $ctLessons->isNotEmpty())
                         @foreach($ctLessons as $subjectId => $subjectLessons)
