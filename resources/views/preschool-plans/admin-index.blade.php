@@ -69,7 +69,7 @@
                                     <td class="text-center"><span class="badge bg-secondary">{{ $plan->slots_count }}</span></td>
                                     <td class="text-center">
                                         <a href="{{ route('preschool-plans.print', $plan->id) }}"
-                                           target="_blank" class="btn btn-xs btn-outline-secondary py-0 px-1">
+                                           class="btn btn-xs btn-outline-secondary py-0 px-1">
                                             <i class="bi bi-printer"></i>
                                         </a>
                                     </td>

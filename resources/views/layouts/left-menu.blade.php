@@ -48,34 +48,42 @@
                         $menuSessionId2 = session('browse_session_id') ?: optional(\App\Models\SchoolSession::orderBy('id','desc')->first())->id;
                         // Match by LOWER(class_name) LIKE, not exact strings — actual class
                         // names are "Nursery", "Lower KG", "Upper KG", not "LKG"/"UKG".
-                        $showLessonPlanning = auth()->user()->role === 'admin' || (
-                            auth()->user()->role === 'teacher' &&
-                            \App\Models\SubjectTeacher::where('teacher_id', auth()->id())
-                                ->where('session_id', $menuSessionId2)
-                                ->where(function($q) {
-                                    // Any non-pre-primary class assignment, OR a Physical
-                                    // Education assignment (any class incl. pre-primary) —
-                                    // PE has its own dedicated form here even for pre-primary,
-                                    // since it's taught by a subject specialist, not the CT.
-                                    $q->whereHas('schoolClass', function($sub){
-                                        $sub->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
-                                            ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
-                                    })->orWhereHas('subject', function($sub){
-                                        $sub->whereRaw('LOWER(name) = ?', ['physical education']);
-                                    });
-                                })
-                                ->exists()
-                        );
-                        $showPreschoolPlan = auth()->user()->role === 'admin' || (
-                            auth()->user()->role === 'teacher' &&
+                        $isPrePrimaryCT = auth()->user()->role === 'teacher' &&
                             \App\Models\ClassTeacher::where('teacher_id', auth()->id())
                                 ->where('session_id', $menuSessionId2)
                                 ->whereHas('schoolClass', function($q){
                                     $q->whereRaw('LOWER(class_name) LIKE ?', ['%nursery%'])
                                       ->orWhereRaw('LOWER(class_name) LIKE ?', ['%kg%']);
                                 })
+                                ->exists();
+                        $showLessonPlanning = auth()->user()->role === 'admin' || $isPrePrimaryCT || (
+                            auth()->user()->role === 'teacher' &&
+                            \App\Models\SubjectTeacher::where('teacher_id', auth()->id())
+                                ->where('session_id', $menuSessionId2)
+                                ->where(function($q) {
+                                    // Any non-pre-primary class assignment, OR any
+                                    // pre-primary assignment where this teacher isn't
+                                    // that class's own CT — a dedicated specialist
+                                    // subject teacher (PE, Agriculture, or any future
+                                    // subject) rather than the CT covering it via
+                                    // Daily Plans.
+                                    $q->whereHas('schoolClass', function($sub){
+                                        $sub->whereRaw('LOWER(class_name) NOT LIKE ?', ['%nursery%'])
+                                            ->whereRaw('LOWER(class_name) NOT LIKE ?', ['%kg%']);
+                                    })->orWhereNotExists(function($sub){
+                                        $sub->from('class_teachers')
+                                            ->whereColumn('class_teachers.teacher_id', 'subject_teachers.teacher_id')
+                                            ->whereColumn('class_teachers.class_id', 'subject_teachers.class_id')
+                                            ->whereColumn('class_teachers.section_id', 'subject_teachers.section_id')
+                                            ->whereColumn('class_teachers.session_id', 'subject_teachers.session_id');
+                                    });
+                                })
                                 ->exists()
                         );
+                        // A pre-primary CT sees Lesson Planning too now (read-only, for
+                        // her specialist subject-teachers' entries), so she's not gated
+                        // behind $showPreschoolPlan the same way as before.
+                        $showPreschoolPlan = auth()->user()->role === 'admin' || $isPrePrimaryCT;
                     @endphp
 
                     @if($showLessonPlanning)
