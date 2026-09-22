@@ -164,6 +164,21 @@
                                             </div>
                                         </div>
 
+                                        <hr>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="is_genuine" id="isGenuine" value="1" checked>
+                                            <label class="form-check-label fw-semibold" for="isGenuine">
+                                                This is a genuine exit — the student is actually leaving the school
+                                            </label>
+                                        </div>
+                                        <div class="alert alert-light border py-2 small mb-3">
+                                            <i class="bi bi-info-circle"></i>
+                                            Uncheck this <strong>only</strong> if you're using this form to remove or undo a
+                                            confirmed admission that was created in error (e.g. wrong class, duplicate entry) —
+                                            not a real departure. Such records are filed separately as "Correction," don't need
+                                            a Leaving Certificate, and won't count as an exit in reports.
+                                        </div>
+
                                         <div class="alert alert-warning py-2">
                                             <i class="bi bi-exclamation-triangle"></i>
                                             <strong>Note:</strong> Marking a student as exited removes them from the active student list. This cannot be undone.

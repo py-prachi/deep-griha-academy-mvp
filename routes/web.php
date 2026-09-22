@@ -400,5 +400,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/exits/create',       [App\Http\Controllers\StudentExitController::class, 'create'])->name('exits.create');
     Route::post('/exits',             [App\Http\Controllers\StudentExitController::class, 'store'])->name('exits.store');
     Route::get('/exits/student-info', [App\Http\Controllers\StudentExitController::class, 'studentInfo'])->name('exits.studentInfo');
+    Route::post('/exits/categorize',  [App\Http\Controllers\StudentExitController::class, 'categorizeBulk'])->name('exits.categorizeBulk');
     Route::get('/exits/{id}',         [App\Http\Controllers\StudentExitController::class, 'show'])->name('exits.show');
+    Route::post('/exits/{id}/categorize', [App\Http\Controllers\StudentExitController::class, 'categorize'])->name('exits.categorize');
 });

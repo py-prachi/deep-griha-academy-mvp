@@ -79,8 +79,16 @@
                             <div class="col-md-2">
                                 <div class="card text-white bg-dark">
                                     <div class="card-body text-center py-2">
-                                        <h6 class="card-title mb-1">Exited</h6>
-                                        <h3 class="mb-0">{{ $summary['exited'] }}</h3>
+                                        <h6 class="card-title mb-1">Exited <small class="opacity-75">(Genuine)</small></h6>
+                                        <h3 class="mb-0">{{ $summary['exited_genuine'] }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card text-dark bg-light border">
+                                    <div class="card-body text-center py-2">
+                                        <h6 class="card-title mb-1">Exited <small class="text-muted">(Correction)</small></h6>
+                                        <h3 class="mb-0">{{ $summary['exited_correction'] }}</h3>
                                     </div>
                                 </div>
                             </div>
@@ -101,6 +109,16 @@
                                 </div>
                             </div>
                         </div>
+
+                        @if($summary['exited_uncategorized'] > 0)
+                        <div class="alert alert-warning py-2 d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                {{ $summary['exited_uncategorized'] }} exited student(s) haven't been categorized as Genuine or Correction yet — the Genuine/Correction counts above don't include them.
+                            </span>
+                            <a href="{{ route('exits.index', ['tab' => 'uncategorized']) }}" class="btn btn-sm btn-warning text-dark">Review Now</a>
+                        </div>
+                        @endif
 
                         {{-- Class Filter --}}
                         <form method="GET" action="{{ route('reports.admissions') }}" class="mb-3">
@@ -146,6 +164,21 @@
                                style="{{ $statusFilter == 'graduated' ? 'background-color:#6f42c1;color:#fff;border-color:#6f42c1;' : '' }}">Graduated</a>
                         </div>
 
+                        @if($statusFilter == 'exited')
+                        <div class="mb-3 d-flex gap-2 flex-wrap align-items-center">
+                            <small class="text-muted me-1">Exit type:</small>
+                            @php $exitBaseParams = array_merge($baseParams, ['status' => 'exited']); @endphp
+                            <a href="{{ route('reports.admissions', $exitBaseParams) }}"
+                               class="btn btn-sm {{ !$exitTypeFilter ? 'btn-secondary' : 'btn-outline-secondary' }}">All</a>
+                            <a href="{{ route('reports.admissions', array_merge($exitBaseParams, ['exit_type' => 'genuine'])) }}"
+                               class="btn btn-sm {{ $exitTypeFilter == 'genuine' ? 'btn-dark' : 'btn-outline-dark' }}">Genuine</a>
+                            <a href="{{ route('reports.admissions', array_merge($exitBaseParams, ['exit_type' => 'correction'])) }}"
+                               class="btn btn-sm {{ $exitTypeFilter == 'correction' ? 'btn-secondary' : 'btn-outline-secondary' }}">Correction</a>
+                            <a href="{{ route('reports.admissions', array_merge($exitBaseParams, ['exit_type' => 'uncategorized'])) }}"
+                               class="btn btn-sm {{ $exitTypeFilter == 'uncategorized' ? 'btn-warning text-dark' : 'btn-outline-warning' }}">Uncategorized</a>
+                        </div>
+                        @endif
+
                         <div class="card">
                             <div class="card-body">
                                 <div class="table-responsive">
@@ -182,6 +215,16 @@
                                                         <span class="badge" style="background-color:#6f42c1;">Graduated</span>
                                                     @else
                                                         <span class="badge bg-{{ $badgeColour }}">{{ ucfirst($admission->status) }}</span>
+                                                    @endif
+                                                    @if($admission->status == 'exited')
+                                                        @php $exitType = optional($admission->exitForm)->exit_type; @endphp
+                                                        @if($exitType == 'genuine')
+                                                            <span class="badge bg-dark">Genuine</span>
+                                                        @elseif($exitType == 'correction')
+                                                            <span class="badge bg-light text-dark border">Correction</span>
+                                                        @else
+                                                            <span class="badge bg-warning text-dark">Uncategorized</span>
+                                                        @endif
                                                     @endif
                                                 </td>
                                                 <td class="text-center">
