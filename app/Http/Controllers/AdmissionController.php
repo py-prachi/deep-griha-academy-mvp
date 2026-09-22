@@ -127,6 +127,10 @@ class AdmissionController extends Controller
     public function edit($id)
     {
         $admission      = $this->admissionRepository->findById($id);
+        if ($admission->status === Admission::STATUS_EXITED) {
+            return redirect()->route('admissions.show', $id)
+                ->with('error', 'This student has exited. Their admission record is view-only and can no longer be edited.');
+        }
         $current_session_id = $this->getSchoolCurrentSession();
         $school_classes = $this->schoolClassRepository->getAllBySession($current_session_id);
         $sections       = $admission->class_id
@@ -143,6 +147,12 @@ class AdmissionController extends Controller
     // ── UPDATE ADMISSION ──────────────────────────────────────────────────
     public function update(Request $request, $id)
     {
+        $admission = $this->admissionRepository->findById($id);
+        if ($admission->status === Admission::STATUS_EXITED) {
+            return redirect()->route('admissions.show', $id)
+                ->with('error', 'This student has exited. Their admission record is view-only and can no longer be edited.');
+        }
+
         $request->validate([
             'general_id'          => 'nullable|digits:11|unique:admissions,general_id,' . $id,
             'fee_category'        => 'nullable|in:general,rte,coc,discount',

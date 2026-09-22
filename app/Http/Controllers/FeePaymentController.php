@@ -7,6 +7,7 @@ use App\Interfaces\FeePaymentInterface;
 use App\Interfaces\FeeStructureInterface;
 use App\Interfaces\SchoolSessionInterface;
 use App\Models\User;
+use App\Models\Admission;
 use App\Models\FeePayment;
 use App\Models\FeeStructure;
 use App\Models\FeeLineItem;
@@ -210,6 +211,14 @@ class FeePaymentController extends Controller
     public function create($student_id)
     {
         $student = User::with('admission')->findOrFail($student_id);
+
+        // Exited students are view-only — the ledger can be looked at, but no new
+        // payment can be recorded against them.
+        if ($student->admission && $student->admission->status === Admission::STATUS_EXITED) {
+            return redirect()->route('fees.ledger', $student_id)
+                ->with('error', 'This student has exited. The fee ledger is view-only — payments can no longer be recorded.');
+        }
+
         $current_school_session_id = $this->getSchoolCurrentSession();
         $session = $this->schoolSessionRepository->getLatestSession();
 
@@ -248,6 +257,12 @@ class FeePaymentController extends Controller
 
     public function store(Request $request, $student_id)
     {
+        $student = User::with('admission')->findOrFail($student_id);
+        if ($student->admission && $student->admission->status === Admission::STATUS_EXITED) {
+            return redirect()->route('fees.ledger', $student_id)
+                ->with('error', 'This student has exited. The fee ledger is view-only — payments can no longer be recorded.');
+        }
+
         $request->validate([
             'payment_date'    => 'required|date',
             'amount_paid'     => 'required|numeric|min:1',
@@ -308,6 +323,12 @@ class FeePaymentController extends Controller
 
     public function storeRolloverPayment(Request $request, $student_id, $settlement_id)
     {
+        $student = User::with('admission')->findOrFail($student_id);
+        if ($student->admission && $student->admission->status === Admission::STATUS_EXITED) {
+            return redirect()->route('fees.ledger', $student_id)
+                ->with('error', 'This student has exited. The fee ledger is view-only — payments can no longer be recorded.');
+        }
+
         $settlement = FeeSettlement::where('id', $settlement_id)
             ->where('student_user_id', $student_id)
             ->where('settlement_type', 'carried_forward')

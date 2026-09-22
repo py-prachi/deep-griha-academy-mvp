@@ -995,7 +995,19 @@ class MarksController extends Controller
         $promotion     = $promotionRepo->getPromotionInfoById($session_id, $student_id);
 
         if (!$promotion) {
-            abort(404, 'Student not found in current session.');
+            // Exited/graduated students have no promotion in the *current* session —
+            // fall back to their most recent promotion so the report card for the
+            // year they were actually enrolled can still be viewed (read-only).
+            $promotion = \App\Models\Promotion::with(['student', 'section'])
+                ->where('student_id', $student_id)
+                ->orderByDesc('session_id')
+                ->first();
+
+            if (!$promotion) {
+                abort(404, 'Student not found in current session.');
+            }
+
+            $session_id = $promotion->session_id;
         }
 
         $class_id   = $promotion->class_id;
