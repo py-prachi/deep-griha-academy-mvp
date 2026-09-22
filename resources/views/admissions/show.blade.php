@@ -18,6 +18,8 @@
                                 <span class="badge bg-warning text-dark fs-6">Pending</span>
                             @elseif($admission->status == 'confirmed')
                                 <span class="badge bg-success fs-6">Confirmed</span>
+                            @elseif($admission->status == 'exited')
+                                <span class="badge bg-dark fs-6"><i class="bi bi-box-arrow-right"></i> Exited — View Only</span>
                             @endif
                         </div>
                     </div>
@@ -59,10 +61,16 @@
                                 </button>
                             @endif
 
-                            {{-- Fee Ledger (confirmed only) --}}
-                            @if($admission->status == 'confirmed' && $admission->student_user_id)
+                            {{-- Fee Ledger (confirmed or exited — exited students are view-only) --}}
+                            @if(in_array($admission->status, ['confirmed', 'exited']) && $admission->student_user_id)
                                 <a href="{{ route('fees.ledger', $admission->student_user_id) }}" class="btn btn-outline-info">
                                     <i class="bi bi-cash-stack"></i> Fee Ledger
+                                </a>
+                                <a href="{{ route('student.profile.show', $admission->student_user_id) }}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-person-lines-fill"></i> Student Profile
+                                </a>
+                                <a href="{{ route('marks.printReportCard', $admission->student_user_id) }}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-file-earmark-text"></i> Report Card
                                 </a>
                             @endif
                             {{-- Edit (confirmed only) --}}

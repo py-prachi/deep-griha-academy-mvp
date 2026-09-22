@@ -22,6 +22,27 @@
 
                     @include('session-messages')
 
+                    {{-- VIEW-ONLY RECORD LINKS --}}
+                    @if($admission && $admission->student_user_id)
+                        <div class="alert alert-light border d-flex align-items-center justify-content-between py-2 mb-3">
+                            <span>
+                                <i class="bi bi-eye me-1"></i>
+                                This student has exited. Their records below are <strong>view only</strong>.
+                            </span>
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('student.profile.show', $admission->student_user_id) }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-person-lines-fill"></i> Student Profile
+                                </a>
+                                <a href="{{ route('fees.ledger', $admission->student_user_id) }}" class="btn btn-sm btn-outline-info">
+                                    <i class="bi bi-cash-stack"></i> Fee Ledger
+                                </a>
+                                <a href="{{ route('marks.printReportCard', $admission->student_user_id) }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-file-earmark-text"></i> Report Card
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- LC PROMPT BANNER --}}
                     @if($admission)
                         @if($lc)

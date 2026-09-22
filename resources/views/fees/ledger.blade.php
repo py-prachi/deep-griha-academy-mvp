@@ -9,6 +9,7 @@
                 <div class="col ps-4">
 
                     @php
+                        $isExited = $student->admission && $student->admission->status === 'exited';
                         $referer  = request()->headers->get('referer', '');
                         $backUrl  = url()->previous();
                         $backLabel = 'Back';
@@ -29,6 +30,9 @@
                             <i class="bi bi-arrow-left"></i>
                         </a>
                         <h4 class="mb-0">Fee Ledger — {{ $student->first_name }} {{ $student->last_name }}</h4>
+                        @if($isExited)
+                            <span class="badge bg-secondary ms-2">Exited — View Only</span>
+                        @endif
                     </div>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
@@ -39,6 +43,15 @@
                             <li class="breadcrumb-item active">Fee Ledger</li>
                         </ol>
                     </nav>
+
+                    @include('session-messages')
+
+                    @if($isExited)
+                        <div class="alert alert-secondary py-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            This student has exited. The fee structure and payment history below are for reference only — no new payments can be recorded.
+                        </div>
+                    @endif
 
                     <div class="container-fluid px-0">
 
@@ -64,9 +77,11 @@
                                         </p>
                                     </div>
                                     <div class="col-md-4 text-end">
+                                        @if(!$isExited)
                                         <a href="{{ route('fees.create', $student->id) }}" class="btn btn-primary">
                                             <i class="fas fa-plus"></i> Record Payment
                                         </a>
+                                        @endif
                                         <a href="{{ $backUrl }}" class="btn btn-outline-secondary ms-1">
                                             {{ $backLabel }}
                                         </a>
@@ -189,18 +204,20 @@
                                             </td>
                                             <td class="small text-muted">{{ $rollover->remark }}</td>
                                             <td>
-                                                @if($rollover->remaining > 0)
+                                                @if($rollover->remaining > 0 && !$isExited)
                                                 <button class="btn btn-sm btn-warning text-dark" type="button"
                                                     data-bs-toggle="collapse"
                                                     data-bs-target="#rollover-form-{{ $rollover->id }}">
                                                     <i class="bi bi-cash me-1"></i> Record Recovery
                                                 </button>
+                                                @elseif($rollover->remaining > 0)
+                                                <span class="badge bg-secondary">View Only</span>
                                                 @else
                                                 <span class="badge bg-success"><i class="bi bi-check2-circle me-1"></i> Cleared</span>
                                                 @endif
                                             </td>
                                         </tr>
-                                        @if($rollover->remaining > 0)
+                                        @if($rollover->remaining > 0 && !$isExited)
                                         <tr class="collapse" id="rollover-form-{{ $rollover->id }}">
                                             <td colspan="6" class="bg-light px-3 py-3">
                                                 <form method="POST" action="{{ route('fees.rollover.store', [$student->id, $rollover->id]) }}">
