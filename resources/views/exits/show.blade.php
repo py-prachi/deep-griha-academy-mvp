@@ -8,10 +8,34 @@
                 <div class="col ps-4">
                     @php $admission = $exit->admission; @endphp
 
-                    <h1 class="display-6 mb-3">
-                        <i class="bi bi-box-arrow-right"></i> Exit Record
-                        — {{ $admission ? $admission->student_name : '—' }}
+                    <h1 class="display-6 mb-3 d-flex align-items-center flex-wrap gap-2">
+                        <span><i class="bi bi-box-arrow-right"></i> Exit Record — {{ $admission ? $admission->student_name : '—' }}</span>
+                        @if($exit->isGenuine())
+                            <span class="badge bg-dark fs-6">Genuine Exit</span>
+                        @elseif($exit->isCorrection())
+                            <span class="badge bg-secondary fs-6">Correction</span>
+                        @else
+                            <span class="badge bg-warning text-dark fs-6">Needs Review</span>
+                        @endif
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#categorizeForm">
+                            <i class="bi bi-pencil"></i> {{ $exit->isCategorized() ? 'Recategorize' : 'Categorize Now' }}
+                        </button>
                     </h1>
+
+                    <div class="collapse {{ $exit->isCategorized() ? '' : 'show' }} mb-3" id="categorizeForm">
+                        <div class="card card-body bg-light">
+                            <form method="POST" action="{{ route('exits.categorize', $exit->id) }}" class="d-flex align-items-center gap-3 flex-wrap mb-0">
+                                @csrf
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="is_genuine" id="isGenuineShow" value="1" {{ $exit->isCorrection() ? '' : 'checked' }}>
+                                    <label class="form-check-label" for="isGenuineShow">
+                                        This is a genuine exit (uncheck if this was a record correction, not a real departure)
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                            </form>
+                        </div>
+                    </div>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
@@ -43,8 +67,8 @@
                         </div>
                     @endif
 
-                    {{-- LC PROMPT BANNER --}}
-                    @if($admission)
+                    {{-- LC PROMPT BANNER — genuine exits only --}}
+                    @if($admission && $exit->isGenuine())
                         @if($lc)
                             <div class="alert alert-success d-flex align-items-center justify-content-between py-2 mb-3">
                                 <span>
@@ -68,6 +92,11 @@
                                 </a>
                             </div>
                         @endif
+                    @elseif($admission && $exit->isCorrection())
+                        <div class="alert alert-secondary py-2 mb-3">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Filed as a <strong>record correction</strong>, not a real departure — no Leaving Certificate is needed.
+                        </div>
                     @endif
 
                     <div class="row">

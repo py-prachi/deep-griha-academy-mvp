@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Interfaces\StudentExitInterface;
 use App\Models\Admission;
 use App\Models\LeavingCertificate;
+use App\Models\StudentExit;
 
 class StudentExitController extends Controller
 {
@@ -24,12 +25,66 @@ class StudentExitController extends Controller
     }
 
     /**
-     * List all exited students.
+     * List all exited students, split into Genuine / Correction / Needs Review tabs.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $exits = $this->exitRepo->getAll();
-        return view('exits.index', compact('exits'));
+        $allExits = $this->exitRepo->getAll();
+
+        $counts = [
+            'genuine'       => $allExits->filter(fn($e) => $e->exit_type === StudentExit::TYPE_GENUINE)->count(),
+            'correction'    => $allExits->filter(fn($e) => $e->exit_type === StudentExit::TYPE_CORRECTION)->count(),
+            'uncategorized' => $allExits->filter(fn($e) => is_null($e->exit_type))->count(),
+        ];
+
+        $tab = $request->get('tab', 'genuine');
+        if (!in_array($tab, ['genuine', 'correction', 'uncategorized'])) {
+            $tab = 'genuine';
+        }
+
+        if ($tab === 'correction') {
+            $exits = $allExits->filter(fn($e) => $e->exit_type === StudentExit::TYPE_CORRECTION)->values();
+        } elseif ($tab === 'uncategorized') {
+            $exits = $allExits->filter(fn($e) => is_null($e->exit_type))->values();
+        } else {
+            $exits = $allExits->filter(fn($e) => $e->exit_type === StudentExit::TYPE_GENUINE)->values();
+        }
+
+        return view('exits.index', compact('exits', 'counts', 'tab'));
+    }
+
+    /**
+     * Bulk-categorize previously uncategorized exit records from the
+     * "Needs Review" tab. Each row's checkbox defaults to checked (genuine),
+     * matching historical reality — the correction workflow is new, so old
+     * exit records are overwhelmingly genuine departures.
+     */
+    public function categorizeBulk(Request $request)
+    {
+        $ids        = $request->input('exit_ids', []);
+        $genuineIds = array_map('intval', $request->input('genuine', []));
+
+        $updated = 0;
+        foreach ($ids as $id) {
+            $type = in_array((int) $id, $genuineIds, true) ? StudentExit::TYPE_GENUINE : StudentExit::TYPE_CORRECTION;
+            $this->exitRepo->update($id, ['exit_type' => $type]);
+            $updated++;
+        }
+
+        return redirect()->route('exits.index', ['tab' => 'uncategorized'])
+            ->with('status', $updated . ' exit record(s) categorized.');
+    }
+
+    /**
+     * Categorize (or re-categorize) a single exit record from its detail page.
+     */
+    public function categorize(Request $request, $id)
+    {
+        $type = $request->boolean('is_genuine') ? StudentExit::TYPE_GENUINE : StudentExit::TYPE_CORRECTION;
+        $this->exitRepo->update($id, ['exit_type' => $type]);
+
+        return redirect()->route('exits.show', $id)
+            ->with('status', 'Exit record categorized as ' . ($type === StudentExit::TYPE_GENUINE ? 'a genuine exit.' : 'a record correction.'));
     }
 
     /**
@@ -82,9 +137,15 @@ class StudentExitController extends Controller
             return back()->with('error', 'This student already has an exit record.');
         }
 
+        // Genuine = student actually left (LC expected, counts as attrition).
+        // Correction = exit used to remove/undo a confirmed admission created
+        // in error — no LC needed. Checkbox defaults checked (genuine) on the form.
+        $exitType = $request->boolean('is_genuine') ? StudentExit::TYPE_GENUINE : StudentExit::TYPE_CORRECTION;
+
         // Store exit form
         $exit = $this->exitRepo->store([
             'admission_id'      => $admission->id,
+            'exit_type'         => $exitType,
             'exit_date'         => $request->exit_date,
             'reason_for_leaving'=> $request->reason_for_leaving,
             'liked_most'        => $request->liked_most,
@@ -100,8 +161,11 @@ class StudentExitController extends Controller
         // Mark admission as exited
         $this->exitRepo->markAdmissionExited($admission, $request->exit_date);
 
-        return redirect()->route('exits.show', $exit->id)
-            ->with('success', $admission->student_name . ' has been marked as exited. Please issue a Leaving Certificate if required.');
+        $message = $exitType === StudentExit::TYPE_GENUINE
+            ? $admission->student_name . ' has been marked as exited. Please issue a Leaving Certificate if required.'
+            : $admission->student_name . '\'s admission has been removed as a record correction. No Leaving Certificate is needed.';
+
+        return redirect()->route('exits.show', $exit->id)->with('status', $message);
     }
 
     /**

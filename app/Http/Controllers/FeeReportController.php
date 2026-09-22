@@ -125,20 +125,40 @@ class FeeReportController extends Controller
         // Union: all relevant admission IDs for this session
         $allIds = $newAdmissionIds->merge($promotedAdmissionIds)->unique();
 
+        // Exited admissions are further split by exit_type (see StudentExit model):
+        // 'genuine' departures count toward attrition, 'correction' entries (used
+        // to undo a confirmed admission created in error) do not. Legacy records
+        // an admin hasn't categorized yet fall into 'exited_uncategorized'.
+        $exitedAdmissionIds = Admission::whereIn('id', $allIds)->where('status', 'exited')->pluck('id');
+        $exitTypeByAdmission = \App\Models\StudentExit::whereIn('admission_id', $exitedAdmissionIds)
+            ->pluck('exit_type', 'admission_id');
+        $exitedGenuineCount    = $exitTypeByAdmission->filter(fn($t) => $t === \App\Models\StudentExit::TYPE_GENUINE)->count();
+        $exitedCorrectionCount = $exitTypeByAdmission->filter(fn($t) => $t === \App\Models\StudentExit::TYPE_CORRECTION)->count();
+
         $summary = [
-            'inquiry'   => Admission::whereIn('id', $allIds)->where('status', 'inquiry')->count(),
-            'pending'   => Admission::whereIn('id', $allIds)->where('status', 'pending')->count(),
-            'confirmed' => Admission::whereIn('id', $allIds)->where('status', 'confirmed')->count(),
-            'cancelled' => Admission::withTrashed()->whereIn('id', $allIds)->where('status', 'cancelled')->count(),
-            'exited'    => Admission::whereIn('id', $allIds)->where('status', 'exited')->count(),
-            'graduated' => Admission::whereIn('id', $allIds)->where('status', 'graduated')->count(),
+            'inquiry'              => Admission::whereIn('id', $allIds)->where('status', 'inquiry')->count(),
+            'pending'              => Admission::whereIn('id', $allIds)->where('status', 'pending')->count(),
+            'confirmed'            => Admission::whereIn('id', $allIds)->where('status', 'confirmed')->count(),
+            'cancelled'            => Admission::withTrashed()->whereIn('id', $allIds)->where('status', 'cancelled')->count(),
+            'exited_genuine'       => $exitedGenuineCount,
+            'exited_correction'    => $exitedCorrectionCount,
+            'exited_uncategorized' => $exitedAdmissionIds->count() - $exitedGenuineCount - $exitedCorrectionCount,
+            'graduated'            => Admission::whereIn('id', $allIds)->where('status', 'graduated')->count(),
         ];
 
         $statusFilter = $request->get('status');
         $classFilter  = $request->get('class_id');
-        $query = Admission::with('schoolClass')->withTrashed()->whereIn('id', $allIds);
+        $exitTypeFilter = $request->get('exit_type'); // genuine | correction | uncategorized — only applies when status=exited
+        $query = Admission::with(['schoolClass', 'exitForm'])->withTrashed()->whereIn('id', $allIds);
         if ($statusFilter) {
             $query->where('status', $statusFilter);
+        }
+        if ($statusFilter === 'exited' && $exitTypeFilter) {
+            $matchingAdmissionIds = \App\Models\StudentExit::query()
+                ->when($exitTypeFilter === 'uncategorized', fn($q) => $q->whereNull('exit_type'))
+                ->when($exitTypeFilter !== 'uncategorized', fn($q) => $q->where('exit_type', $exitTypeFilter))
+                ->pluck('admission_id');
+            $query->whereIn('id', $matchingAdmissionIds);
         }
         if ($classFilter) {
             $query->where('class_id', $classFilter);
@@ -148,7 +168,7 @@ class FeeReportController extends Controller
         $schoolClasses = \App\Models\SchoolClass::where('session_id', $selectedSessionId)->orderBy('id')->get();
 
         if ($request->get('pdf')) {
-            $allForPdf = Admission::with('schoolClass')->withTrashed()->whereIn('id', $allIds)
+            $allForPdf = Admission::with(['schoolClass', 'exitForm'])->withTrashed()->whereIn('id', $allIds)
                 ->when($statusFilter, fn($q) => $q->where('status', $statusFilter))
                 ->when($classFilter,  fn($q) => $q->where('class_id', $classFilter))
                 ->orderBy('status')->orderBy('created_at', 'desc')->get();
@@ -165,7 +185,7 @@ class FeeReportController extends Controller
                 . '.pdf';
             return $pdf->download($filename);
         }
-        return view('reports.admissions', compact('summary', 'admissions', 'academic_year', 'statusFilter', 'classFilter', 'schoolClasses', 'sessions', 'selectedSessionId', 'selectedSession'));
+        return view('reports.admissions', compact('summary', 'admissions', 'academic_year', 'statusFilter', 'classFilter', 'exitTypeFilter', 'schoolClasses', 'sessions', 'selectedSessionId', 'selectedSession'));
     }
 
     public function classStrength(Request $request)
