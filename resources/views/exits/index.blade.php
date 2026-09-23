@@ -123,6 +123,7 @@
                                             <th>Exit Date</th>
                                             <th>Reason</th>
                                             <th>Rating</th>
+                                            <th>LC Status</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -159,12 +160,21 @@
                                                     @endif
                                                 </td>
                                                 <td>
+                                                    @if($exit->isCorrection())
+                                                        <span class="text-muted small">N/A</span>
+                                                    @elseif($admission && $admission->leavingCertificate)
+                                                        <span class="badge bg-success">Issued</span>
+                                                    @else
+                                                        <span class="badge bg-warning text-dark">Pending — fees still collectible</span>
+                                                    @endif
+                                                </td>
+                                                <td>
                                                     <a href="{{ route('exits.show', $exit->id) }}" class="btn btn-outline-secondary btn-sm">View</a>
                                                 </td>
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="8" class="text-center text-muted py-4">No records in this tab.</td>
+                                                <td colspan="9" class="text-center text-muted py-4">No records in this tab.</td>
                                             </tr>
                                         @endforelse
                                     </tbody>

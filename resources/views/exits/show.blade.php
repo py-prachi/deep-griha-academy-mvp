@@ -67,13 +67,25 @@
                         </div>
                     @endif
 
-                    {{-- LC PROMPT BANNER — genuine exits only --}}
+                    {{-- EXIT STAGES — mirrors the admission pipeline (Inquiry → Pending → Confirmed):
+                         a genuine exit has two stages, Exited then Leaving Certificate issued.
+                         Fees stay collectible through stage 1 and lock once stage 2 is reached. --}}
                     @if($admission && $exit->isGenuine())
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-dark">① Exited</span>
+                            <i class="bi bi-arrow-right text-muted"></i>
+                            @if($lc)
+                                <span class="badge bg-success">② Leaving Certificate — Issued</span>
+                            @else
+                                <span class="badge bg-warning text-dark">② Leaving Certificate — Pending</span>
+                            @endif
+                        </div>
+
                         @if($lc)
                             <div class="alert alert-success d-flex align-items-center justify-content-between py-2 mb-3">
                                 <span>
                                     <i class="bi bi-file-earmark-check-fill me-1"></i>
-                                    Leaving Certificate <strong>{{ $lc->lc_number }}</strong> has been issued for this student.
+                                    Leaving Certificate <strong>{{ $lc->lc_number }}</strong> has been issued for this student. The fee ledger is now closed.
                                 </span>
                                 <div class="d-flex gap-2">
                                     <a href="{{ route('lc.show', $lc->id) }}" class="btn btn-sm btn-outline-success">View LC</a>
@@ -84,7 +96,8 @@
                             <div class="alert alert-warning d-flex align-items-center justify-content-between py-2 mb-3">
                                 <span>
                                     <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                    No Leaving Certificate has been issued yet for this student.
+                                    No Leaving Certificate has been issued yet. Dues can still be recorded on the
+                                    <a href="{{ route('fees.ledger', $admission->student_user_id) }}">fee ledger</a> until it is.
                                 </span>
                                 <a href="{{ route('lc.create', ['admission_id' => $admission->id]) }}"
                                    class="btn btn-sm btn-warning">
@@ -95,7 +108,7 @@
                     @elseif($admission && $exit->isCorrection())
                         <div class="alert alert-secondary py-2 mb-3">
                             <i class="bi bi-info-circle me-1"></i>
-                            Filed as a <strong>record correction</strong>, not a real departure — no Leaving Certificate is needed.
+                            Filed as a <strong>record correction</strong>, not a real departure — no Leaving Certificate stage applies.
                         </div>
                     @endif
 

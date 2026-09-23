@@ -30,8 +30,10 @@
                             <i class="bi bi-arrow-left"></i>
                         </a>
                         <h4 class="mb-0">Fee Ledger — {{ $student->first_name }} {{ $student->last_name }}</h4>
-                        @if($isExited)
-                            <span class="badge bg-secondary ms-2">Exited — View Only</span>
+                        @if($lcIssued)
+                            <span class="badge bg-secondary ms-2">LC Issued — View Only</span>
+                        @elseif($isExited)
+                            <span class="badge bg-warning text-dark ms-2">Exited — Dues Still Collectible</span>
                         @endif
                     </div>
                     <nav aria-label="breadcrumb">
@@ -46,10 +48,15 @@
 
                     @include('session-messages')
 
-                    @if($isExited)
+                    @if($lcIssued)
                         <div class="alert alert-secondary py-2">
                             <i class="bi bi-info-circle me-1"></i>
-                            This student has exited. The fee structure and payment history below are for reference only — no new payments can be recorded.
+                            A Leaving Certificate has been issued for this student — the record is closed. The fee structure and payment history below are for reference only; no new payments can be recorded.
+                        </div>
+                    @elseif($isExited)
+                        <div class="alert alert-warning py-2">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            This student has exited, but dues can still be recorded here until a Leaving Certificate is issued.
                         </div>
                     @endif
 
@@ -77,7 +84,7 @@
                                         </p>
                                     </div>
                                     <div class="col-md-4 text-end">
-                                        @if(!$isExited)
+                                        @if(!$lcIssued)
                                         <a href="{{ route('fees.create', $student->id) }}" class="btn btn-primary">
                                             <i class="fas fa-plus"></i> Record Payment
                                         </a>
@@ -204,7 +211,7 @@
                                             </td>
                                             <td class="small text-muted">{{ $rollover->remark }}</td>
                                             <td>
-                                                @if($rollover->remaining > 0 && !$isExited)
+                                                @if($rollover->remaining > 0 && !$lcIssued)
                                                 <button class="btn btn-sm btn-warning text-dark" type="button"
                                                     data-bs-toggle="collapse"
                                                     data-bs-target="#rollover-form-{{ $rollover->id }}">
@@ -217,7 +224,7 @@
                                                 @endif
                                             </td>
                                         </tr>
-                                        @if($rollover->remaining > 0 && !$isExited)
+                                        @if($rollover->remaining > 0 && !$lcIssued)
                                         <tr class="collapse" id="rollover-form-{{ $rollover->id }}">
                                             <td colspan="6" class="bg-light px-3 py-3">
                                                 <form method="POST" action="{{ route('fees.rollover.store', [$student->id, $rollover->id]) }}">

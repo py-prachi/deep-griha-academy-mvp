@@ -7,11 +7,11 @@ use App\Interfaces\FeePaymentInterface;
 use App\Interfaces\FeeStructureInterface;
 use App\Interfaces\SchoolSessionInterface;
 use App\Models\User;
-use App\Models\Admission;
 use App\Models\FeePayment;
 use App\Models\FeeStructure;
 use App\Models\FeeLineItem;
 use App\Models\FeeSettlement;
+use App\Models\LeavingCertificate;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class FeePaymentController extends Controller
@@ -53,6 +53,15 @@ class FeePaymentController extends Controller
             return (float) ($student->admission->discount_percentage ?? 0);
         }
         return 0;
+    }
+
+    // An exited student's fees stay collectible (parents often still owe dues
+    // after leaving) right up until a Leaving Certificate is issued — LC
+    // issuance is the point the record is considered closed. Exit status alone
+    // does NOT lock the ledger; only an issued LC does.
+    private function lcIssued($admission): bool
+    {
+        return $admission && LeavingCertificate::where('admission_id', $admission->id)->exists();
     }
 
     // Calculates balance using fee payments only (excludes misc)
@@ -203,6 +212,7 @@ class FeePaymentController extends Controller
             'discountPct'         => $discountPct,
             'rollovers'           => $rollovers,
             'isBulkGovtSettled'   => $isBulkGovtSettled,
+            'lcIssued'            => $this->lcIssued($admission),
         ]);
     }
 
@@ -212,11 +222,12 @@ class FeePaymentController extends Controller
     {
         $student = User::with('admission')->findOrFail($student_id);
 
-        // Exited students are view-only — the ledger can be looked at, but no new
-        // payment can be recorded against them.
-        if ($student->admission && $student->admission->status === Admission::STATUS_EXITED) {
+        // Exited students can still have payments recorded — dues often stay
+        // outstanding after a student leaves. The ledger only locks once a
+        // Leaving Certificate has actually been issued for them.
+        if ($this->lcIssued($student->admission)) {
             return redirect()->route('fees.ledger', $student_id)
-                ->with('error', 'This student has exited. The fee ledger is view-only — payments can no longer be recorded.');
+                ->with('error', 'A Leaving Certificate has already been issued for this student. The fee ledger is now view-only — payments can no longer be recorded.');
         }
 
         $current_school_session_id = $this->getSchoolCurrentSession();
@@ -258,9 +269,9 @@ class FeePaymentController extends Controller
     public function store(Request $request, $student_id)
     {
         $student = User::with('admission')->findOrFail($student_id);
-        if ($student->admission && $student->admission->status === Admission::STATUS_EXITED) {
+        if ($this->lcIssued($student->admission)) {
             return redirect()->route('fees.ledger', $student_id)
-                ->with('error', 'This student has exited. The fee ledger is view-only — payments can no longer be recorded.');
+                ->with('error', 'A Leaving Certificate has already been issued for this student. The fee ledger is now view-only — payments can no longer be recorded.');
         }
 
         $request->validate([
@@ -324,9 +335,9 @@ class FeePaymentController extends Controller
     public function storeRolloverPayment(Request $request, $student_id, $settlement_id)
     {
         $student = User::with('admission')->findOrFail($student_id);
-        if ($student->admission && $student->admission->status === Admission::STATUS_EXITED) {
+        if ($this->lcIssued($student->admission)) {
             return redirect()->route('fees.ledger', $student_id)
-                ->with('error', 'This student has exited. The fee ledger is view-only — payments can no longer be recorded.');
+                ->with('error', 'A Leaving Certificate has already been issued for this student. The fee ledger is now view-only — payments can no longer be recorded.');
         }
 
         $settlement = FeeSettlement::where('id', $settlement_id)

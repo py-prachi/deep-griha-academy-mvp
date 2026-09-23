@@ -117,6 +117,11 @@ class Admission extends Model
         return $this->hasOne(StudentExit::class, 'admission_id');
     }
 
+    public function leavingCertificate()
+    {
+        return $this->hasOne(LeavingCertificate::class, 'admission_id');
+    }
+
     public function siblingAdmission()
     {
         return $this->belongsTo(Admission::class, 'sibling_admission_id');
