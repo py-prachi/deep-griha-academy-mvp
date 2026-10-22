@@ -28,21 +28,42 @@ class MarksController extends Controller
     protected $schoolClassRepository;
     protected $sectionRepository;
 
+    // Default display labels for each component, shared by every class group unless
+    // a group overrides one in its own 'labels' key below (see CLASS_GROUP_CONFIG).
+    const DEFAULT_COMPONENT_LABELS = [
+        'oral_internal'     => 'Oral',
+        'activity_internal' => 'Activity',
+        'test'              => 'Test',
+        'hw'                => 'HW',
+        'oral_written'      => 'Oral',
+        'activity_written'  => 'Activity',
+        'writing'           => 'Writing',
+    ];
+
     // Max marks per component per class group
     // Key: class_group (derived from class_name number)
     // Components: oral_internal, activity_internal, test, hw, oral_written, activity_written, writing
+    // An optional 'labels' key overrides DEFAULT_COMPONENT_LABELS for just that group —
+    // see componentLabels() below. Omit it entirely to use the defaults unchanged.
     const CLASS_GROUP_CONFIG = [
+        // CR (2026-10): Class 1-2 written-side relabeled Oral/Project/Written, internal
+        // and written weightings rebalanced 70/30 instead of 50/50. Scoped to this group
+        // only — 3-4/5-6/7-8 are untouched.
         '1-2' => [
-            'oral_internal'      => 15,
-            'activity_internal'  => 10,
+            'oral_internal'      => 20,
+            'activity_internal'  => 15,
             'test'               => 15,
-            'hw'                 => 10,
-            'internal_max'       => 50,
+            'hw'                 => 20,
+            'internal_max'       => 70,
             'oral_written'       => 5,
             'activity_written'   => 5,
-            'writing'            => 40,
-            'written_max'        => 50,
+            'writing'            => 20,
+            'written_max'        => 30,
             'grand_max'          => 100,
+            'labels'             => [
+                'activity_written' => 'Project',
+                'writing'           => 'Written',
+            ],
         ],
         '3-4' => [
             'oral_internal'      => 15,
@@ -155,6 +176,18 @@ class MarksController extends Controller
         if ($n >= 5 && $n <= 6) return '5-6';
         if ($n >= 7 && $n <= 8) return '7-8';
         return '7-8'; // fallback
+    }
+
+    /**
+     * Display labels for the 7 "marks"-type components, for a given class group.
+     * Starts from DEFAULT_COMPONENT_LABELS and overrides only what that group's
+     * CLASS_GROUP_CONFIG['labels'] specifies — so adding/removing a group's override
+     * never affects any other group.
+     */
+    public static function componentLabels($classGroup)
+    {
+        $overrides = self::CLASS_GROUP_CONFIG[$classGroup]['labels'] ?? [];
+        return array_merge(self::DEFAULT_COMPONENT_LABELS, $overrides);
     }
 
     public static function calcGrade($percentage)
@@ -323,6 +356,7 @@ class MarksController extends Controller
         $config     = isset(self::COMPONENT_GRADING_TYPES[$subject->mark_type])
             ? self::COMPONENT_GRADING_TYPES[$subject->mark_type]
             : self::CLASS_GROUP_CONFIG[$classGroup];
+        $labels     = self::componentLabels($classGroup);
 
         // Students in this class/section, sorted by roll number ascending
         $promotionRepository = new PromotionRepository();
@@ -352,6 +386,7 @@ class MarksController extends Controller
             'term'          => $term,
             'session_id'    => $session_id,
             'config'        => $config,
+            'labels'        => $labels,
             'promotions'    => $promotions,
             'existingMarks' => $existingMarks,
             'existingDates' => $existingDates,
@@ -781,6 +816,7 @@ class MarksController extends Controller
         $schoolClass = $this->schoolClassRepository->findById($class_id);
         $classGroup  = self::getClassGroup($schoolClass->class_name);
         $config      = self::CLASS_GROUP_CONFIG[$classGroup];
+        $labels      = self::componentLabels($classGroup);
 
         // All subjects for this class
         $subjects = ClassSubject::with('subject')
@@ -817,6 +853,7 @@ class MarksController extends Controller
             'subjects'       => $subjects,
             'marks'          => $marks,
             'config'         => $config,
+            'labels'         => $labels,
             'publishedTerms' => $publishedTerms,
             'observations'   => $observations,
         ]);
