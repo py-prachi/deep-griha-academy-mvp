@@ -9,11 +9,17 @@ class MakeIdCardNumberNullableInPromotions extends Migration
 {
     public function up()
     {
-        DB::statement('ALTER TABLE promotions MODIFY COLUMN id_card_number VARCHAR(255) NULL');
+        // MySQL only — SQLite has no MODIFY COLUMN and has no NOT NULL constraint
+        // to relax here anyway (its "schema-less" typing already accepts NULL).
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE promotions MODIFY COLUMN id_card_number VARCHAR(255) NULL');
+        }
     }
 
     public function down()
     {
-        DB::statement('ALTER TABLE promotions MODIFY COLUMN id_card_number VARCHAR(255) NOT NULL');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE promotions MODIFY COLUMN id_card_number VARCHAR(255) NOT NULL');
+        }
     }
 }

@@ -8,7 +8,9 @@ use Tests\TestCase;
 class ExampleTest extends TestCase
 {
     /**
-     * A basic test example.
+     * Guests are redirected to login — this app has no public homepage.
+     * (Originally Laravel's stock scaffold test asserting a 200, which this
+     * app never returns for a guest; updated to match actual behavior.)
      *
      * @return void
      */
@@ -16,6 +18,6 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        $response->assertRedirect('/login');
     }
 }

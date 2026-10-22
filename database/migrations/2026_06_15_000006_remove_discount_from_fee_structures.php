@@ -11,11 +11,16 @@ class RemoveDiscountFromFeeStructures extends Migration
         DB::table('fee_structures')->where('fee_category', 'discount')->delete();
 
         // Tighten the enum so discount rows cannot be created via SQL either
-        DB::statement("ALTER TABLE fee_structures MODIFY COLUMN fee_category ENUM('general','rte','coc') NOT NULL");
+        // (MySQL only — SQLite has no ENUM constraint to tighten in the first place)
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE fee_structures MODIFY COLUMN fee_category ENUM('general','rte','coc') NOT NULL");
+        }
     }
 
     public function down()
     {
-        DB::statement("ALTER TABLE fee_structures MODIFY COLUMN fee_category ENUM('general','rte','coc','discount') NOT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE fee_structures MODIFY COLUMN fee_category ENUM('general','rte','coc','discount') NOT NULL");
+        }
     }
 }

@@ -9,8 +9,10 @@ class AddRolloverToFeePayments extends Migration
 {
     public function up()
     {
-        // Add rollover payment category
-        DB::statement("ALTER TABLE fee_payments MODIFY COLUMN payment_category ENUM('fee','misc','rollover') NOT NULL DEFAULT 'fee'");
+        // Add rollover payment category (MySQL only — SQLite has no enum constraint)
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE fee_payments MODIFY COLUMN payment_category ENUM('fee','misc','rollover') NOT NULL DEFAULT 'fee'");
+        }
 
         Schema::table('fee_payments', function (Blueprint $table) {
             $table->unsignedBigInteger('rollover_id')->nullable()->after('payment_category');
@@ -25,6 +27,8 @@ class AddRolloverToFeePayments extends Migration
             $table->dropColumn('rollover_id');
         });
 
-        DB::statement("ALTER TABLE fee_payments MODIFY COLUMN payment_category ENUM('fee','misc') NOT NULL DEFAULT 'fee'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE fee_payments MODIFY COLUMN payment_category ENUM('fee','misc') NOT NULL DEFAULT 'fee'");
+        }
     }
 }
