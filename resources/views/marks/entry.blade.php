@@ -42,9 +42,9 @@
                         </div>
                         <div class="d-flex gap-3 flex-wrap">
                             <span><strong>Internal /{{ $config['internal_max'] }}:</strong>
-                                Oral /{{ $config['oral_internal'] }} + Activity /{{ $config['activity_internal'] }} + Test /{{ $config['test'] }} + HW /{{ $config['hw'] }}</span>
+                                {{ $labels['oral_internal'] }} /{{ $config['oral_internal'] }} + {{ $labels['activity_internal'] }} /{{ $config['activity_internal'] }} + {{ $labels['test'] }} /{{ $config['test'] }} + {{ $labels['hw'] }} /{{ $config['hw'] }}</span>
                             <span><strong>Written /{{ $config['written_max'] }}:</strong>
-                                Oral /{{ $config['oral_written'] }} + Activity /{{ $config['activity_written'] }} + Writing /{{ $config['writing'] }}</span>
+                                {{ $labels['oral_written'] }} /{{ $config['oral_written'] }} + {{ $labels['activity_written'] }} /{{ $config['activity_written'] }} + {{ $labels['writing'] }} /{{ $config['writing'] }}</span>
                             <span class="text-muted">Tick <strong>AB</strong> below any mark if student was absent for that component.</span>
                         </div>
                     </div>
@@ -86,10 +86,10 @@
                                 <div class="row g-2 mb-1">
                                     <div class="col-12"><span class="text-muted small fw-semibold">Internal Assessment</span></div>
                                     @foreach([
-                                        'oral_internal'     => 'Oral (/'. $config['oral_internal'] .')',
-                                        'activity_internal' => 'Activity (/'. $config['activity_internal'] .')',
-                                        'test'              => 'Test (/'. $config['test'] .')',
-                                        'hw'                => 'HW (/'. $config['hw'] .')',
+                                        'oral_internal'     => $labels['oral_internal'] . ' (/'. $config['oral_internal'] .')',
+                                        'activity_internal' => $labels['activity_internal'] . ' (/'. $config['activity_internal'] .')',
+                                        'test'              => $labels['test'] . ' (/'. $config['test'] .')',
+                                        'hw'                => $labels['hw'] . ' (/'. $config['hw'] .')',
                                     ] as $comp => $label)
                                     <div class="col-auto">
                                         <label class="form-label form-label-sm mb-0 small">{{ $label }}</label>
@@ -103,9 +103,9 @@
                                 <div class="row g-2">
                                     <div class="col-12"><span class="text-muted small fw-semibold">Written Exam</span></div>
                                     @foreach([
-                                        'oral_written'      => 'Oral (/'. $config['oral_written'] .')',
-                                        'activity_written'  => 'Activity (/'. $config['activity_written'] .')',
-                                        'writing'           => 'Writing (/'. $config['writing'] .')',
+                                        'oral_written'      => $labels['oral_written'] . ' (/'. $config['oral_written'] .')',
+                                        'activity_written'  => $labels['activity_written'] . ' (/'. $config['activity_written'] .')',
+                                        'writing'           => $labels['writing'] . ' (/'. $config['writing'] .')',
                                     ] as $comp => $label)
                                     <div class="col-auto">
                                         <label class="form-label form-label-sm mb-0 small">{{ $label }}</label>
@@ -156,13 +156,13 @@
                                 </tr>
                                 @if($subject->mark_type === 'marks')
                                 <tr>
-                                    <th class="text-center" title="Oral Internal">Oral<br><small>/{{ $config['oral_internal'] }}</small></th>
-                                    <th class="text-center" title="Activity Internal">Act<br><small>/{{ $config['activity_internal'] }}</small></th>
-                                    <th class="text-center" title="Test">Test<br><small>/{{ $config['test'] }}</small></th>
-                                    <th class="text-center border-end" title="Homework">HW<br><small>/{{ $config['hw'] }}</small></th>
-                                    <th class="text-center" title="Oral Written">Oral<br><small>/{{ $config['oral_written'] }}</small></th>
-                                    <th class="text-center" title="Activity Written">Act<br><small>/{{ $config['activity_written'] }}</small></th>
-                                    <th class="text-center border-end" title="Writing">Writing<br><small>/{{ $config['writing'] }}</small></th>
+                                    <th class="text-center" title="{{ $labels['oral_internal'] }} Internal">{{ $labels['oral_internal'] }}<br><small>/{{ $config['oral_internal'] }}</small></th>
+                                    <th class="text-center" title="{{ $labels['activity_internal'] }} Internal">{{ $labels['activity_internal'] }}<br><small>/{{ $config['activity_internal'] }}</small></th>
+                                    <th class="text-center" title="{{ $labels['test'] }}">{{ $labels['test'] }}<br><small>/{{ $config['test'] }}</small></th>
+                                    <th class="text-center border-end" title="Homework">{{ $labels['hw'] }}<br><small>/{{ $config['hw'] }}</small></th>
+                                    <th class="text-center" title="{{ $labels['oral_written'] }} Written">{{ $labels['oral_written'] }}<br><small>/{{ $config['oral_written'] }}</small></th>
+                                    <th class="text-center" title="{{ $labels['activity_written'] }}">{{ $labels['activity_written'] }}<br><small>/{{ $config['activity_written'] }}</small></th>
+                                    <th class="text-center border-end" title="{{ $labels['writing'] }}">{{ $labels['writing'] }}<br><small>/{{ $config['writing'] }}</small></th>
                                 </tr>
                                 @elseif($isComponentGrading)
                                 <tr>

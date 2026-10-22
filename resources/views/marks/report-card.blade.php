@@ -42,14 +42,14 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th style="min-width:140px;">Subject</th>
-                                        <th class="text-center">Oral<br><small class="text-muted">/{{ $config['oral_internal'] }}</small></th>
-                                        <th class="text-center">Act<br><small class="text-muted">/{{ $config['activity_internal'] }}</small></th>
-                                        <th class="text-center">Test<br><small class="text-muted">/{{ $config['test'] }}</small></th>
-                                        <th class="text-center">HW<br><small class="text-muted">/{{ $config['hw'] }}</small></th>
+                                        <th class="text-center">{{ $labels['oral_internal'] }}<br><small class="text-muted">/{{ $config['oral_internal'] }}</small></th>
+                                        <th class="text-center">{{ $labels['activity_internal'] }}<br><small class="text-muted">/{{ $config['activity_internal'] }}</small></th>
+                                        <th class="text-center">{{ $labels['test'] }}<br><small class="text-muted">/{{ $config['test'] }}</small></th>
+                                        <th class="text-center">{{ $labels['hw'] }}<br><small class="text-muted">/{{ $config['hw'] }}</small></th>
                                         <th class="text-center table-warning">Int<br><small class="text-muted">/{{ $config['internal_max'] }}</small></th>
-                                        <th class="text-center">Oral<br><small class="text-muted">/{{ $config['oral_written'] }}</small></th>
-                                        <th class="text-center">Act<br><small class="text-muted">/{{ $config['activity_written'] }}</small></th>
-                                        <th class="text-center">Writing<br><small class="text-muted">/{{ $config['writing'] }}</small></th>
+                                        <th class="text-center">{{ $labels['oral_written'] }}<br><small class="text-muted">/{{ $config['oral_written'] }}</small></th>
+                                        <th class="text-center">{{ $labels['activity_written'] }}<br><small class="text-muted">/{{ $config['activity_written'] }}</small></th>
+                                        <th class="text-center">{{ $labels['writing'] }}<br><small class="text-muted">/{{ $config['writing'] }}</small></th>
                                         <th class="text-center table-warning">Writ<br><small class="text-muted">/{{ $config['written_max'] }}</small></th>
                                         <th class="text-center table-success">Total<br><small class="text-muted">/100</small></th>
                                         <th class="text-center table-success">Grade</th>
