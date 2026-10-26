@@ -10,7 +10,7 @@ class StudentExitRepository implements StudentExitInterface
 {
     public function getAll()
     {
-        return StudentExit::with(['admission.schoolClass', 'admission.section'])
+        return StudentExit::with(['admission.schoolClass', 'admission.section', 'admission.leavingCertificate'])
             ->orderBy('exit_date', 'desc')
             ->get();
     }
