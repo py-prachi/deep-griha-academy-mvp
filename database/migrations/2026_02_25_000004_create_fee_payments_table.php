@@ -41,6 +41,10 @@ class CreateFeePaymentsTable extends Migration
                 'uniform',
                 'sports',
                 'notebooks',
+                // 'other_misc' added later via mysql-only ALTER (see
+                // add_payment_category_to_fee_payments) — see note in
+                // create_admissions_table.
+                'other_misc',
             ]);
             $table->decimal('amount', 10, 2)->default(0);
             $table->timestamps();

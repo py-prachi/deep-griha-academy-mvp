@@ -15,7 +15,10 @@ class AddDgaFieldsToExistingTables extends Migration
             $table->string('general_id')->nullable()->unique()->after('dga_admission_no');
             $table->string('village')->nullable()->after('general_id');
             $table->string('distance_from_school')->nullable()->after('village');
-            $table->enum('student_status', ['active', 'left'])->default('active')->after('distance_from_school');
+            // Full value list includes 'graduated'/'exited', added later via mysql-only
+            // ALTER migrations — see note in create_admissions_table about why this is
+            // widened here rather than left to those later migrations alone.
+            $table->enum('student_status', ['active', 'left', 'graduated', 'exited'])->default('active')->after('distance_from_school');
             $table->date('date_of_leaving')->nullable()->after('student_status');
         });
 
