@@ -10,7 +10,9 @@ class AddPaymentCategoryToFeePayments extends Migration
     {
         // Step 1: Add payment_category column to fee_payments
         Schema::table('fee_payments', function (Blueprint $table) {
-            $table->enum('payment_category', ['fee', 'misc'])->default('fee')->after('is_internal_transfer');
+            // Includes 'rollover', added later via mysql-only ALTER (see
+            // add_rollover_to_fee_payments) — see note in create_admissions_table.
+            $table->enum('payment_category', ['fee', 'misc', 'rollover'])->default('fee')->after('is_internal_transfer');
         });
 
         // Step 2: Rebuild fee_line_items description enum with new values

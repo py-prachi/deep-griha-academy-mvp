@@ -5,8 +5,15 @@ use Illuminate\Support\Facades\DB;
 
 class UniqueSubjectPerClassInSubjectTeachers extends Migration
 {
+    // MySQL only, throughout — the multi-table DELETE...JOIN syntax below and the
+    // FK/index manipulation are not portable, and SQLite (used by the test suite)
+    // has no pre-existing duplicate rows to worry about in a freshly built test DB.
     public function up()
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         // Remove older duplicate rows, keeping the most recent assignment per subject+class+section+session
         DB::statement("
             DELETE st1 FROM subject_teachers st1
@@ -32,6 +39,10 @@ class UniqueSubjectPerClassInSubjectTeachers extends Migration
 
     public function down()
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         DB::statement("ALTER TABLE subject_teachers DROP FOREIGN KEY subject_teachers_teacher_id_foreign");
         DB::statement("ALTER TABLE subject_teachers DROP INDEX idx_teacher_id");
         DB::statement("ALTER TABLE subject_teachers DROP INDEX subj_class_unique");

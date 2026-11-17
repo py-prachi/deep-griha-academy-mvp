@@ -10,7 +10,14 @@ class CreateAdmissionsTable extends Migration
     {
         Schema::create('admissions', function (Blueprint $table) {
             $table->id();
-            $table->enum('status', ['inquiry', 'pending', 'confirmed', 'cancelled'])->default('inquiry');
+            // Full value list includes 'exited'/'graduated', added later via mysql-only
+            // ALTER migrations (see add_exited_status_to_admissions_table,
+            // add_graduated_to_admissions_status) — included here too so SQLite's
+            // CHECK constraint (used by the test suite) matches the real, current
+            // schema instead of staying permanently narrower than MySQL production.
+            // This file already ran on every real environment; editing it here only
+            // affects fresh installs and test databases, not anything already deployed.
+            $table->enum('status', ['inquiry', 'pending', 'confirmed', 'cancelled', 'exited', 'graduated'])->default('inquiry');
             $table->text('cancel_reason')->nullable();
             $table->unsignedBigInteger('session_id')->nullable();
             $table->unsignedBigInteger('class_id')->nullable();

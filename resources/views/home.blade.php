@@ -157,6 +157,84 @@
                 <p class="text-muted small mb-2">{{ \Carbon\Carbon::today()->format('l, d M Y') }} &nbsp;|&nbsp; Subject Teacher</p>
                 @endif
 
+                {{-- Row 1b: My Classes & Subjects + Today's Timetable — shown for any
+                     teacher with subject-teacher assignments, whether or not they're also
+                     a CT. The cards above only cover CT class(es); without this, a teacher
+                     who isn't CT of anything got a blank dashboard, and a CT who also
+                     subject-teaches elsewhere had no visibility into that other work. --}}
+                @if($subjectAssignments->isNotEmpty())
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header py-2 small fw-semibold">
+                                <i class="bi bi-journal-text me-1"></i> My Classes &amp; Subjects
+                            </div>
+                            <div class="card-body p-0" style="max-height:260px; overflow-y:auto;">
+                                <ul class="list-group list-group-flush small">
+                                    @foreach($subjectAssignments as $sa)
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="fw-semibold">{{ $sa->subject->name }}</span>
+                                            <span class="text-muted"> &mdash; {{ $sa->schoolClass->class_name }} {{ optional($sa->section)->section_name }}</span>
+                                        </div>
+                                        <a href="{{ route('marks.review', ['class_id' => $sa->class_id, 'section_id' => $sa->section_id]) }}"
+                                            class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem;">
+                                            Status
+                                        </a>
+                                    </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header py-2 small fw-semibold d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-calendar4-week me-1"></i> Today's Timetable</span>
+                                <a href="{{ route('timetable.teacher') }}" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem;">Full Week</a>
+                            </div>
+                            <div class="card-body p-0">
+                                @if($todayWeekdayForTeacher > 6)
+                                <div class="text-center text-muted small p-4">No school on Sunday.</div>
+                                @elseif($todayTeacherPeriods->isEmpty() || $todayTeacherRoutines->isEmpty())
+                                <div class="text-center text-muted small p-4">
+                                    <i class="bi bi-clock" style="font-size:1.5rem;"></i>
+                                    <div class="mt-1">No periods scheduled for you today.</div>
+                                </div>
+                                @else
+                                <table class="table table-sm mb-0" style="font-size:0.82rem;">
+                                    @foreach($todayTeacherPeriods as $period)
+                                        @if($period->is_break)
+                                        <tr class="table-light">
+                                            <td class="text-muted py-1 ps-3" colspan="2">
+                                                <em>{{ $period->label }}</em>
+                                                <span class="text-muted" style="font-size:0.75rem;"> {{ $period->start_time }}&ndash;{{ $period->end_time }}</span>
+                                            </td>
+                                        </tr>
+                                        @else
+                                        @php $slot = $todayTeacherRoutines[$period->id] ?? null; @endphp
+                                        <tr>
+                                            <td class="text-muted ps-3 py-1" style="width:85px;">{{ $period->start_time }}</td>
+                                            <td class="py-1">
+                                                @if($slot)
+                                                    <span class="fw-semibold">{{ optional(optional($slot->course)->subject)->name }}</span>
+                                                    <span class="text-muted"> &mdash; {{ optional($slot->schoolClass)->class_name }} {{ optional($slot->section)->section_name }}</span>
+                                                @else
+                                                    <span class="text-muted">&mdash;</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        @endif
+                                    @endforeach
+                                </table>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+
                 @if($ctAssignments->isNotEmpty())
                 {{-- Row 1: Quick action cards — one set per class teacher assignment --}}
                 @foreach($ctAssignments as $ct)

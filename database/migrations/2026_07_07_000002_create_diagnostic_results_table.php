@@ -16,9 +16,12 @@ class CreateDiagnosticResultsTable extends Migration
             $table->unsignedBigInteger('subject_id');
             $table->unsignedBigInteger('student_id');
             $table->unsignedBigInteger('teacher_id');
+            // Includes 'unit_test_4', added later via mysql-only ALTER (see
+            // add_unit_test_4_to_diagnostic_results_enum) — see note in
+            // create_admissions_table.
             $table->enum('assessment_type', [
                 'diagnostic', 'unit_test_1', 'unit_test_2',
-                'first_term', 'unit_test_3', 'second_term', 'annual'
+                'first_term', 'unit_test_3', 'second_term', 'unit_test_4', 'annual'
             ]);
             $table->string('marks_obtained', 100)->nullable();
             $table->text('needs')->nullable();

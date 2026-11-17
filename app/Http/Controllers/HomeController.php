@@ -133,7 +133,10 @@ class HomeController extends Controller
                     $marksStatus = [];
                     foreach ([1, 2] as $term) {
                         $termMarks = $allMarks->where('term', $term);
-                        $enteredStudents = $termMarks->pluck('student_id')->unique()->count();
+                        // Same fix as the Subject Teachers card below: only count entries
+                        // among currently-active students, so a mark row that outlived a
+                        // student leaving the section can't push this past the roster size.
+                        $enteredStudents = $termMarks->pluck('student_id')->unique()->intersect($studentIds)->count();
                         $marksStatus[$term] = [
                             'entered'  => $enteredStudents,
                             'total'    => $totalStudents,
@@ -184,17 +187,61 @@ class HomeController extends Controller
                 }
             }
 
+            // Subject-teacher assignments across ALL classes, regardless of CT status
+            // elsewhere — the cards above only cover a teacher's own CT class(es), which
+            // left subject-teaching work in other classes invisible, and left a teacher
+            // who isn't CT of anything with an empty dashboard entirely.
+            $subjectAssignments = SubjectTeacher::with(['subject', 'schoolClass', 'section'])
+                ->where('teacher_id', $user->id)
+                ->where('session_id', $current_school_session_id)
+                ->get()
+                ->filter(fn($a) => $a->subject && $a->schoolClass)
+                ->sortBy(fn($a) => ($a->schoolClass->class_name ?? '') . '-' . (optional($a->section)->section_name ?? ''))
+                ->values();
+
+            // Today's timetable across those assignments — same class_id+subject_id to
+            // ClassSubject(course) resolution as TimetableController::teacherView(),
+            // just narrowed to today's weekday for a quick glance here.
+            $todayWeekdayForTeacher = Carbon::today()->isoWeekday();
+            $todayTeacherRoutines   = collect();
+            $todayTeacherPeriods    = collect();
+            if ($subjectAssignments->isNotEmpty()) {
+                $classSubjectIds = [];
+                foreach ($subjectAssignments as $assignment) {
+                    $cs = ClassSubject::where('class_id', $assignment->class_id)
+                        ->where('subject_id', $assignment->subject_id)
+                        ->where('session_id', $current_school_session_id)
+                        ->first();
+                    if ($cs) {
+                        $classSubjectIds[] = $cs->id;
+                    }
+                }
+                if (!empty($classSubjectIds)) {
+                    $todayTeacherRoutines = Routine::with(['period', 'course.subject', 'schoolClass', 'section'])
+                        ->whereIn('course_id', $classSubjectIds)
+                        ->where('session_id', $current_school_session_id)
+                        ->where('weekday', $todayWeekdayForTeacher)
+                        ->get()
+                        ->keyBy('period_id');
+                    $todayTeacherPeriods = TimetablePeriod::getForDay($todayWeekdayForTeacher);
+                }
+            }
+
             return view('home', [
-                'notices'             => $notices,
-                'isStudent'           => false,
-                'isTeacher'           => true,
-                'ctAssignments'       => $ctAssignments,
-                'ppTypes'             => $ppTypes,
-                'studentsByCt'        => $studentsByCt,
-                'attendanceByCt'      => $attendanceByCt,
-                'marksStatusByCt'     => $marksStatusByCt,
-                'subjectTeachersByCt' => $subjectTeachersByCt,
-                'activeTermByCt'      => $activeTermByCt,
+                'notices'                => $notices,
+                'isStudent'              => false,
+                'isTeacher'              => true,
+                'ctAssignments'          => $ctAssignments,
+                'ppTypes'                => $ppTypes,
+                'studentsByCt'           => $studentsByCt,
+                'attendanceByCt'         => $attendanceByCt,
+                'marksStatusByCt'        => $marksStatusByCt,
+                'subjectTeachersByCt'    => $subjectTeachersByCt,
+                'activeTermByCt'         => $activeTermByCt,
+                'subjectAssignments'     => $subjectAssignments,
+                'todayTeacherRoutines'   => $todayTeacherRoutines,
+                'todayTeacherPeriods'    => $todayTeacherPeriods,
+                'todayWeekdayForTeacher' => $todayWeekdayForTeacher,
             ]);
         }
 

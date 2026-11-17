@@ -80,6 +80,12 @@
                     </div>
                     @endif
 
+                    @if($readOnly ?? false)
+                    <div class="alert alert-light border py-2 small mb-3">
+                        <i class="bi bi-eye me-1"></i>
+                        View only — skill grades for this class are entered by the Class Teacher.
+                    </div>
+                    @endif
                     <form method="POST" action="{{ route('preprimary.store') }}">
                         @csrf
                         <input type="hidden" name="class_id" value="{{ $class_id }}">
@@ -87,6 +93,7 @@
                         <input type="hidden" name="term" value="{{ $term }}">
                         <input type="hidden" name="page" value="{{ $page }}">
 
+                        @if($readOnly ?? false)<fieldset disabled style="border:none;padding:0;margin:0;">@endif
                         <div style="overflow-x:auto;">
                         <table class="table table-bordered table-sm align-middle" style="font-size:0.88rem;">
                             <thead class="table-dark">
@@ -142,13 +149,16 @@
                         </div>
 
                         <div class="d-flex align-items-center gap-3 mt-3 mb-4">
+                            @if(!($readOnly ?? false))
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-save me-1"></i> Save Grades
                             </button>
                             @if($totalPages > 1)
                             <span class="text-muted small">Saves this page only. Navigate pages to enter all students.</span>
                             @endif
+                            @endif
                         </div>
+                        @if($readOnly ?? false)</fieldset>@endif
                     </form>
 
                     {{-- Print links --}}

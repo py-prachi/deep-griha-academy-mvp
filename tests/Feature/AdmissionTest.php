@@ -351,7 +351,10 @@ class AdmissionTest extends TestCase
             ->post("/admissions/{$admission->id}/confirm", [
                 'fee_category' => 'general',
                 'section_id'   => $this->sectionId,
-                'general_id'   => 'GEN001',
+                // Real general_id is an 11-digit numeric code (validated as digits:11
+                // in AdmissionController::confirm()) — 'GEN001' always failed validation
+                // silently redirecting back(), which this test never actually caught.
+                'general_id'   => '12345678901',
             ]);
 
         $response->assertRedirect(route('admissions.show', $admission->id));

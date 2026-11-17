@@ -23,7 +23,10 @@ class CreateLessonPlansTable extends Migration
             $table->string('chapter_number')->nullable();
             $table->string('chapter_name');
             $table->text('learning_standards')->nullable();
-            $table->enum('status', ['ongoing', 'completed'])->default('ongoing');
+            // Includes 'planned' (the eventual replacement for 'ongoing', see
+            // rename_ongoing_to_planned_in_lesson_plans) so SQLite's CHECK constraint
+            // matches the real, current schema — see note in create_admissions_table.
+            $table->enum('status', ['ongoing', 'planned', 'completed'])->default('ongoing');
             $table->timestamps();
 
             $table->foreign('session_id')->references('id')->on('school_sessions')->onDelete('cascade');
