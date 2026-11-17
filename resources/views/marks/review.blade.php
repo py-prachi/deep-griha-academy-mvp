@@ -40,7 +40,7 @@
                         </div>
                     @elseif(!empty($mine))
                         {{-- Teacher is CT for more than one class — pick one --}}
-                        <p class="text-muted small mb-3">You are the Class Teacher for more than one class — pick one below.</p>
+                        <p class="text-muted small mb-3">You teach more than one class — pick one below.</p>
                         <div class="row">
                             @foreach ($myAssignments as $assignment)
                             <div class="col-md-6 col-lg-4 mb-3">
@@ -61,7 +61,7 @@
                         <p class="text-muted small mb-2">
                             <strong>{{ $schoolClass->class_name ?? '' }}</strong> — {{ $section->section_name ?? '' }}
                             &nbsp;|&nbsp; {{ $studentCount }} students
-                            @if(Auth::user()->role === 'admin' || (Auth::user()->role === 'teacher' && ($isMultiCt ?? false)))
+                            @if(Auth::user()->role === 'admin' || (Auth::user()->role === 'teacher' && ($hasMultipleAssignments ?? false)))
                                 &nbsp;|&nbsp; <a href="{{ route('marks.review') }}">Change class</a>
                             @endif
                         </p>
@@ -97,8 +97,9 @@
                                                 </button>
                                             </form>
                                             @endif
-                                            {{-- Remarks: CT only --}}
-                                            @if(Auth::user()->role === 'teacher')
+                                            {{-- Remarks: CT only — review access is now open to any teacher
+                                                 assigned to the class, but remarks stay the CT's job --}}
+                                            @if($isCT ?? false)
                                             <a href="{{ route('marks.observations', ['class_id'=>$class_id,'section_id'=>$section_id,'term'=>$term]) }}"
                                                 class="btn btn-sm btn-outline-primary">
                                                 Remarks
