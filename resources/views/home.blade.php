@@ -308,12 +308,7 @@
                                         <div>
                                             <div class="fw-semibold">{{ $st->subject_name }}</div>
                                             @if($st->teacher_name)
-                                                <div class="text-muted">
-                                                    {{ $st->teacher_name }}
-                                                    @if($st->teacher_phone)
-                                                        &nbsp;<a href="tel:{{ $st->teacher_phone }}" title="Call {{ $st->teacher_name }}"><i class="bi bi-telephone"></i></a>
-                                                    @endif
-                                                </div>
+                                                <div class="text-muted">{{ $st->teacher_name }}</div>
                                             @else
                                                 <div class="text-muted fst-italic">Not assigned</div>
                                             @endif
