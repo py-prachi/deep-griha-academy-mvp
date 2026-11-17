@@ -590,36 +590,56 @@ class MarksController extends Controller
 
         // Determine class/section to review
         if ($user->role === 'teacher') {
-            // A teacher may be CT for more than one class (e.g. one teacher
-            // covering both Nursery and Lower KG) — don't assume just one.
+            // Review access belongs to every teacher assigned to the class — CT or
+            // subject teacher — not just the CT. A teacher may also be assigned to
+            // more than one class (e.g. CT of one, subject teacher in others), so
+            // this is a deduplicated union of both assignment types, not a single
+            // class assumption.
             $ctAssignments = ClassTeacher::with(['schoolClass', 'section'])
                 ->where('teacher_id', $user->id)
                 ->where('session_id', $session_id)
                 ->get();
 
-            if ($ctAssignments->isEmpty()) {
-                return view('marks.review', ['error' => 'You are not assigned as a Class Teacher.']);
+            $subjectAssignments = SubjectTeacher::with(['schoolClass', 'section'])
+                ->where('teacher_id', $user->id)
+                ->where('session_id', $session_id)
+                ->get();
+
+            $allAssignments = $ctAssignments
+                ->concat($subjectAssignments)
+                ->unique(fn($a) => $a->class_id . '-' . $a->section_id)
+                ->values();
+
+            if ($allAssignments->isEmpty()) {
+                return view('marks.review', ['error' => 'You are not assigned to any class.']);
             }
 
             $reqClassId   = $request->query('class_id');
             $reqSectionId = $request->query('section_id');
 
             if ($reqClassId && $reqSectionId) {
-                $ct = $ctAssignments->first(fn($a) => (int)$a->class_id === (int)$reqClassId && (int)$a->section_id === (int)$reqSectionId);
-                if (!$ct) {
-                    abort(403, 'You can only review your own class.');
+                $assignment = $allAssignments->first(fn($a) => (int)$a->class_id === (int)$reqClassId && (int)$a->section_id === (int)$reqSectionId);
+                if (!$assignment) {
+                    abort(403, 'You can only review classes you teach.');
                 }
-            } elseif ($ctAssignments->count() === 1) {
-                $ct = $ctAssignments->first();
+            } elseif ($allAssignments->count() === 1) {
+                $assignment = $allAssignments->first();
             } else {
                 return view('marks.review', [
                     'mine'          => true,
-                    'myAssignments' => $ctAssignments,
+                    'myAssignments' => $allAssignments,
                 ]);
             }
 
-            $class_id   = $ct->class_id;
-            $section_id = $ct->section_id;
+            $class_id   = $assignment->class_id;
+            $section_id = $assignment->section_id;
+
+            // Still needed below: whether THIS teacher is specifically the CT of
+            // this class/section — review access is now broader, but Remarks stays
+            // a CT-only action (see saveObservation()'s own server-side guard too).
+            $isCT = $ctAssignments->contains(
+                fn($a) => (int)$a->class_id === (int)$class_id && (int)$a->section_id === (int)$section_id
+            );
         } else {
             $class_id   = $request->query('class_id');
             $section_id = $request->query('section_id');
@@ -786,7 +806,11 @@ class MarksController extends Controller
             'classes'        => $user->role === 'admin'
                 ? $this->schoolClassRepository->getAllBySession($session_id)
                 : collect(),
-            'isMultiCt'      => $user->role === 'teacher' && isset($ctAssignments) && $ctAssignments->count() > 1,
+            // "Change class" link: show whenever this teacher has more than one
+            // class they can review at all (CT or subject teacher), not just CT.
+            'hasMultipleAssignments' => $user->role === 'teacher' && isset($allAssignments) && $allAssignments->count() > 1,
+            // Remarks stays CT-only even though review access is now broader.
+            'isCT'           => $isCT ?? false,
         ]);
     }
 
