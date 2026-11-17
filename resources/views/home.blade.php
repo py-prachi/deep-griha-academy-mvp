@@ -165,6 +165,8 @@
                     $students        = $studentsByCt[$ct->id] ?? collect();
                     $attendanceToday = $attendanceByCt[$ct->id] ?? collect();
                     $marksStatus     = $marksStatusByCt[$ct->id] ?? null;
+                    $subjectTeachers = $subjectTeachersByCt[$ct->id] ?? collect();
+                    $activeTerm      = $activeTermByCt[$ct->id] ?? null;
                 @endphp
                 @if($ctAssignments->count() > 1)
                 <h6 class="text-muted small fw-semibold mb-2 mt-1">
@@ -286,6 +288,51 @@
                             </div>
                         </div>
                     </div>
+
+                    {{-- Subject Teachers card — who teaches what in this class, and how
+                         far along each subject's marks entry is for the open term, so a
+                         lagging subject can be followed up with the teacher by name. --}}
+                    @if(!$ppType)
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-header py-2 small fw-semibold">
+                                <i class="bi bi-people me-1"></i> Subject Teachers
+                            </div>
+                            <div class="card-body py-2" style="max-height:220px; overflow-y:auto;">
+                                @if($subjectTeachers->isEmpty())
+                                <p class="text-muted small mb-0">No subjects set up for this class yet.</p>
+                                @else
+                                <ul class="list-group list-group-flush small">
+                                    @foreach($subjectTeachers as $st)
+                                    <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-semibold">{{ $st->subject_name }}</div>
+                                            @if($st->teacher_name)
+                                                <div class="text-muted">
+                                                    {{ $st->teacher_name }}
+                                                    @if($st->teacher_phone)
+                                                        &nbsp;<a href="tel:{{ $st->teacher_phone }}" title="Call {{ $st->teacher_name }}"><i class="bi bi-telephone"></i></a>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <div class="text-muted fst-italic">Not assigned</div>
+                                            @endif
+                                        </div>
+                                        @if($activeTerm && $st->teacher_name)
+                                            <span class="badge {{ $st->entered >= $st->total && $st->total > 0 ? 'bg-success' : ($st->entered > 0 ? 'bg-warning text-dark' : 'bg-secondary') }}">
+                                                {{ $st->entered }}/{{ $st->total }}
+                                            </span>
+                                        @elseif($st->teacher_name)
+                                            <span class="badge bg-success">Published</span>
+                                        @endif
+                                    </li>
+                                    @endforeach
+                                </ul>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
                 @endforeach
 

@@ -12,6 +12,8 @@ use App\Repositories\PromotionRepository;
 use App\Repositories\AttendanceRepository;
 use App\Models\ClassTeacher;
 use App\Models\ClassSubject;
+use App\Models\SubjectTeacher;
+use App\Models\ReportCardPublished;
 use App\Models\Routine;
 use App\Models\TimetablePeriod;
 use App\Models\StudentTermMark;
@@ -93,10 +95,12 @@ class HomeController extends Controller
             $promotionRepository = new PromotionRepository();
             $attRepo = new AttendanceRepository();
 
-            $ppTypes          = [];
-            $studentsByCt     = [];
-            $attendanceByCt   = [];
-            $marksStatusByCt  = [];
+            $ppTypes             = [];
+            $studentsByCt        = [];
+            $attendanceByCt      = [];
+            $marksStatusByCt     = [];
+            $subjectTeachersByCt = [];
+            $activeTermByCt      = [];
 
             foreach ($ctAssignments as $ct) {
                 $ppType = PrePrimaryController::getPrePrimaryType($ct->schoolClass->class_name ?? '');
@@ -137,18 +141,55 @@ class HomeController extends Controller
                         ];
                     }
                     $marksStatusByCt[$ct->id] = $marksStatus;
+
+                    // Subject teachers for this class — who teaches what, plus a quick
+                    // entered/total glance for whichever term is still open (not yet
+                    // published), so the CT can see at a glance who to follow up with by
+                    // name instead of just the aggregate count above.
+                    $publishedTermsForClass = ReportCardPublished::where('class_id', $ct->class_id)
+                        ->where('section_id', $ct->section_id)
+                        ->where('session_id', $current_school_session_id)
+                        ->pluck('term')
+                        ->toArray();
+                    $activeTerm = !in_array(1, $publishedTermsForClass)
+                        ? 1
+                        : (!in_array(2, $publishedTermsForClass) ? 2 : null);
+                    $activeTermByCt[$ct->id] = $activeTerm;
+
+                    $subjectTeacherAssignments = SubjectTeacher::with(['teacher'])
+                        ->where('class_id', $ct->class_id)
+                        ->where('section_id', $ct->section_id)
+                        ->where('session_id', $current_school_session_id)
+                        ->get()
+                        ->filter(fn($st) => $st->teacher);
+
+                    $subjectTeachersByCt[$ct->id] = $subjects->map(function ($subject) use ($subjectTeacherAssignments, $allMarks, $activeTerm, $totalStudents) {
+                        $assignment = $subjectTeacherAssignments->firstWhere('subject_id', $subject->id);
+                        $entered = $activeTerm
+                            ? $allMarks->where('subject_id', $subject->id)->where('term', $activeTerm)->pluck('student_id')->unique()->count()
+                            : null;
+                        return (object) [
+                            'subject_name'  => $subject->name,
+                            'teacher_name'  => $assignment ? trim($assignment->teacher->first_name . ' ' . $assignment->teacher->last_name) : null,
+                            'teacher_phone' => $assignment->teacher->phone ?? null,
+                            'entered'       => $entered,
+                            'total'         => $totalStudents,
+                        ];
+                    })->values();
                 }
             }
 
             return view('home', [
-                'notices'         => $notices,
-                'isStudent'       => false,
-                'isTeacher'       => true,
-                'ctAssignments'   => $ctAssignments,
-                'ppTypes'         => $ppTypes,
-                'studentsByCt'    => $studentsByCt,
-                'attendanceByCt'  => $attendanceByCt,
-                'marksStatusByCt' => $marksStatusByCt,
+                'notices'             => $notices,
+                'isStudent'           => false,
+                'isTeacher'           => true,
+                'ctAssignments'       => $ctAssignments,
+                'ppTypes'             => $ppTypes,
+                'studentsByCt'        => $studentsByCt,
+                'attendanceByCt'      => $attendanceByCt,
+                'marksStatusByCt'     => $marksStatusByCt,
+                'subjectTeachersByCt' => $subjectTeachersByCt,
+                'activeTermByCt'      => $activeTermByCt,
             ]);
         }
 
