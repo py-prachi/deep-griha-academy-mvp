@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Traits\SchoolSession;
 use App\Models\ClassTeacher;
+use App\Models\SubjectTeacher;
 use App\Models\StudentObservation;
 use App\Models\PrePrimarySkillGrade;
 use App\Repositories\PromotionRepository;
@@ -202,13 +203,26 @@ class PrePrimaryController extends Controller
      * A teacher's own pre-primary Class Teacher assignments (e.g. one teacher
      * covering both Nursery and Lower KG shows up as two rows here).
      */
+    // Pre-primary classes this teacher can reach at all — as CT or as a subject
+    // teacher (e.g. PE, taught across every class including Nursery–UKG). Editing
+    // skill grades stays CT-only (see entry()/store()); this list only decides
+    // which classes show up to pick from / auto-select.
     private function myPrePrimaryAssignments($user, $session_id)
     {
-        return ClassTeacher::with(['schoolClass', 'section'])
+        $ctAssignments = ClassTeacher::with(['schoolClass', 'section'])
             ->where('teacher_id', $user->id)
             ->where('session_id', $session_id)
-            ->get()
+            ->get();
+
+        $subjectAssignments = SubjectTeacher::with(['schoolClass', 'section'])
+            ->where('teacher_id', $user->id)
+            ->where('session_id', $session_id)
+            ->get();
+
+        return $ctAssignments
+            ->concat($subjectAssignments)
             ->filter(fn($a) => self::getPrePrimaryType(optional($a->schoolClass)->class_name ?? '') !== null)
+            ->unique(fn($a) => $a->class_id . '-' . $a->section_id)
             ->values();
     }
 
@@ -279,7 +293,11 @@ class PrePrimaryController extends Controller
             return redirect()->route('marks.index')->with('error', 'This class is not a pre-primary class.');
         }
 
-        // Authorization for teachers
+        // Authorization for teachers — CT can edit; a subject teacher assigned to
+        // this class (e.g. PE, taught across every class including pre-primary)
+        // can view the same way a CT views a subject's marks they don't personally
+        // teach on the regular Marks Entry page, but can't save (see store()).
+        $readOnly = false;
         if ($user->role === 'teacher') {
             $isCT = ClassTeacher::where('teacher_id', $user->id)
                 ->where('class_id', $class_id)
@@ -287,7 +305,15 @@ class PrePrimaryController extends Controller
                 ->where('session_id', $session_id)
                 ->exists();
             if (!$isCT) {
-                abort(403, 'You are not the class teacher for this class.');
+                $isSubjectTeacher = SubjectTeacher::where('teacher_id', $user->id)
+                    ->where('class_id', $class_id)
+                    ->where('section_id', $section_id)
+                    ->where('session_id', $session_id)
+                    ->exists();
+                if (!$isSubjectTeacher) {
+                    abort(403, 'You are not assigned to this class.');
+                }
+                $readOnly = true;
             }
         }
 
@@ -343,6 +369,7 @@ class PrePrimaryController extends Controller
             'page'           => $page,
             'totalPages'     => $totalPages,
             'perPage'        => $perPage,
+            'readOnly'       => $readOnly,
         ]);
     }
 
@@ -592,7 +619,8 @@ class PrePrimaryController extends Controller
         $class_id   = $promotion->class_id;
         $section_id = $promotion->section_id;
 
-        // Authorization for teachers
+        // Authorization for teachers — printing is a view action, so a subject
+        // teacher assigned to this class can print it too, same as the CT.
         if ($user->role === 'teacher') {
             $isCT = ClassTeacher::where('teacher_id', $user->id)
                 ->where('class_id', $class_id)
@@ -600,7 +628,14 @@ class PrePrimaryController extends Controller
                 ->where('session_id', $session_id)
                 ->exists();
             if (!$isCT) {
-                abort(403, 'You are not the class teacher for this student\'s class.');
+                $isSubjectTeacher = SubjectTeacher::where('teacher_id', $user->id)
+                    ->where('class_id', $class_id)
+                    ->where('section_id', $section_id)
+                    ->where('session_id', $session_id)
+                    ->exists();
+                if (!$isSubjectTeacher) {
+                    abort(403, 'You are not assigned to this student\'s class.');
+                }
             }
         }
 
@@ -690,7 +725,8 @@ class PrePrimaryController extends Controller
             abort(400, 'class_id and section_id are required.');
         }
 
-        // Authorization for teachers
+        // Authorization for teachers — printing is a view action, so a subject
+        // teacher assigned to this class can print it too, same as the CT.
         if ($user->role === 'teacher') {
             $isCT = ClassTeacher::where('teacher_id', $user->id)
                 ->where('class_id', $class_id)
@@ -698,7 +734,14 @@ class PrePrimaryController extends Controller
                 ->where('session_id', $session_id)
                 ->exists();
             if (!$isCT) {
-                abort(403);
+                $isSubjectTeacher = SubjectTeacher::where('teacher_id', $user->id)
+                    ->where('class_id', $class_id)
+                    ->where('section_id', $section_id)
+                    ->where('session_id', $session_id)
+                    ->exists();
+                if (!$isSubjectTeacher) {
+                    abort(403);
+                }
             }
         }
 
