@@ -163,17 +163,22 @@ class HomeController extends Controller
                         ->get()
                         ->filter(fn($st) => $st->teacher);
 
-                    $subjectTeachersByCt[$ct->id] = $subjects->map(function ($subject) use ($subjectTeacherAssignments, $allMarks, $activeTerm, $totalStudents) {
+                    $subjectTeachersByCt[$ct->id] = $subjects->map(function ($subject) use ($subjectTeacherAssignments, $allMarks, $activeTerm, $totalStudents, $studentIds) {
                         $assignment = $subjectTeacherAssignments->firstWhere('subject_id', $subject->id);
+                        // Only count entries among currently-active students — a mark
+                        // row can outlive a student leaving the section (exit, transfer,
+                        // promotion mid-year), and that history shouldn't inflate this
+                        // count past the current roster size.
                         $entered = $activeTerm
-                            ? $allMarks->where('subject_id', $subject->id)->where('term', $activeTerm)->pluck('student_id')->unique()->count()
+                            ? $allMarks->where('subject_id', $subject->id)->where('term', $activeTerm)
+                                ->pluck('student_id')->unique()
+                                ->intersect($studentIds)->count()
                             : null;
                         return (object) [
-                            'subject_name'  => $subject->name,
-                            'teacher_name'  => $assignment ? trim($assignment->teacher->first_name . ' ' . $assignment->teacher->last_name) : null,
-                            'teacher_phone' => $assignment->teacher->phone ?? null,
-                            'entered'       => $entered,
-                            'total'         => $totalStudents,
+                            'subject_name' => $subject->name,
+                            'teacher_name' => $assignment ? trim($assignment->teacher->first_name . ' ' . $assignment->teacher->last_name) : null,
+                            'entered'      => $entered,
+                            'total'        => $totalStudents,
                         ];
                     })->values();
                 }
