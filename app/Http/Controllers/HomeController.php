@@ -133,7 +133,10 @@ class HomeController extends Controller
                     $marksStatus = [];
                     foreach ([1, 2] as $term) {
                         $termMarks = $allMarks->where('term', $term);
-                        $enteredStudents = $termMarks->pluck('student_id')->unique()->count();
+                        // Same fix as the Subject Teachers card below: only count entries
+                        // among currently-active students, so a mark row that outlived a
+                        // student leaving the section can't push this past the roster size.
+                        $enteredStudents = $termMarks->pluck('student_id')->unique()->intersect($studentIds)->count();
                         $marksStatus[$term] = [
                             'entered'  => $enteredStudents,
                             'total'    => $totalStudents,
